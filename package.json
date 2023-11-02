@@ -1,0 +1,21 @@
+{
+  "name": "amesu",
+  "version": "2.0.0",
+  "description": "",
+  "engines": {
+    "node": ">=16"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "amesu",
+    "bot",
+    "qq"
+  ],
+  "author": "Xue Elf <xueelf@outlook.com>",
+  "license": "MIT"
+}
