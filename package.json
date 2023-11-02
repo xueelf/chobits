@@ -9,7 +9,8 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc && tsc-alias",
+    "build:watch": "tsc && (concurrently \"tsc -w\" \"tsc-alias -w\")"
   },
   "keywords": [
     "amesu",
@@ -17,5 +18,16 @@
     "qq"
   ],
   "author": "Xue Elf <xueelf@outlook.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "@types/ws": "^8.5.8",
+    "concurrently": "^8.2.2",
+    "tsc-alias": "^1.8.8",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "loglevel": "^1.8.1",
+    "ws": "^8.14.2"
+  }
 }
