@@ -48,11 +48,11 @@ async function baseRequest<T>(url: string, config?: Config): Promise<Result<T>> 
 
 export async function request<T = Data>(config: Config): Promise<Result<T>>;
 export async function request<T = Data>(url: string, config?: Config): Promise<Result<T>>;
-export async function request<T = Data>(url: string | Config, config?: Config): Promise<Result<T>> {
-  if (typeof url === 'string') {
-    return baseRequest(url, config);
-  } else if (typeof config === 'object' && config.url) {
-    return baseRequest(config.url, config);
+export async function request<T = Data>(firstArg: string | Config, lastArg?: Config): Promise<Result<T>> {
+  if (typeof firstArg === 'string') {
+    return baseRequest(firstArg, lastArg);
+  } else if (typeof firstArg === 'object' && firstArg.url) {
+    return baseRequest(firstArg.url, firstArg);
   } else {
     throw new RequestError('Bad parameter');
   }
