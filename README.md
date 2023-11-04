@@ -18,36 +18,19 @@
 
 ## 使用
 
-> 现在是幻想时间，下列的伪代码是理想中的开发效果，可能会在未来发生变化。
-
-基于 Emitter
+> 目前还未发版，现在是幻想时间，下列的伪代码是理想中的开发效果，可能会在未来发生变化。
 
 ```javascript
-import { Client } from 'amesu';
+import { Bot } from 'amesu';
 
-const appid = '';
-const token = '';
-const client = new Client(appid, token);
-
-client.on('GROUP_AT_MESSAGE_CREATE', event => {
-  console.log(event);
+const bot = new Bot({
+  appid: '',
+  token: '',
+  secret: '',
 });
-```
 
-基于 ReactiveX
-
-```javascript
-import { Client, event } from 'amesu';
-
-const appid = '';
-const token = '';
-const client$ = new Client(appid, token);
-
-client$
-  .pipe(
-    event('GROUP_AT_MESSAGE_CREATE'),
-  )
-  .subscribe(event => {
-    console.log(event);
-  });
+bot.on('GROUP_AT_MESSAGE_CREATE', event => {
+  console.log(event); // 收到的消息
+  event.reply('hello world'); // 回复当前消息
+});
 ```
