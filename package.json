@@ -27,7 +27,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "loglevel": "^1.8.1",
+    "log4js": "^6.9.1",
     "ws": "^8.14.2"
   }
 }
