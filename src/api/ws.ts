@@ -1,18 +1,11 @@
-import { instance } from './index.js';
+import type { createRequest, Result } from '@/utils/request.js';
 
-interface Gateway {
+export interface Gateway {
   /** WebSocket 的连接地址。 */
   url: string;
 }
 
-/**
- * 获取通用 WSS 接入点。
- */
-export function getGateway() {
-  return instance.get<Gateway>('/gateway');
-}
-
-interface GatewayBot {
+export interface GatewayBot {
   /** WebSocket 的连接地址。 */
   url: string;
   /** 建议的 shard 数。 */
@@ -30,9 +23,19 @@ interface GatewayBot {
   };
 }
 
-/**
- * 获取带分片 WSS 接入点。
- */
-export function getGatewayBot() {
-  return instance.get<GatewayBot>('/gateway/bot');
-}
+export default (instance: ReturnType<typeof createRequest>) => {
+  return {
+    /**
+     * 获取通用 WSS 接入点。
+     */
+    getGateway(): Promise<Result<Gateway>> {
+      return instance.get<Gateway>('/gateway');
+    },
+    /**
+     * 获取带分片 WSS 接入点。
+     */
+    getGatewayBot(): Promise<Result<GatewayBot>> {
+      return instance.get<GatewayBot>('/gateway/bot');
+    },
+  };
+};

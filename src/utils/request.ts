@@ -1,9 +1,12 @@
+import { getLogger } from '@/utils/logger.js';
+
 export type Data = Record<string, unknown>;
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-export interface Config extends RequestInit {
+export interface RequestConfig extends RequestInit {
+  appid?: string;
   baseURL?: string;
-  method?: Method;
+  method: Method;
   url?: string;
 }
 
@@ -21,34 +24,44 @@ export class RequestError extends Error {
   }
 }
 
-async function baseRequest<T>(url: string, config?: Config): Promise<Result<T>> {
-  const defaultConfig: Config = {
+async function baseRequest<T>(url: string, config?: RequestConfig): Promise<Result<T>> {
+  const logger = getLogger(config?.appid ?? '');
+  const defaultConfig: Omit<RequestConfig, 'method'> = {
     headers: {
       'Content-Type': 'application/json',
     },
   };
-  const response = await fetch(config?.baseURL ?? '' + url, { ...defaultConfig, ...config });
+  const response = await fetch((config?.baseURL ?? '') + url, { ...defaultConfig, ...config });
   const result: Partial<Result> = {
     status: response.status,
     statusText: response.statusText,
     headers: response.headers,
   };
 
+  logger?.debug(`Request: ${response.url}`);
+
   try {
-    result.data = <Data>await response.json();
+    const data = <Data>await response.json();
+
+    if (data.code) {
+      // TODO: ／人◕ ‿‿ ◕人＼ 处理 token 重新获取
+      logger?.error(`Code: ${data.code}`);
+      throw new RequestError(<string>data.message);
+    }
+    result.data = data;
   } catch (error) {
     if (!response.ok) {
-      throw new RequestError('Request failed');
+      logger?.error(error);
+      throw error instanceof Error ? error : new RequestError('Request failed');
     }
     result.data = {};
   }
-
   return <Result<T>>result;
 }
 
-export async function request<T = Data>(config: Config): Promise<Result<T>>;
-export async function request<T = Data>(url: string, config?: Config): Promise<Result<T>>;
-export async function request<T = Data>(firstArg: string | Config, lastArg?: Config): Promise<Result<T>> {
+export async function request<T = Data>(config: RequestConfig): Promise<Result<T>>;
+export async function request<T = Data>(url: string, config?: RequestConfig): Promise<Result<T>>;
+export async function request<T = Data>(firstArg: string | RequestConfig, lastArg?: RequestConfig): Promise<Result<T>> {
   if (typeof firstArg === 'string') {
     return baseRequest(firstArg, lastArg);
   } else if (typeof firstArg === 'object' && firstArg.url) {
@@ -58,39 +71,39 @@ export async function request<T = Data>(firstArg: string | Config, lastArg?: Con
   }
 }
 
-export function getRequest<T = Data>(url: string, config?: Config): Promise<Result<T>> {
-  config ??= {
-    method: 'GET',
-  };
-  config.method = 'GET';
-
-  return request(url, config);
+export function getRequest<T = Data>(url: string, config?: Omit<RequestConfig, 'method'>): Promise<Result<T>> {
+  return request(url, { ...config, method: 'GET' });
 }
 
-export function postRequest<T = Data>(url: string, data?: Data, config?: Config): Promise<Result<T>> {
-  config ??= {
-    method: 'POST',
-  };
-  config.method = 'POST';
+export function postRequest<T = Data>(
+  url: string,
+  data?: Data,
+  config: Omit<RequestConfig, 'method'> = {},
+): Promise<Result<T>> {
   config.body = JSON.stringify(data);
 
-  return request(url, config);
+  return request(url, {
+    ...config,
+    ...{
+      method: 'POST',
+    },
+  });
 }
 
-export function create(config: Config) {
+export function createRequest(config: Omit<RequestConfig, 'method'>) {
   return {
     config,
-    get<T = Data>(url: string, config?: Config) {
+    get<T = Data>(url: string, config?: RequestConfig) {
       return getRequest<T>(url, { ...config, ...this.config });
     },
-    post<T = Data>(url: string, data?: Data, config?: Config) {
+    post<T = Data>(url: string, data?: Data, config?: RequestConfig) {
       return postRequest<T>(url, data, { ...config, ...this.config });
     },
   };
 }
 
 export default {
+  create: createRequest,
   get: getRequest,
-  post: postRequest,
-  create,
+  pose: postRequest,
 };
