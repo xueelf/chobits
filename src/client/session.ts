@@ -41,6 +41,8 @@ enum IntentEvent {
   ForumsEvent = 'FORUMS_EVENT',
   AudioAction = 'AUDIO_ACTION',
   PublicGuildMessages = 'PUBLIC_GUILD_MESSAGES',
+
+  // TODO: ／人◕ ‿‿ ◕人＼ 待补全
 }
 
 type IntentBitShift = {
@@ -130,6 +132,8 @@ const intentBitShift: IntentBitShift = {
   FORUMS_EVENT: 1 << 28,
   AUDIO_ACTION: 1 << 29,
   PUBLIC_GUILD_MESSAGES: 1 << 30,
+
+  // TODO: ／人◕ ‿‿ ◕人＼ 待补全
 };
 
 export class Session extends EventEmitter {
@@ -137,8 +141,10 @@ export class Session extends EventEmitter {
   private is_reconnect: boolean;
   /** 心跳间隔 */
   private heartbeat_interval!: number;
+  /** 记录器 */
   private logger: Logger;
   // private retry: number;
+  /** 消息序列号 */
   private seq: number;
   /** 会话 id */
   private session_id: string;
@@ -179,7 +185,7 @@ export class Session extends EventEmitter {
   }
 
   private onError(error: Error) {
-    this.logger.debug('连接 socket 发生错误');
+    this.logger.fatal('连接 socket 发生错误');
   }
 
   private onMessage(data: RawData) {
@@ -195,6 +201,7 @@ export class Session extends EventEmitter {
           const { session_id } = d;
 
           this.session_id = session_id;
+
           this.logger.info(`Hello, ${d.user.username}`);
           this.logger.trace('开始发送心跳...');
           this.dokidoki();
@@ -208,7 +215,7 @@ export class Session extends EventEmitter {
         this.emit('dispatch', dispatch);
         break;
       case Op.Reconnect:
-        this.logger.warn('当前会话已失效，等待断开后自动重连');
+        this.logger.info('当前会话已失效，等待断开后自动重连');
         this.ws.close();
         break;
       case Op.InvalidSession:

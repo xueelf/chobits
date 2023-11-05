@@ -49,7 +49,7 @@ export interface EventMap<T = any> {
   /** 连接已寄，请检查网络或重启 */
   DEAD: (this: T, event: unknown) => void;
 
-  // TODO: ／人◕ ‿‿ ◕人＼ 事件补全
+  // TODO: ／人◕ ‿‿ ◕人＼ 待补全
   MESSAGE_CREATE: (this: T, event: MessageCreateEvent) => void;
 }
 
