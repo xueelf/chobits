@@ -28,13 +28,13 @@ export default (instance: ReturnType<typeof createRequest>) => {
     /**
      * 获取通用 WSS 接入点。
      */
-    getGateway(): Promise<Result<Gateway>> {
+    gateway(): Promise<Result<Gateway>> {
       return instance.get<Gateway>('/gateway');
     },
     /**
      * 获取带分片 WSS 接入点。
      */
-    getGatewayBot(): Promise<Result<GatewayBot>> {
+    gatewayBot(): Promise<Result<GatewayBot>> {
       return instance.get<GatewayBot>('/gateway/bot');
     },
   };
