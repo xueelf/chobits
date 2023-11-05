@@ -66,7 +66,7 @@ export class Token extends EventEmitter {
     const timestamp = Date.now();
 
     this.value = data.access_token;
-    this.lifespan = timestamp + data.expires_in * 100;
+    this.lifespan = timestamp + data.expires_in * 1000;
     this.logger.debug('获取 token 成功');
     await this.writeCache();
   }
@@ -75,15 +75,16 @@ export class Token extends EventEmitter {
     await this.readCache();
 
     if (this.is_expires) {
-      this.logger.debug('未检测到 token 有效值，开始重新获取...');
+      this.logger.debug('未检测到有效值，正在重新获取');
       await this.updateToken();
     } else {
-      this.logger.debug('已加载 token 缓存');
+      this.logger.debug('已读取数据');
     }
-    this.emit('token.ready');
+    this.emit('ready');
   }
 
   private async readCache() {
+    this.logger.trace('开始解析 token 缓存文件...');
     this.createDir();
 
     try {
