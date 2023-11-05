@@ -74,7 +74,7 @@ export class Token extends EventEmitter {
 
       this.logger.debug(`Token: ${objectToString(data)}`);
     } catch (error) {
-      this.logger.error('获取 token 失败，请检查 appid 等参数是否有效');
+      this.logger.error('获取 token 失败，请检查网络以及 appid 等参数是否有效');
       throw new Error('Please check the config parameter is correct');
     }
   }

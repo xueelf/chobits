@@ -1,6 +1,5 @@
 import type { Logger } from 'log4js';
 import type { Token } from '@/client/token.js';
-import type { BotConfig } from '@/client/bot.js';
 import type { EventType, ReadyEvent } from '@/client/event.js';
 
 import { RawData, WebSocket } from 'ws';
@@ -139,7 +138,7 @@ export class Session extends EventEmitter {
   private heartbeat_interval!: number;
   /** 记录器 */
   private logger: Logger;
-  // private retry: number;
+  private retry: number;
   /** 消息序列号 */
   private seq: number;
   /** 会话 id */
@@ -151,18 +150,21 @@ export class Session extends EventEmitter {
 
     this.is_reconnect = false;
     this.logger = getLogger(appid);
-    // this.retry = 0;
+    this.retry = 0;
     this.seq = 0;
     this.session_id = '';
   }
 
   private onOpen() {
+    this.retry = 0;
     this.logger.debug('连接 socket 成功');
   }
 
-  private onClose(code: number) {
+  private async onClose(code: number) {
     this.logger.debug(`Code: ${code}`);
     this.logger.warn('断开 socket 连接');
+
+    await this.token.renew();
     this.reconnect();
   }
 
@@ -170,7 +172,7 @@ export class Session extends EventEmitter {
     this.logger.fatal('连接 socket 发生错误');
   }
 
-  private async onMessage(data: RawData) {
+  private onMessage(data: RawData) {
     this.logger.debug(`收到 socket 消息: ${data}`);
     const message = <SessionMessage>JSON.parse(data.toString());
 
@@ -198,7 +200,6 @@ export class Session extends EventEmitter {
         break;
       case Op.Reconnect:
         this.logger.info('当前会话已失效，等待断开后自动重连');
-        await this.token.renew();
         this.ws!.close();
         break;
       case Op.InvalidSession:
@@ -283,23 +284,33 @@ export class Session extends EventEmitter {
     if (!this.is_reconnect) {
       this.is_reconnect = true;
     }
+    this.retry++;
     this.ws!.removeAllListeners();
 
-    // TODO: ／人◕ ‿‿ ◕人＼ retry 计数
-    this.logger.info(`尝试重连...`);
+    try {
+      this.logger.info(`尝试重连... x${this.retry}`);
 
-    setTimeout(() => {
-      this.connect(this.ws!.url);
-    }, 1000);
+      setTimeout(() => {
+        this.ws = this.connect(this.ws!.url);
+      }, 3000);
+    } catch (error) {
+      this.reconnect();
+    }
   }
 
-  public connect(url: string) {
+  public connect(url: string): WebSocket {
     this.logger.trace('开始建立 ws 通信...');
 
-    this.ws = new WebSocket(url);
-    this.ws.on('open', () => this.onOpen());
-    this.ws.on('close', code => this.onClose(code));
-    this.ws.on('error', error => this.onError(error));
-    this.ws.on('message', data => this.onMessage(data));
+    const ws = new WebSocket(url);
+
+    ws.on('open', () => this.onOpen());
+    ws.on('close', code => this.onClose(code));
+    ws.on('error', error => this.onError(error));
+    ws.on('message', data => this.onMessage(data));
+
+    if (!this.ws) {
+      this.ws = ws;
+    }
+    return ws;
   }
 }
