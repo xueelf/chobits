@@ -6,6 +6,7 @@ import { Token } from '@/client/token.js';
 import { Request } from '@/client/request.js';
 import { Session } from '@/client/session.js';
 import { EventMap } from '@/client/event.js';
+import { deepAssign } from '@/utils/common.js';
 import { LogLevel, createLogger } from '@/utils/logger.js';
 
 type AsyncReturnType<T extends (...args: any[]) => Promise<any>> = T extends (...args: any[]) => Promise<infer R>
@@ -65,11 +66,13 @@ export class Bot extends EventEmitter {
 
     this.request.useRequestInterceptor(async config => {
       await this.token.renew();
+      deepAssign(config, {
+        headers: {
+          'Authorization': `QQBot ${this.token.value}`,
+          'X-Union-Appid': this.appid,
+        },
+      });
 
-      config.headers = {
-        'Authorization': `QQBot ${this.token.value}`,
-        'X-Union-Appid': this.appid,
-      };
       return config;
     });
 
