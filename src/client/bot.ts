@@ -17,7 +17,6 @@ export interface BotConfig {
   appid: string;
   token: string;
   secret: string;
-  data_dir?: string;
   log_level?: LogLevel;
 }
 
@@ -56,7 +55,6 @@ export class Bot extends EventEmitter {
   constructor(private config: BotConfig) {
     super();
 
-    config.data_dir ??= join(process.cwd(), 'data');
     config.log_level ??= 'INFO';
 
     this.appid = config.appid;
@@ -73,16 +71,14 @@ export class Bot extends EventEmitter {
   }
 
   private async onRequestResponse(event: Result) {
-    const { data } = event;
-
-    if (data.code && data.code === 11244) {
-      this.logger.info('token 过期');
-      await this.token.renewToken();
-    } else if (data.code) {
-      // TODO: ／人◕ ‿‿ ◕人＼ 异常处理
-      // this.logger.debug(`Code: ${data.code}`);
-      // throw new Error(<string>data.message);
-    }
+    // const { data } = event;
+    // if (data.code && data.code === 11244) {
+    //   this.logger.info('token 过期');
+    //   await this.token.renew();
+    // } else if (data.code) {
+    //   this.logger.debug(`Code: ${data.code}`);
+    //   throw new Error(<string>data.message);
+    // }
   }
 
   private async onTokenReady() {
@@ -93,10 +89,6 @@ export class Bot extends EventEmitter {
   private async createSession() {
     const { data } = await this.api.gateway();
 
-    if (!data.url) {
-      await this.createSession();
-      return;
-    }
     this.session = new Session({
       url: data.url,
       appid: this.appid,

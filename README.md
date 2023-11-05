@@ -18,19 +18,25 @@
 
 ## 使用
 
-> 目前还未发版，现在是幻想时间，下列的伪代码是理想中的开发效果，可能会在未来发生变化。
+> 目前还未发版，当前的示例代码可能会在未来发生变化。
 
 ```javascript
 import { Bot } from 'amesu';
 
 const bot = new Bot({
-  appid: '',
-  token: '',
-  secret: '',
+  appid: '<appid>',
+  token: '<token>',
+  secret: '<secret>',
+  log_level: '[log_level]',
 });
 
-bot.on('GROUP_AT_MESSAGE_CREATE', event => {
-  console.log(event); // 收到的消息
-  event.reply('hello world'); // 回复当前消息
+bot.on('MESSAGE_CREATE', event => {
+  // 收到的消息事件
+  console.log(event);
+
+  // 调用 api
+  bot.api.channelsMessages(event.channel_id, {
+    content: 'hello world',
+  });
 });
 ```

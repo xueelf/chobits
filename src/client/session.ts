@@ -154,7 +154,7 @@ export class Session extends EventEmitter {
     super();
 
     this.is_reconnect = false;
-    this.logger = getLogger(config.appid)!;
+    this.logger = getLogger(config.appid);
     // this.retry = 0;
     this.seq = 0;
     this.session_id = '';
