@@ -1,9 +1,11 @@
 import type { Logger } from 'log4js';
+import type { Token } from '@/client/token.js';
+import type { BotConfig } from '@/client/bot.js';
+import type { EventType, ReadyEvent } from '@/client/event.js';
 
 import { RawData, WebSocket } from 'ws';
 import { EventEmitter } from 'node:events';
 import { getLogger } from '@/utils/logger.js';
-import { EventType, ReadyEvent } from '@/client/event.js';
 
 /** 心跳参数 */
 enum Op {
@@ -48,12 +50,6 @@ enum IntentEvent {
 type IntentBitShift = {
   [key in IntentEvent]: number;
 };
-
-interface SessionConfig {
-  url: string;
-  appid: string;
-  token: string;
-}
 
 /** 服务器推送消息 */
 interface DispatchMessage {
@@ -148,27 +144,16 @@ export class Session extends EventEmitter {
   private seq: number;
   /** 会话 id */
   private session_id: string;
-  private ws: WebSocket;
+  private ws?: WebSocket;
 
-  constructor(private config: SessionConfig) {
+  constructor(private appid: string, private token: Token) {
     super();
 
     this.is_reconnect = false;
-    this.logger = getLogger(config.appid);
+    this.logger = getLogger(appid);
     // this.retry = 0;
     this.seq = 0;
     this.session_id = '';
-    this.logger.trace('开始建立 ws 通信...');
-    this.ws = new WebSocket(this.config.url);
-
-    this.initEvents();
-  }
-
-  private initEvents() {
-    this.ws.on('open', () => this.onOpen());
-    this.ws.on('close', code => this.onClose(code));
-    this.ws.on('error', error => this.onError(error));
-    this.ws.on('message', data => this.onMessage(data));
   }
 
   private onOpen() {
@@ -176,11 +161,8 @@ export class Session extends EventEmitter {
   }
 
   private onClose(code: number) {
-    this.is_reconnect = true;
-
     this.logger.debug(`Code: ${code}`);
     this.logger.warn('断开 socket 连接');
-    this.ws.removeAllListeners();
     this.reconnect();
   }
 
@@ -188,7 +170,7 @@ export class Session extends EventEmitter {
     this.logger.fatal('连接 socket 发生错误');
   }
 
-  private onMessage(data: RawData) {
+  private async onMessage(data: RawData) {
     this.logger.debug(`收到 socket 消息: ${data}`);
     const message = <SessionMessage>JSON.parse(data.toString());
 
@@ -204,7 +186,7 @@ export class Session extends EventEmitter {
 
           this.logger.info(`Hello, ${d.user.username}`);
           this.logger.trace('开始发送心跳...');
-          this.dokidoki();
+          this.heartbeat();
         }
         const dispatch = {
           type: t,
@@ -216,22 +198,23 @@ export class Session extends EventEmitter {
         break;
       case Op.Reconnect:
         this.logger.info('当前会话已失效，等待断开后自动重连');
-        this.ws.close();
+        await this.token.renew();
+        this.ws!.close();
         break;
       case Op.InvalidSession:
         this.logger.error('发起 socket 连接的参数有误');
         break;
       case Op.Hello:
         this.heartbeat_interval = message.d.heartbeat_interval;
-        this.is_reconnect ? this.connect() : this.auth();
+        this.is_reconnect ? this.resume() : this.auth();
         break;
       case Op.HeartbeatAck:
-        setTimeout(() => this.dokidoki(), this.heartbeat_interval);
+        setTimeout(() => this.heartbeat(), this.heartbeat_interval);
         break;
     }
   }
 
-  private dokidoki() {
+  private heartbeat() {
     const message: HeartbeatMessage = {
       op: Op.Heartbeat,
       d: this.seq,
@@ -243,7 +226,7 @@ export class Session extends EventEmitter {
     try {
       const data = typeof message === 'string' ? message : JSON.stringify(message);
 
-      this.ws.send(data);
+      this.ws!.send(data);
       this.logger.debug(`发送 socket 消息: ${data}`);
     } catch (error) {
       this.logger.error(error);
@@ -269,7 +252,7 @@ export class Session extends EventEmitter {
     const message: IdentifyMessage = {
       op: Op.Identify,
       d: {
-        token: `QQBot ${this.config.token}`,
+        token: `QQBot ${this.token.value}`,
         intents: this.getIntents(),
         // TODO: ／人◕ ‿‿ ◕人＼ 分片
         shard: [0, 1],
@@ -280,27 +263,43 @@ export class Session extends EventEmitter {
     this.sendMessage(message);
   }
 
-  private connect() {
-    this.is_reconnect = false;
-
+  private resume() {
     const message: ResumeMessage = {
       op: Op.Resume,
       d: {
-        token: `QQBot ${this.config.token}`,
+        token: `QQBot ${this.token.value}`,
         seq: this.seq,
         session_id: this.session_id,
       },
     };
+
+    if (this.is_reconnect) {
+      this.is_reconnect = false;
+    }
     this.sendMessage(message);
   }
 
   private reconnect() {
+    if (!this.is_reconnect) {
+      this.is_reconnect = true;
+    }
+    this.ws!.removeAllListeners();
+
     // TODO: ／人◕ ‿‿ ◕人＼ retry 计数
     this.logger.info(`尝试重连...`);
 
     setTimeout(() => {
-      this.ws = new WebSocket(this.config.url);
-      this.initEvents();
+      this.connect(this.ws!.url);
     }, 1000);
+  }
+
+  public connect(url: string) {
+    this.logger.trace('开始建立 ws 通信...');
+
+    this.ws = new WebSocket(url);
+    this.ws.on('open', () => this.onOpen());
+    this.ws.on('close', code => this.onClose(code));
+    this.ws.on('error', error => this.onError(error));
+    this.ws.on('message', data => this.onMessage(data));
   }
 }

@@ -6,13 +6,9 @@ import gateway from '@/api/gateway.js';
 import groups from '@/api/groups.js';
 import users from '@/api/users.js';
 
-export async function createApi(request: Request) {
+export function createApi(request: Request) {
   const instance = request.create({
     baseURL: 'https://api.sgroup.qq.com',
-    headers: {
-      'Authorization': `QQBot ${request.token.value}`,
-      'X-Union-Appid': request.token.config.appid,
-    },
   });
 
   return {

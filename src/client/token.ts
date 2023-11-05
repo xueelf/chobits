@@ -8,7 +8,7 @@ import { objectToString } from '@/utils/common.js';
 export interface AppAccessToken {
   /** 获取到的凭证。 */
   access_token: string;
-  /** 凭证有效时间，单位：秒。目前是7200秒之内的值。 */
+  /** 凭证有效时间，单位：秒。目前是 7200 秒之内的值。 */
   expires_in: number;
 }
 
@@ -58,6 +58,9 @@ export class Token extends EventEmitter {
   }
 
   public async renew(): Promise<void> {
+    if (!this.is_expires) {
+      return;
+    }
     const { appid, secret } = this.config;
 
     try {

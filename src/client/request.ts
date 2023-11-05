@@ -1,7 +1,5 @@
 import type { Logger } from 'log4js';
 
-import { EventEmitter } from 'node:events';
-import { Token } from '@/client/token.js';
 import { getLogger } from '@/utils/logger.js';
 import { deepAssign, objectToString } from '@/utils/common.js';
 
@@ -32,15 +30,13 @@ export class RequestError extends Error {
   }
 }
 
-export class Request extends EventEmitter {
+export class Request {
   private logger: Logger;
   private requestInterceptors: RequestInterceptor[];
   private responseInterceptors: ResponseInterceptor[];
 
-  constructor(public token: Token) {
-    super();
-
-    this.logger = getLogger(token.config.appid);
+  constructor(appid: string) {
+    this.logger = getLogger(appid);
     this.requestInterceptors = [];
     this.responseInterceptors = [];
   }
@@ -84,7 +80,6 @@ export class Request extends EventEmitter {
       for (const interceptor of this.responseInterceptors) {
         // TODO: ／人◕ ‿‿ ◕人＼ 目前用不到
       }
-      this.emit('response', result);
       this.logger.debug(`Response: ${objectToString(result.data)}`);
     } catch (error) {
       if (!response.ok) {

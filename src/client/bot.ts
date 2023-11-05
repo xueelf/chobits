@@ -1,10 +1,9 @@
 import type { Logger } from 'log4js';
 
-import { join } from 'node:path';
 import { EventEmitter } from 'node:events';
 import { createApi } from '@/api/index.js';
 import { Token } from '@/client/token.js';
-import { Request, Result } from '@/client/request.js';
+import { Request } from '@/client/request.js';
 import { Session } from '@/client/session.js';
 import { EventMap } from '@/client/event.js';
 import { LogLevel, createLogger } from '@/utils/logger.js';
@@ -46,11 +45,11 @@ export interface Bot extends EventEmitter {
 export class Bot extends EventEmitter {
   public appid: string;
   public logger: Logger;
-  public api!: Omit<AsyncReturnType<typeof createApi>, 'request'>;
+  public api: ReturnType<typeof createApi>;
   public request: Request;
 
   private token: Token;
-  private session!: Session;
+  private session: Session;
 
   constructor(private config: BotConfig) {
     super();
@@ -60,40 +59,29 @@ export class Bot extends EventEmitter {
     this.appid = config.appid;
     this.logger = createLogger(config.appid, config.log_level);
     this.token = new Token(<Required<BotConfig>>config);
-    this.request = new Request(this.token);
+    this.request = new Request(config.appid);
+    this.session = new Session(config.appid, this.token);
+    this.api = createApi(this.request);
 
-    this.initEvents();
+    this.request.useRequestInterceptor(async config => {
+      await this.token.renew();
+
+      config.headers = {
+        'Authorization': `QQBot ${this.token.value}`,
+        'X-Union-Appid': this.appid,
+      };
+      return config;
+    });
+
+    this.token.once('ready', async () => {
+      await this.linkStart();
+    });
   }
 
-  private initEvents() {
-    this.token.once('ready', () => this.onTokenReady());
-    this.request.on('response', event => this.onRequestResponse(event));
-  }
-
-  private async onRequestResponse(event: Result) {
-    // const { data } = event;
-    // if (data.code && data.code === 11244) {
-    //   this.logger.info('token 过期');
-    //   await this.token.renew();
-    // } else if (data.code) {
-    //   this.logger.debug(`Code: ${data.code}`);
-    //   throw new Error(<string>data.message);
-    // }
-  }
-
-  private async onTokenReady() {
-    this.api = await createApi(this.request);
-    await this.createSession();
-  }
-
-  private async createSession() {
+  private async linkStart(): Promise<void> {
     const { data } = await this.api.gateway();
 
-    this.session = new Session({
-      url: data.url,
-      appid: this.appid,
-      token: this.token.value,
-    });
+    this.session.connect(data.url);
     this.session.on('dispatch', event => {
       this.emit(event.type, event.data);
     });
