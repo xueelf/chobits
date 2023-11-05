@@ -1,4 +1,5 @@
 import { getLogger } from '@/utils/logger.js';
+import { deepAssign } from '@/utils/common.js';
 
 export type Data = Record<string, unknown>;
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -24,31 +25,38 @@ export class RequestError extends Error {
   }
 }
 
-async function baseRequest<T>(url: string, config?: RequestConfig): Promise<Result<T>> {
-  const logger = getLogger(config?.appid ?? '');
+async function baseRequest<T>(url: string, config: RequestConfig): Promise<Result<T>> {
+  const logger = getLogger(config.appid ?? '');
   const defaultConfig: Omit<RequestConfig, 'method'> = {
     headers: {
       'Content-Type': 'application/json',
     },
   };
-  const response = await fetch((config?.baseURL ?? '') + url, { ...defaultConfig, ...config });
+  config = <RequestConfig>deepAssign(defaultConfig, config);
+  config.url ??= url;
+
+  logger?.trace('开始发起网络请求...');
+
+  const response = await fetch((config.baseURL ?? '') + url, config);
   const result: Partial<Result> = {
     status: response.status,
     statusText: response.statusText,
     headers: response.headers,
   };
 
-  logger?.debug(`Request: ${response.url}`);
+  logger?.debug(`Request: ${JSON.stringify(config, null, 2)}`);
 
   try {
     const data = <Data>await response.json();
 
-    if (data.code) {
-      // TODO: ／人◕ ‿‿ ◕人＼ 处理 token 重新获取
-      logger?.error(`Code: ${data.code}`);
-      throw new RequestError(<string>data.message);
-    }
+    // 异常处理
+    // if (data.code) {
+    //   logger?.debug(`Code: ${data.code}`);
+    //   throw new RequestError(<string>data.message);
+    // }
     result.data = data;
+
+    logger?.debug(`Response: ${JSON.stringify(data, null, 2)}`);
   } catch (error) {
     if (!response.ok) {
       logger?.error(error);
@@ -63,7 +71,7 @@ export async function request<T = Data>(config: RequestConfig): Promise<Result<T
 export async function request<T = Data>(url: string, config?: RequestConfig): Promise<Result<T>>;
 export async function request<T = Data>(firstArg: string | RequestConfig, lastArg?: RequestConfig): Promise<Result<T>> {
   if (typeof firstArg === 'string') {
-    return baseRequest(firstArg, lastArg);
+    return baseRequest(firstArg, lastArg ?? { method: 'GET' });
   } else if (typeof firstArg === 'object' && firstArg.url) {
     return baseRequest(firstArg.url, firstArg);
   } else {
