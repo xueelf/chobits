@@ -13,6 +13,9 @@ export function createLogger(name: string, level: Level | LogLevel): Logger {
   return logger;
 }
 
-export function getLogger(name: string): Logger | undefined {
-  return loggerMap.get(name);
+export function getLogger(name: string): Logger {
+  if (!loggerMap.has(name)) {
+    throw new Error('No instance of Logger exists');
+  }
+  return loggerMap.get(name)!;
 }

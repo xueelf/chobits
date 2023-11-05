@@ -5,7 +5,7 @@
  * @param sources - 源对象，包含将被合并的属性。
  * @returns 目标对象。
  */
-export function deepAssign(target: Record<string, unknown>, ...sources: object[]): object {
+export function deepAssign(target: Record<string, any>, ...sources: object[]): object {
   for (let i = 0; i < sources.length; i++) {
     const source = sources[i];
 
@@ -35,4 +35,8 @@ export function deepAssign(target: Record<string, unknown>, ...sources: object[]
     });
   }
   return target;
+}
+
+export function objectToString(object: object) {
+  return JSON.stringify(object, null, 2);
 }
