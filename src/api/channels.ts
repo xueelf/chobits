@@ -1,4 +1,4 @@
-import type { createRequest, Data, Result } from '@/utils/request.js';
+import type { Data, Instance, Request, Result } from '@/client/request.js';
 import type { User } from '@/model/user.js';
 import type {
   MessageArk,
@@ -7,7 +7,7 @@ import type {
   MessageMarkdown,
   MessageReference,
 } from '@/model/message.js';
-import type{ Member } from '@/model/member.js';
+import type { Member } from '@/model/member.js';
 
 export interface ChannelsMessagesData extends Data {
   /** 文本内容 */
@@ -67,7 +67,7 @@ export interface ChannelsMessages {
   src_guild_id: string;
 }
 
-export default (instance: ReturnType<typeof createRequest>) => {
+export default (instance: Instance) => {
   return {
     /**
      * 发动消息到文字子频道。

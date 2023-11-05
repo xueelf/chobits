@@ -1,10 +1,10 @@
-import type { createRequest, Result } from '@/utils/request.js';
+import type { Instance, Request, Result } from '@/client/request.js';
 import type { ChannelsMessages, ChannelsMessagesData } from '@/api/channels.js';
 
 export interface DmfMessagesData extends ChannelsMessagesData {}
 export interface DmfMessages extends ChannelsMessages {}
 
-export default (instance: ReturnType<typeof createRequest>) => {
+export default (instance: Instance) => {
   return {
     /**
      * 用于发送私信消息，前提是已经创建了私信会话。

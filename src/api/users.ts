@@ -1,4 +1,4 @@
-import type { createRequest, Data, Result } from '@/utils/request.js';
+import type { Data, Instance, Request, Result } from '@/client/request.js';
 
 export interface UserMessagesData extends Data {
   /** 文本内容 */
@@ -37,7 +37,7 @@ export interface UserMessages {
   timestamp: number;
 }
 
-export default (instance: ReturnType<typeof createRequest>) => {
+export default (instance: Instance) => {
   return {
     /**
      * 单独发动消息给用户。

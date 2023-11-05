@@ -1,4 +1,4 @@
-import type { createRequest, Result } from '@/utils/request.js';
+import type { Instance, Request, Result } from '@/client/request.js';
 
 export interface Gateway {
   /** WebSocket 的连接地址。 */
@@ -23,7 +23,7 @@ export interface GatewayBot {
   };
 }
 
-export default (instance: ReturnType<typeof createRequest>) => {
+export default (instance: Instance) => {
   return {
     /**
      * 获取通用 WSS 接入点。
