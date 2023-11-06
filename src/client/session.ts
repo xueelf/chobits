@@ -1,6 +1,6 @@
 import type { Logger } from 'log4js';
 import type { Token } from '@/client/token.js';
-import type { EventType, ReadyEvent } from '@/client/event.js';
+import type { EventType, ReadyEvent, ResumedEvent } from '@/client/event.js';
 
 import { RawData, WebSocket } from 'ws';
 import { EventEmitter } from 'node:events';
@@ -50,15 +50,24 @@ type IntentBitShift = {
   [key in IntentEvent]: number;
 };
 
-/** 服务器推送消息 */
-interface DispatchMessage {
+interface Dispatch {
   op: Op.Dispatch;
   /** 消息序列号 */
   s: number;
-  d: ReadyEvent;
-  /** 事件类型 */
-  t: EventType;
 }
+
+interface DispatchReadyMessage extends Dispatch {
+  t: 'READY';
+  d: ReadyEvent;
+}
+
+interface DispatchResumedMessage extends Dispatch {
+  t: 'RESUMED';
+  d: ResumedEvent;
+}
+
+/** 服务器推送消息 */
+type DispatchMessage = DispatchReadyMessage | DispatchResumedMessage;
 
 /** 心跳消息 */
 interface HeartbeatMessage {
@@ -111,7 +120,7 @@ interface HeartbeatAckMessage {
   op: Op.HeartbeatAck;
 }
 
-type SessionMessage = DispatchMessage | ReconnectMessage | InvalidSessionMessage | HelloMessage | HeartbeatAckMessage;
+type SessionMessage = DispatchMessage | HeartbeatAckMessage | InvalidSessionMessage | ReconnectMessage | HelloMessage;
 
 /** 事件位移 */
 const intentBitShift: IntentBitShift = {
@@ -144,6 +153,7 @@ export class Session extends EventEmitter {
   /** 会话 id */
   private session_id: string;
   private ws?: WebSocket;
+  private ack_id?: NodeJS.Timeout;
 
   constructor(private appid: string, private token: Token) {
     super();
@@ -162,8 +172,9 @@ export class Session extends EventEmitter {
 
   private async onClose(code: number) {
     this.logger.debug(`Code: ${code}`);
-    this.logger.warn('断开 socket 连接');
+    this.logger.warn('关闭 socket 连接');
 
+    clearTimeout(this.ack_id);
     await this.token.renew();
     this.reconnect();
   }
@@ -172,31 +183,37 @@ export class Session extends EventEmitter {
     this.logger.fatal('连接 socket 发生错误');
   }
 
+  private onDispatchMessage(message: DispatchMessage) {
+    const { d, s, t } = message;
+    this.seq = s;
+
+    switch (t) {
+      case 'READY':
+        const { session_id } = d;
+
+        this.session_id = session_id;
+        this.logger.info(`Hello, ${d.user.username}`);
+      case 'RESUMED':
+        this.logger.trace('开始发送心跳...');
+        this.heartbeat();
+        break;
+    }
+    const dispatch = {
+      type: t,
+      data: d,
+    };
+
+    this.logger.info(dispatch);
+    this.emit('dispatch', dispatch);
+  }
+
   private onMessage(data: RawData) {
     this.logger.debug(`收到 socket 消息: ${data}`);
     const message = <SessionMessage>JSON.parse(data.toString());
 
     switch (message.op) {
       case Op.Dispatch:
-        const { d, s, t } = message;
-        this.seq = s;
-
-        if (t === 'READY') {
-          const { session_id } = d;
-
-          this.session_id = session_id;
-
-          this.logger.info(`Hello, ${d.user.username}`);
-          this.logger.trace('开始发送心跳...');
-          this.heartbeat();
-        }
-        const dispatch = {
-          type: t,
-          data: d,
-        };
-
-        this.logger.info(dispatch);
-        this.emit('dispatch', dispatch);
+        this.onDispatchMessage(message);
         break;
       case Op.Reconnect:
         this.logger.info('当前会话已失效，等待断开后自动重连');
@@ -210,7 +227,7 @@ export class Session extends EventEmitter {
         this.is_reconnect ? this.resume() : this.auth();
         break;
       case Op.HeartbeatAck:
-        setTimeout(() => this.heartbeat(), this.heartbeat_interval);
+        this.ack_id = setTimeout(() => this.heartbeat(), this.heartbeat_interval);
         break;
     }
   }
@@ -292,7 +309,7 @@ export class Session extends EventEmitter {
 
       setTimeout(() => {
         this.ws = this.connect(this.ws!.url);
-      }, 3000);
+      }, this.retry * 1000);
     } catch (error) {
       this.reconnect();
     }

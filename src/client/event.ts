@@ -10,6 +10,8 @@ export interface ReadyEvent {
   shard: number[];
 }
 
+export interface ResumedEvent {}
+
 export interface MessageCreateEvent {
   author: {
     avatar: string;
@@ -45,7 +47,7 @@ export interface EventMap<T = any> {
   /** 内部通信 */
   EVENT_WS: (this: T, event: unknown) => void;
   /** 重连 */
-  RESUMED: (this: T, event: unknown) => void;
+  RESUMED: (this: T, event: ResumedEvent) => void;
   /** 连接已寄，请检查网络或重启 */
   DEAD: (this: T, event: unknown) => void;
 
