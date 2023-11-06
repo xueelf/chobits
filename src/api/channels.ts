@@ -1,4 +1,4 @@
-import type { Data, Instance, Request, Result } from '@/client/request.js';
+import type { Data, Request, Result } from '@/client/request.js';
 import type { User } from '@/model/user.js';
 import type {
   MessageArk,
@@ -67,13 +67,13 @@ export interface ChannelsMessages {
   src_guild_id: string;
 }
 
-export default (instance: Instance) => {
+export default (request: Request) => {
   return {
     /**
      * 发动消息到文字子频道。
      */
     channelsMessages(channel_id: string, data: ChannelsMessagesData): Promise<Result<ChannelsMessages>> {
-      return instance.post<ChannelsMessages>(`/channels/${channel_id}/messages`, data);
+      return request.post<ChannelsMessages>(`/channels/${channel_id}/messages`, data);
     },
   };
 };

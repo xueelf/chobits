@@ -62,19 +62,7 @@ export class Bot extends EventEmitter {
     this.token = new Token(<Required<BotConfig>>config);
     this.request = new Request(config.appid);
     this.session = new Session(config.appid, this.token);
-    this.api = createApi(this.request);
-
-    this.request.useRequestInterceptor(async config => {
-      await this.token.renew();
-      deepAssign(config, {
-        headers: {
-          'Authorization': `QQBot ${this.token.value}`,
-          'X-Union-Appid': this.appid,
-        },
-      });
-
-      return config;
-    });
+    this.api = createApi(this.token);
 
     this.token.once('ready', async () => {
       await this.linkStart();

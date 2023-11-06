@@ -5,7 +5,6 @@ import { deepAssign, objectToString } from '@/utils/common.js';
 
 export type Data = Record<string, unknown>;
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
-export type Instance = ReturnType<InstanceType<typeof Request>['create']>;
 export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
 export type ResponseInterceptor = (result: Partial<Result>) => Partial<Result> | Promise<Partial<Result>> | undefined;
 
@@ -89,20 +88,6 @@ export class Request {
       result.data = {};
     }
     return <Result<T>>result;
-  }
-
-  public create(config: Omit<RequestConfig, 'method' | 'url'>) {
-    const that = this;
-
-    return {
-      config,
-      get<T = Data>(url: string, config?: RequestConfig): Promise<Result<T>> {
-        return that.get(url, { ...this.config, ...config });
-      },
-      post<T = Data>(url: string, data?: Data, config?: RequestConfig): Promise<Result<T>> {
-        return that.post<T>(url, data, { ...this.config, ...config });
-      },
-    };
   }
 
   public get<T = Data>(url: string, config?: Omit<RequestConfig, 'method' | 'url'>): Promise<Result<T>> {

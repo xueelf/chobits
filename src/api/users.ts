@@ -1,4 +1,5 @@
-import type { Data, Instance, Request, Result } from '@/client/request.js';
+import type { Data, Request, Result } from '@/client/request.js';
+import type { User } from '@/model/user.js';
 
 export interface UserMessagesData extends Data {
   /** 文本内容 */
@@ -8,17 +9,17 @@ export interface UserMessagesData extends Data {
   keyboard?: Record<string, unknown>;
   ark?: Record<string, unknown>;
   /**
-   * @invalid 暂不支持
+   * @deprecated 暂不支持
    */
   image?: unknown;
   /**
    * 消息引用
-   * @invalid 暂未支持
+   * @deprecated 暂未支持
    */
   message_reference?: Record<string, unknown>;
   /**
    * 前置收到的事件 ID，用于发送被动消息
-   * @invalid 暂未支持
+   * @deprecated 暂未支持
    */
   event_id?: string;
   /** 前置收到的消息 ID，用于发送被动消息 */
@@ -37,13 +38,47 @@ export interface UserMessages {
   timestamp: number;
 }
 
-export default (instance: Instance) => {
+export interface UserMessagesFilesData extends Data {
+  /** 媒体类型 */
+  file_type: number;
+  /** 媒体资源地址 */
+  url: string;
+  /** 固定是：true */
+  srv_send_msg: boolean;
+  /**
+   * @deprecated 暂未支持
+   */
+  file_data: unknown;
+}
+
+export interface UserFiles {
+  /** 消息唯一 ID */
+  id: string;
+  /** 发送时间 */
+  timestamp: number;
+}
+
+export default (request: Request) => {
   return {
     /**
-     * 单独发动消息给用户。
+     * 单独发送消息给用户。
      */
     usersMessages(openid: string, data: UserMessagesData): Promise<Result<UserMessages>> {
-      return instance.post<UserMessages>(`/v2/users/${openid}/messages`, data);
+      return request.post<UserMessages>(`/v2/users/${openid}/messages`, data);
+    },
+
+    /**
+     * 单独发送富媒体消息给用户。
+     */
+    usersFiles(openid: string, data: UserMessagesFilesData): Promise<Result<UserFiles>> {
+      return request.post<UserFiles>(`/v2/users/${openid}/files`, data);
+    },
+
+    /**
+     * 获取当前机器人详情。
+     */
+    users(): Promise<Result<User>> {
+      return request.get<User>(`/users/@me`);
     },
   };
 };
