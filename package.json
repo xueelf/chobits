@@ -29,5 +29,8 @@
   "dependencies": {
     "log4js": "^6.9.1",
     "ws": "^8.14.2"
-  }
+  },
+  "files": [
+    "lib"
+  ]
 }
