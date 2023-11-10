@@ -1,4 +1,4 @@
-import type { Data, Request, Result } from '@/client/request.js';
+import type { Data, Request, Result } from '@/client/request';
 
 export interface GroupsMessagesData extends Data {
   /** 文本内容 */

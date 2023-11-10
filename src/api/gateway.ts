@@ -1,4 +1,4 @@
-import type { Request, Result } from '@/client/request.js';
+import type { Request, Result } from '@/client/request';
 
 export interface Gateway {
   /** WebSocket 的连接地址。 */

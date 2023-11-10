@@ -1,13 +1,7 @@
-import type { Data, Request, Result } from '@/client/request.js';
-import type { User } from '@/model/user.js';
-import type {
-  MessageArk,
-  MessageAttachment,
-  MessageEmbed,
-  MessageMarkdown,
-  MessageReference,
-} from '@/model/message.js';
-import type { Member } from '@/model/member.js';
+import type { Data, Request, Result } from '@/client/request';
+import type { User } from '@/model/user';
+import type { MessageArk, MessageAttachment, MessageEmbed, MessageMarkdown, MessageReference } from '@/model/message';
+import type { Member } from '@/model/member';
 
 export interface ChannelsMessagesData extends Data {
   /** 文本内容 */
@@ -72,8 +66,15 @@ export default (request: Request) => {
     /**
      * 发动消息到文字子频道。
      */
-    channelsMessages(channel_id: string, data: ChannelsMessagesData): Promise<Result<ChannelsMessages>> {
+    sendChannelsMessages(channel_id: string, data: ChannelsMessagesData): Promise<Result<ChannelsMessages>> {
       return request.post<ChannelsMessages>(`/channels/${channel_id}/messages`, data);
+    },
+
+    /**
+     * 撤回消息。
+     */
+    reCallChannelsMessages(channel_id: string, message_id: string, hidetip: boolean = false): Promise<Result<unknown>> {
+      return request.delete<unknown>(`/channels/${channel_id}/messages/${message_id}?hidetip=${hidetip}`);
     },
   };
 };

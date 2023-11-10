@@ -1,7 +1,7 @@
 import type { Logger } from 'log4js';
 
-import { getLogger } from '@/utils/logger.js';
-import { deepAssign, objectToString } from '@/utils/common.js';
+import { getLogger } from '@/utils/logger';
+import { deepAssign, objectToString } from '@/utils/common';
 
 export type Data = Record<string, unknown>;
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -108,6 +108,20 @@ export class Request {
     return this.base<T>({
       url,
       method: 'POST',
+      ...config,
+    });
+  }
+
+  public delete<T = Data>(
+    url: string,
+    data?: Data,
+    config: Omit<RequestConfig, 'method' | 'url'> = {},
+  ): Promise<Result<T>> {
+    config.body = JSON.stringify(data);
+
+    return this.base<T>({
+      url,
+      method: 'DELETE',
       ...config,
     });
   }

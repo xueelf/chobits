@@ -1,11 +1,10 @@
 {
   "name": "amesu",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "description": "Node.js SDK for QQ Bot",
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   },
-  "type": "module",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {

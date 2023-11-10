@@ -1,5 +1,5 @@
-import type { Request, Result } from '@/client/request.js';
-import type { ChannelsMessages, ChannelsMessagesData } from '@/api/channels.js';
+import type { Request, Result } from '@/client/request';
+import type { ChannelsMessages, ChannelsMessagesData } from '@/api/channels';
 
 export interface DmfMessagesData extends ChannelsMessagesData {}
 export interface DmfMessages extends ChannelsMessages {}

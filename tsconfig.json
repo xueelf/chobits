@@ -2,9 +2,8 @@
   "compilerOptions": {
     "target": "esnext",
     "lib": ["esnext"],
-    "module": "nodenext",
+    "module": "commonjs",
     "rootDir": "src",
-    "moduleResolution": "nodenext",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

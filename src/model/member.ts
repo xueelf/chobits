@@ -1,4 +1,4 @@
-import type { User } from '@/model/user.js';
+import type { User } from '@/model/user';
 
 export interface Member {
   /** 用户的频道基础信息，只有成员相关接口中会填充此信息 */

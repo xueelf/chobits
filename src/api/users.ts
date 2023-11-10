@@ -1,5 +1,5 @@
-import type { Data, Request, Result } from '@/client/request.js';
-import type { User } from '@/model/user.js';
+import type { Data, Request, Result } from '@/client/request';
+import type { User } from '@/model/user';
 
 export interface UserMessagesData extends Data {
   /** 文本内容 */

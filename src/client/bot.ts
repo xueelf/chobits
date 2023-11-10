@@ -1,13 +1,13 @@
 import type { Logger } from 'log4js';
 
 import { EventEmitter } from 'node:events';
-import { createApi } from '@/api/index.js';
-import { Token } from '@/client/token.js';
-import { Request } from '@/client/request.js';
-import { Session } from '@/client/session.js';
-import { EventMap } from '@/client/event.js';
-import { deepAssign } from '@/utils/common.js';
-import { LogLevel, createLogger } from '@/utils/logger.js';
+import { createApi } from '@/api/index';
+import { Token } from '@/client/token';
+import { Request } from '@/client/request';
+import { Session } from '@/client/session';
+import { EventMap } from '@/client/event';
+import { deepAssign } from '@/utils/common';
+import { LogLevel, createLogger } from '@/utils/logger';
 
 type AsyncReturnType<T extends (...args: any[]) => Promise<any>> = T extends (...args: any[]) => Promise<infer R>
   ? R

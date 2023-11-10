@@ -1,9 +1,9 @@
 import type { Logger } from 'log4js';
 
 import { EventEmitter } from 'node:events';
-import { BotConfig } from '@/client/bot.js';
-import { getLogger } from '@/utils/logger.js';
-import { objectToString } from '@/utils/common.js';
+import { BotConfig } from '@/client/bot';
+import { getLogger } from '@/utils/logger';
+import { objectToString } from '@/utils/common';
 
 export interface AppAccessToken {
   /** 获取到的凭证。 */

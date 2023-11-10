@@ -1,10 +1,10 @@
 import type { Logger } from 'log4js';
-import type { Token } from '@/client/token.js';
-import type { EventType, ReadyEvent, ResumedEvent } from '@/client/event.js';
+import type { Token } from '@/client/token';
+import type { EventType, ReadyEvent, ResumedEvent } from '@/client/event';
 
 import { RawData, WebSocket } from 'ws';
 import { EventEmitter } from 'node:events';
-import { getLogger } from '@/utils/logger.js';
+import { getLogger } from '@/utils/logger';
 
 /** 心跳参数 */
 enum Op {

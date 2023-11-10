@@ -1,2 +1,2 @@
-export * from '@/client/bot.js';
-export * from '@/client/request.js';
+export * from '@/client/bot';
+export * from '@/client/request';
