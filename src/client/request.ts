@@ -4,7 +4,7 @@ import { getLogger } from '@/utils/logger';
 import { deepAssign, objectToString } from '@/utils/common';
 
 export type Data = Record<string, unknown>;
-export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
 export type ResponseInterceptor = (result: Partial<Result>) => Partial<Result> | Promise<Partial<Result>> | undefined;
 
@@ -22,7 +22,7 @@ export interface Result<T = Data> {
   headers: Headers;
 }
 
-export class RequestError extends Error {
+class RequestError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'RequestError';
@@ -122,6 +122,20 @@ export class Request {
     return this.base<T>({
       url,
       method: 'DELETE',
+      ...config,
+    });
+  }
+
+  public patch<T = Data>(
+    url: string,
+    data?: Data,
+    config: Omit<RequestConfig, 'method' | 'url'> = {},
+  ): Promise<Result<T>> {
+    config.body = JSON.stringify(data);
+
+    return this.base<T>({
+      url,
+      method: 'PATCH',
       ...config,
     });
   }

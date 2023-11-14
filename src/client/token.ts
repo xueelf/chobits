@@ -5,7 +5,7 @@ import { BotConfig } from '@/client/bot';
 import { getLogger } from '@/utils/logger';
 import { objectToString } from '@/utils/common';
 
-export interface AppAccessToken {
+interface AppAccessToken {
   /** 获取到的凭证。 */
   access_token: string;
   /** 凭证有效时间，单位：秒。目前是 7200 秒之内的值。 */
@@ -18,7 +18,7 @@ export interface AppAccessToken {
  * @param appId - 在开放平台管理端上获得。
  * @param clientSecret - 在开放平台管理端上获得。
  */
-export async function getAppAccessToken(appId: string, clientSecret: string): Promise<AppAccessToken> {
+async function getAppAccessToken(appId: string, clientSecret: string): Promise<AppAccessToken> {
   const response = await fetch('https://bots.qq.com/app/getAppAccessToken', {
     method: 'POST',
     headers: {
@@ -32,10 +32,32 @@ export async function getAppAccessToken(appId: string, clientSecret: string): Pr
   return <Promise<AppAccessToken>>response.json();
 }
 
+interface TokenEvent {
+  ready: () => void;
+}
+
+export interface Token extends EventEmitter {
+  addListener<T extends keyof TokenEvent>(event: T, listener: TokenEvent[T]): this;
+  on<T extends keyof TokenEvent>(event: T, listener: TokenEvent[T]): this;
+  once<T extends keyof TokenEvent>(event: T, listener: TokenEvent[T]): this;
+  removeListener<T extends keyof TokenEvent>(event: T, listener: TokenEvent[T]): this;
+  off<T extends keyof TokenEvent>(event: T, listener: TokenEvent[T]): this;
+  removeAllListeners<T extends keyof TokenEvent>(event?: T): this;
+  listeners<T extends keyof TokenEvent>(event: T): Function[];
+  rawListeners<T extends keyof TokenEvent>(event: T): Function[];
+  emit<T extends keyof TokenEvent>(event: T, ...args: Parameters<TokenEvent[T]>): boolean;
+  listenerCount<T extends keyof TokenEvent>(event: T, listener?: TokenEvent[T]): number;
+  prependListener<T extends keyof TokenEvent>(event: T, listener: TokenEvent[T]): this;
+  prependOnceListener<T extends keyof TokenEvent>(event: T, listener: TokenEvent[T]): this;
+  eventNames<T extends keyof TokenEvent>(): T[];
+}
+
 export class Token extends EventEmitter {
   public value: string;
+  /** 有效期 */
   public lifespan: number;
 
+  /** 记录器 */
   private logger: Logger;
 
   constructor(public config: Required<BotConfig>) {
@@ -48,7 +70,11 @@ export class Token extends EventEmitter {
     this.init();
   }
 
-  public get is_expires() {
+  public get authorization() {
+    return `QQBot ${this.value}`;
+  }
+
+  private get is_expires() {
     return this.lifespan - Date.now() < 6000;
   }
 

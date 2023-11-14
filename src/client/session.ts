@@ -1,24 +1,24 @@
 import type { Logger } from 'log4js';
 import type { Token } from '@/client/token';
-import type { EventType, ReadyEvent, ResumedEvent } from '@/client/event';
 
 import { RawData, WebSocket } from 'ws';
 import { EventEmitter } from 'node:events';
+import { BotConfig } from '@/client/bot';
 import { getLogger } from '@/utils/logger';
+import { objectToString, wait } from '@/utils/common';
 
-/** 心跳参数 */
-enum Op {
+enum OpCode {
   /** 服务端进行消息推送 */
   Dispatch = 0,
-  /** 客户端发送心跳 */
+  /** 客户端或服务端发送心跳 */
   Heartbeat = 1,
-  /** 鉴权 */
+  /** 客户端发送鉴权 */
   Identify = 2,
-  /** 恢复连接 */
+  /** 客户端恢复连接 */
   Resume = 6,
-  /** 服务端通知客户端重连 */
+  /** 服务端通知客户端重新连接 */
   Reconnect = 7,
-  /** 当 identify 或 resume 的时候，如果参数有错，服务端会返回该消息 */
+  /** 当 Identify 或 Resume 的时候，如果参数有错，服务端会返回该消息 */
   InvalidSession = 9,
   /** 当客户端与网关建立 ws 连接之后，网关下发的第一条消息 */
   Hello = 10,
@@ -28,249 +28,286 @@ enum Op {
   HttpCallbackAck = 12,
 }
 
-/** 事件类型 */
-enum IntentEvent {
-  Guilds = 'GUILDS',
-  GuildMembers = 'GUILD_MEMBERS',
-  GuildMessages = 'GUILD_MESSAGES',
-  GuildMessageReactions = 'GUILD_MESSAGE_REACTIONS',
-  DirectMessage = 'DIRECT_MESSAGE',
-  OpenForumsEvent = 'OPEN_FORUMS_EVENT',
-  AudioOrLiveChannelMember = 'AUDIO_OR_LIVE_CHANNEL_MEMBER',
-  Interaction = 'INTERACTION',
-  MessageAudit = 'MESSAGE_AUDIT',
-  ForumsEvent = 'FORUMS_EVENT',
-  AudioAction = 'AUDIO_ACTION',
-  PublicGuildMessages = 'PUBLIC_GUILD_MESSAGES',
-
-  // TODO: ／人◕ ‿‿ ◕人＼ 待补全
+enum DispatchType {
+  READY = 'READY',
+  RESUMED = 'RESUMED',
 }
 
-type IntentBitShift = {
-  [key in IntentEvent]: number;
-};
+/** 事件类型 */
+enum Intent {
+  GUILDS = 1 << 0,
+  GUILD_MEMBERS = 1 << 1,
+  GUILD_MESSAGES = 1 << 9,
+  GUILD_MESSAGE_REACTIONS = 1 << 10,
+  DIRECT_MESSAGE = 1 << 12,
+  INTERACTION = 1 << 26,
+  MESSAGE_AUDIT = 1 << 27,
+  FORUMS_EVENT = 1 << 28,
+  AUDIO_ACTION = 1 << 29,
+  PUBLIC_GUILD_MESSAGES = 1 << 30,
+}
 
-interface Dispatch {
-  op: Op.Dispatch;
+/** 消息推送数据 */
+interface DispatchPayload {
+  op: OpCode.Dispatch;
   /** 消息序列号 */
   s: number;
 }
 
-interface DispatchReadyMessage extends Dispatch {
-  t: 'READY';
-  d: ReadyEvent;
+export interface ReadyData {
+  version: number;
+  session_id: string;
+  user: {
+    id: string;
+    username: string;
+    bot: boolean;
+    status: number;
+  };
+  shard: number[];
 }
 
-interface DispatchResumedMessage extends Dispatch {
-  t: 'RESUMED';
-  d: ResumedEvent;
+interface ReadyDispatchPayload extends DispatchPayload {
+  t: DispatchType.READY;
+  d: ReadyData;
 }
 
-/** 服务器推送消息 */
-type DispatchMessage = DispatchReadyMessage | DispatchResumedMessage;
+export type ResumedData = '';
 
-/** 心跳消息 */
-interface HeartbeatMessage {
-  op: Op.Heartbeat;
-  d: number;
+interface ResumedDispatchPayload extends DispatchPayload {
+  t: DispatchType.RESUMED;
+  d: ResumedData;
 }
 
-/** 鉴权消息 */
-interface IdentifyMessage {
-  op: Op.Identify;
+/** 消息推送 */
+type AllDispatchPayload = ReadyDispatchPayload | ResumedDispatchPayload;
+
+/** 心跳数据 */
+interface HeartbeatPayload {
+  op: OpCode.Heartbeat;
+  /** 客户端收到的最新的消息的 s，如果是首次连接，值为 `null` */
+  d: number | null;
+}
+
+/** 鉴权数据 */
+interface IdentifyPayload {
+  op: OpCode.Identify;
   d: {
-    token: `QQBot ${string}`;
+    token: string;
     intents: number;
     shard: number[];
     properties: Record<string, unknown>;
   };
 }
 
-/** 恢复连接消息 */
-interface ResumeMessage {
-  op: Op.Resume;
+/** 恢复连接数据 */
+interface ResumePayload {
+  op: OpCode.Resume;
   d: {
     seq: number;
     session_id: string;
-    token: `QQBot ${string}`;
+    token: string;
   };
 }
 
-/** 等待重连消息 */
-interface ReconnectMessage {
-  op: Op.Reconnect;
+/** 等待重连数据 */
+interface ReconnectPayload {
+  op: OpCode.Reconnect;
 }
 
-/** 参数错误消息 */
-interface InvalidSessionMessage {
-  op: Op.InvalidSession;
+/** 参数错误数据 */
+interface InvalidSessionPayload {
+  op: OpCode.InvalidSession;
   d: boolean;
 }
 
-/** 连接消息 */
-interface HelloMessage {
-  op: Op.Hello;
+/** 首次连接数据 */
+interface HelloPayload {
+  op: OpCode.Hello;
   d: {
     heartbeat_interval: number;
   };
 }
 
-/** 心跳回包消息 */
-interface HeartbeatAckMessage {
-  op: Op.HeartbeatAck;
+/** 心跳回包数据 */
+interface HeartbeatAckPayload {
+  op: OpCode.HeartbeatAck;
 }
 
-type SessionMessage = DispatchMessage | HeartbeatAckMessage | InvalidSessionMessage | ReconnectMessage | HelloMessage;
+type Payload =
+  | AllDispatchPayload
+  | HeartbeatPayload
+  | IdentifyPayload
+  | ResumePayload
+  | ReconnectPayload
+  | InvalidSessionPayload
+  | HelloPayload
+  | HeartbeatAckPayload;
 
-/** 事件位移 */
-const intentBitShift: IntentBitShift = {
-  GUILDS: 1 << 0,
-  GUILD_MEMBERS: 1 << 1,
-  GUILD_MESSAGES: 1 << 9,
-  GUILD_MESSAGE_REACTIONS: 1 << 10,
-  DIRECT_MESSAGE: 1 << 12,
-  OPEN_FORUMS_EVENT: 1 << 18,
-  AUDIO_OR_LIVE_CHANNEL_MEMBER: 1 << 19,
-  INTERACTION: 1 << 26,
-  MESSAGE_AUDIT: 1 << 27,
-  FORUMS_EVENT: 1 << 28,
-  AUDIO_ACTION: 1 << 29,
-  PUBLIC_GUILD_MESSAGES: 1 << 30,
+class SessionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SessionError';
+  }
+}
 
-  // TODO: ／人◕ ‿‿ ◕人＼ 待补全
-};
+export type IntentEvent = keyof typeof Intent;
+
+export interface DispatchData {
+  t: keyof typeof DispatchType;
+  d: any;
+}
+
+interface SessionEvent {
+  dispatch: (data: DispatchData) => void;
+}
+
+export interface Session extends EventEmitter {
+  addListener<T extends keyof SessionEvent>(event: T, listener: SessionEvent[T]): this;
+  on<T extends keyof SessionEvent>(event: T, listener: SessionEvent[T]): this;
+  once<T extends keyof SessionEvent>(event: T, listener: SessionEvent[T]): this;
+  removeListener<T extends keyof SessionEvent>(event: T, listener: SessionEvent[T]): this;
+  off<T extends keyof SessionEvent>(event: T, listener: SessionEvent[T]): this;
+  removeAllListeners<T extends keyof SessionEvent>(event?: T): this;
+  listeners<T extends keyof SessionEvent>(event: T): Function[];
+  rawListeners<T extends keyof SessionEvent>(event: T): Function[];
+  emit<T extends keyof SessionEvent>(event: T, ...args: Parameters<SessionEvent[T]>): boolean;
+  listenerCount<T extends keyof SessionEvent>(event: T, listener?: SessionEvent[T]): number;
+  prependListener<T extends keyof SessionEvent>(event: T, listener: SessionEvent[T]): this;
+  prependOnceListener<T extends keyof SessionEvent>(event: T, listener: SessionEvent[T]): this;
+  eventNames<T extends keyof SessionEvent>(): T[];
+}
 
 export class Session extends EventEmitter {
-  /** 是否重连 */
-  private is_reconnect: boolean;
+  private ack_id?: NodeJS.Timeout;
   /** 心跳间隔 */
   private heartbeat_interval!: number;
+  /** 是否重连 */
+  private is_reconnect: boolean;
   /** 记录器 */
   private logger: Logger;
+  /** 重连计数 */
   private retry: number;
+  /** 最大重连数 */
+  private max_retry: number;
   /** 消息序列号 */
   private seq: number;
   /** 会话 id */
   private session_id: string;
   private ws?: WebSocket;
-  private ack_id?: NodeJS.Timeout;
 
-  constructor(private appid: string, private token: Token) {
+  constructor(private config: BotConfig, private token: Token) {
     super();
 
     this.is_reconnect = false;
-    this.logger = getLogger(appid);
+    this.logger = getLogger(config.appid);
     this.retry = 0;
+    this.max_retry = 3;
     this.seq = 0;
     this.session_id = '';
   }
 
-  private onOpen() {
+  private onOpen(): void {
     this.retry = 0;
     this.logger.debug('连接 socket 成功');
   }
 
-  private async onClose(code: number) {
+  private async onClose(code: number): Promise<void> {
+    if (!this.is_reconnect) {
+      this.is_reconnect = true;
+    }
+    clearTimeout(this.ack_id);
+
     this.logger.debug(`Code: ${code}`);
     this.logger.warn('关闭 socket 连接');
 
-    clearTimeout(this.ack_id);
     await this.token.renew();
     this.reconnect();
   }
 
-  private onError(error: Error) {
-    this.logger.fatal('连接 socket 发生错误');
+  private onError(error: Error): void {
+    this.logger.fatal(error);
   }
 
-  private onDispatchMessage(message: DispatchMessage) {
-    const { d, s, t } = message;
-    this.seq = s;
+  private onMessage(data: RawData): void {
+    const payload = <Payload>JSON.parse(data.toString());
+    this.logger.debug(`收到 payload 数据: ${objectToString(payload)}`);
 
-    switch (t) {
-      case 'READY':
-        const { session_id } = d;
-
-        this.session_id = session_id;
-        this.logger.info(`Hello, ${d.user.username}`);
-      case 'RESUMED':
-        this.logger.trace('开始发送心跳...');
-        this.heartbeat();
+    switch (payload.op) {
+      case OpCode.Dispatch:
+        this.onDispatch(payload);
         break;
-    }
-    const dispatch = {
-      type: t,
-      data: d,
-    };
-
-    this.logger.info(dispatch);
-    this.emit('dispatch', dispatch);
-  }
-
-  private onMessage(data: RawData) {
-    this.logger.debug(`收到 socket 消息: ${data}`);
-    const message = <SessionMessage>JSON.parse(data.toString());
-
-    switch (message.op) {
-      case Op.Dispatch:
-        this.onDispatchMessage(message);
-        break;
-      case Op.Reconnect:
+      case OpCode.Reconnect:
         this.logger.info('当前会话已失效，等待断开后自动重连');
         this.ws!.close();
         break;
-      case Op.InvalidSession:
-        this.logger.error('发起 socket 连接的参数有误');
-        break;
-      case Op.Hello:
-        this.heartbeat_interval = message.d.heartbeat_interval;
+      case OpCode.InvalidSession:
+        this.logger.error('发送的 payload 参数有误');
+        throw new SessionError('The Payload parameter sent is incorrect.');
+      case OpCode.Hello:
+        this.heartbeat_interval = payload.d.heartbeat_interval;
         this.is_reconnect ? this.resume() : this.auth();
         break;
-      case Op.HeartbeatAck:
+      case OpCode.HeartbeatAck:
         this.ack_id = setTimeout(() => this.heartbeat(), this.heartbeat_interval);
         break;
     }
   }
 
-  private heartbeat() {
-    const message: HeartbeatMessage = {
-      op: Op.Heartbeat,
-      d: this.seq,
+  private onDispatch(payload: AllDispatchPayload): void {
+    const { d, s, t } = payload;
+    this.seq = s;
+
+    switch (t) {
+      case DispatchType.READY:
+        const { session_id } = d;
+
+        this.session_id = session_id;
+        this.logger.info(`Hello, ${d.user.username}`);
+      case DispatchType.RESUMED:
+        this.logger.trace('开始发送心跳...');
+        this.heartbeat();
+        break;
+    }
+    const dispatch: DispatchData = {
+      t,
+      d,
     };
-    this.sendMessage(message);
+
+    this.logger.info(`Dispatch: ${objectToString(dispatch)}`);
+    this.emit('dispatch', dispatch);
   }
 
-  private sendMessage(message: unknown): void {
+  private heartbeat(): void {
+    const payload: HeartbeatPayload = {
+      op: OpCode.Heartbeat,
+      d: this.seq,
+    };
+    this.sendPayload(payload);
+  }
+
+  private sendPayload(payload: Payload): void {
     try {
-      const data = typeof message === 'string' ? message : JSON.stringify(message);
+      const data = objectToString(payload);
 
       this.ws!.send(data);
-      this.logger.debug(`发送 socket 消息: ${data}`);
+      this.logger.debug(`发送 payload 数据: ${data}`);
     } catch (error) {
       this.logger.error(error);
     }
   }
 
-  private getIntents() {
-    const events = this.getEvents();
+  private getIntents(): number {
+    const events = this.config.events;
+    const intents = events.reduce((previous, current) => previous | Intent[current], 0);
 
-    if (!events.length) {
-      throw new Error('Event cannot be empty');
-    }
-    const intents = events.reduce((previous, current) => previous | intentBitShift[current], 0);
     return intents;
   }
 
-  private getEvents(): IntentEvent[] {
-    const events = <IntentEvent[]>Object.values(IntentEvent);
-    return events;
-  }
-
-  private auth() {
-    const message: IdentifyMessage = {
-      op: Op.Identify,
+  private auth(): void {
+    const payload: IdentifyPayload = {
+      op: OpCode.Identify,
       d: {
-        token: `QQBot ${this.token.value}`,
+        token: this.token.authorization,
         intents: this.getIntents(),
         // TODO: ／人◕ ‿‿ ◕人＼ 分片
         shard: [0, 1],
@@ -278,14 +315,14 @@ export class Session extends EventEmitter {
         properties: {},
       },
     };
-    this.sendMessage(message);
+    this.sendPayload(payload);
   }
 
-  private resume() {
-    const message: ResumeMessage = {
-      op: Op.Resume,
+  private resume(): void {
+    const payload: ResumePayload = {
+      op: OpCode.Resume,
       d: {
-        token: `QQBot ${this.token.value}`,
+        token: this.token.authorization,
         seq: this.seq,
         session_id: this.session_id,
       },
@@ -294,22 +331,25 @@ export class Session extends EventEmitter {
     if (this.is_reconnect) {
       this.is_reconnect = false;
     }
-    this.sendMessage(message);
+    this.sendPayload(payload);
   }
 
-  private reconnect() {
-    if (!this.is_reconnect) {
-      this.is_reconnect = true;
+  private async reconnect(): Promise<void> {
+    switch (this.retry) {
+      case 0:
+        this.ws!.removeAllListeners();
+        break;
+      case this.max_retry:
+        this.logger.error('重连失败，请检查网络和配置。');
+        throw new SessionError('Reached the maximum number of reconnection attempts.');
     }
     this.retry++;
-    this.ws!.removeAllListeners();
 
     try {
       this.logger.info(`尝试重连... x${this.retry}`);
+      await wait(this.retry * 3000);
 
-      setTimeout(() => {
-        this.ws = this.connect(this.ws!.url);
-      }, this.retry * 1000);
+      this.ws = this.connect(this.ws!.url);
     } catch (error) {
       this.reconnect();
     }
