@@ -54,6 +54,34 @@ bot.on('at.message.create', data => {
 
 基于 fetch 封装，可发送自定义网络请求。
 
+## 事件
+
+目前 socket 返回的事件全部为大写，并用下划线做分割。但是在 Node.js 的 `EventEmitter` 中，事件名一般使用小写字母。
+
+这是因为事件名通常表示一种行为或状态，而不是一个特定的类或构造函数。根据 JavaScript 的命名约定，使用小写字母来表示这些行为或状态更为常见和推荐。
+
+所以 amesu 针对事件名做了以下处理：
+
+- 事件名全部转换为小写
+- 使用小数点替换下划线
+- 会话事件添加 `session` 前缀
+
+例如 `MESSAGE_CREATE` => `message.create`，`READY` => `session.ready`。
+
+你可以仅监听事件的部分前缀，例如：
+
+```javascript
+const { Bot } = require('amesu');
+
+const bot = new Bot();
+
+bot.on('guild.member', data => {
+  console.log(data);
+});
+```
+
+这样 `guild.member.add`、`guild.member.update`、`guild.member.remove`，三个事件将会被全部监听，这使得消息订阅更具有灵活性。
+
 ## FAQ
 
 ### 为什么要做这个项目？
