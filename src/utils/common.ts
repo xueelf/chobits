@@ -40,3 +40,7 @@ export function deepAssign(target: Record<string, any>, ...sources: unknown[]): 
 export function objectToString(object: object) {
   return JSON.stringify(object, null, 2);
 }
+
+export async function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

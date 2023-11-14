@@ -2,11 +2,11 @@ import type { Token } from '@/client/token';
 
 import { Request } from '@/client/request';
 import { deepAssign } from '@/utils/common';
-import channels from '@/api/channels';
-import dms from '@/api/dms';
+import dm from '@/api/dm';
+import user from '@/api/user';
+import group from '@/api/group';
+import channel from '@/api/channel';
 import gateway from '@/api/gateway';
-import groups from '@/api/groups';
-import users from '@/api/users';
 
 export function createApi(token: Token) {
   const request = new Request(token.config.appid);
@@ -16,7 +16,7 @@ export function createApi(token: Token) {
     deepAssign(config, {
       baseURL: 'https://api.sgroup.qq.com',
       headers: {
-        'Authorization': `QQBot ${token.value}`,
+        'Authorization': token.authorization,
         'X-Union-Appid': token.config.appid,
       },
     });
@@ -24,10 +24,10 @@ export function createApi(token: Token) {
   });
 
   return {
-    ...channels(request),
-    ...dms(request),
-    ...groups(request),
-    ...users(request),
+    ...dm(request),
+    ...user(request),
+    ...group(request),
+    ...channel(request),
     ...gateway(request),
   };
 }

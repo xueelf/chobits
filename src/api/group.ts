@@ -1,6 +1,6 @@
 import type { Data, Request, Result } from '@/client/request';
 
-export interface GroupsMessagesData extends Data {
+export interface sendGroupsMessageData extends Data {
   /** 文本内容 */
   content?: string;
   /** 消息类型 */
@@ -24,34 +24,29 @@ export interface GroupsMessagesData extends Data {
   event_id?: string;
   /** 前置收到的消息 ID，用于发送被动消息 */
   msg_id?: string;
-  /**
-   * 回复消息的序号，与 msg_id 联合使用，避免相同消息id回复重复发送。
-   * 不填默认是1，相同的 msg_id + msg_seq 重复发送会失败。
-   */
-  msg_seq?: number;
-  /** 时间戳 */
-  timestamp?: number;
 }
 
-export interface GroupsMessages {
+export interface GroupMessage {
+  /** 消息唯一 ID */
   id: string;
+  /** 发送时间 */
   timestamp: number;
 }
 
-export interface GroupsFilesData extends Data {
+export interface sendGroupFileData extends Data {
   /** 媒体类型 */
   file_type: number;
-  /** 媒体资源地址 */
+  /** 需要发送媒体资源的 url */
   url: string;
   /** 固定是：true */
   srv_send_msg: boolean;
   /**
    * @deprecated 暂未支持
    */
-  file_data: unknown;
+  file_data?: unknown;
 }
 
-export interface GroupsFiles {
+export interface GroupFile {
   /** 消息唯一 ID */
   id: string;
   /** 发送时间 */
@@ -63,15 +58,15 @@ export default (request: Request) => {
     /**
      * 发送消息到群。
      */
-    groupsMessages(group_openid: string, data: GroupsMessagesData): Promise<Result<GroupsMessages>> {
-      return request.post<GroupsMessages>(`/v2/groups/${group_openid}/messages`, data);
+    sendGroupMessage(group_openid: string, data: sendGroupsMessageData): Promise<Result<GroupMessage>> {
+      return request.post<GroupMessage>(`/v2/groups/${group_openid}/messages`, data);
     },
 
     /**
      * 发送富媒体消息到群。
      */
-    groupsFiles(group_openid: string, data: GroupsFilesData): Promise<Result<GroupsFiles>> {
-      return request.post<GroupsFiles>(`/v2/groups/${group_openid}/messages`, data);
+    sendGroupFile(group_openid: string, data: sendGroupFileData): Promise<Result<GroupFile>> {
+      return request.post<GroupFile>(`/v2/groups/${group_openid}/messages`, data);
     },
   };
 };
