@@ -97,9 +97,9 @@ export class Bot extends EventEmitter {
   }
 
   /**
-   * 登录
+   * 机器人上线。
    */
-  public async login(): Promise<void> {
+  public async online(): Promise<void> {
     const { data } = await this.api.getGateway();
 
     this.session.connect(data.url);
@@ -107,9 +107,9 @@ export class Bot extends EventEmitter {
   }
 
   /**
-   * 登出
+   * 机器人下线。
    */
-  public logout(): void {
+  public offline(): void {
     this.session.disconnect();
   }
 

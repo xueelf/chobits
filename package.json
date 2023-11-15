@@ -1,6 +1,6 @@
 {
   "name": "amesu",
-  "version": "2.0.0-alpha.6",
+  "version": "2.0.0-alpha.7",
   "description": "Node.js SDK for QQ Bot",
   "engines": {
     "node": ">=16"
@@ -16,8 +16,12 @@
     "bot",
     "qq"
   ],
-  "author": "Xue Elf <xueelf@outlook.com>",
+  "author": "Yuki <admin@yuki.sh>",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xueelf/amesu/issues"
+  },
+  "homepage": "https://github.com/xueelf/amesu#readme",
   "devDependencies": {
     "@types/node": "^20.8.10",
     "@types/ws": "^8.5.8",

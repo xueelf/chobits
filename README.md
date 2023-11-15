@@ -26,25 +26,32 @@ npm i amesu # or pnpm add amesu
 const { Bot } = require('amesu');
 
 const bot = new Bot({
-  appid: '<appid>',
-  token: '<token>',
-  secret: '<secret>',
-  events: '<event[]>',
-  log_level: '[log_level]',
+  appid: '1145141919',
+  token: '38bc73e16208135fb111c0c573a44eaa',
+  secret: '6208135fb111c0c5',
+  events: ['GROUP_MESSAGES', 'PUBLIC_GUILD_MESSAGES'],
 });
 
-// 公域消息监听
-bot.on('at.message.create', data => {
-  console.log(data);
+// 监听频道消息
+bot.on('at.message.create', async data => {
+  // 收到任意 at 消息后发送 "hello world"
+  await bot.api.sendChannelMessage(data.channel_id, {
+    content: 'hello world',
+  });
 });
 
-// 私域消息监听
-// bot.on('message.create', data => {
-//   console.log(data);
-// });
+// 监听群消息
+bot.on('group.at.message.create', async data => {
+  // 收到任意 at 消息后发送 "hello world"
+  await bot.api.sendGroupMessage(data.group_openid, {
+    msg_type: 0,
+    content: 'hello world',
+    msg_id: data.id,
+  });
+});
 
-// 账号登录
-bot.login();
+// 机器人上线
+bot.online();
 ```
 
 ## API
@@ -57,13 +64,13 @@ bot.login();
 
 基于 fetch 封装，可发送自定义网络请求。
 
-### Bot.login
+### Bot.online
 
-机器人账号登录。
+机器人上线。
 
-### Bot.logout
+### Bot.offline
 
-机器人账号登出。
+机器人下线。
 
 ## 事件
 
@@ -77,7 +84,7 @@ bot.login();
 - 使用小数点替换下划线
 - 会话事件添加 `session` 前缀
 
-例如 `MESSAGE_CREATE` => `message.create`，`READY` => `session.ready`。
+例如 `MESSAGE_CREATE` -> `message.create`，`READY` -> `session.ready`。
 
 你可以仅监听事件的部分前缀，例如：
 

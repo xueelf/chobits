@@ -30,6 +30,10 @@ export interface updateChannelMessageData extends Data {
   speak_permission?: SpeakPermission;
 }
 
+export interface ChannelOnlineNum extends Data {
+  online_nums: number;
+}
+
 export default (request: Request) => {
   return {
     /**
@@ -65,6 +69,13 @@ export default (request: Request) => {
      */
     deleteChannel(channel_id: string): Promise<Result> {
       return request.delete(`/channels/${channel_id}`);
+    },
+
+    /**
+     * 获取子频道在线成员数。
+     */
+    getChannelOnlineNum(channel_id: string): Promise<Result<ChannelOnlineNum>> {
+      return request.get<ChannelOnlineNum>(`/channels/${channel_id}/online_nums`);
     },
   };
 };
