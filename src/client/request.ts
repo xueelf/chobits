@@ -112,6 +112,20 @@ export class Request {
     });
   }
 
+  public put<T = Data>(
+    url: string,
+    data?: Data,
+    config: Omit<RequestConfig, 'method' | 'url'> = {},
+  ): Promise<Result<T>> {
+    config.body = JSON.stringify(data);
+
+    return this.base<T>({
+      url,
+      method: 'PUT',
+      ...config,
+    });
+  }
+
   public delete<T = Data>(
     url: string,
     data?: Data,
