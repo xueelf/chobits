@@ -179,7 +179,7 @@ export interface Session extends EventEmitter {
 }
 
 export class Session extends EventEmitter {
-  private ack_id?: NodeJS.Timeout;
+  private ackTimeout: NodeJS.Timeout | null;
   /** 心跳间隔 */
   private heartbeat_interval!: number;
   /** 是否重连 */
@@ -193,34 +193,41 @@ export class Session extends EventEmitter {
   /** 消息序列号 */
   private seq: number;
   /** 会话 id */
-  private session_id: string;
-  private ws?: WebSocket;
+  private session_id: string | null;
+  private ws: WebSocket | null;
 
   constructor(private config: BotConfig, private token: Token) {
     super();
 
+    this.ackTimeout = null;
     this.is_reconnect = false;
     this.logger = getLogger(config.appid);
     this.retry = 0;
     this.max_retry = 3;
     this.seq = 0;
-    this.session_id = '';
+    this.session_id = null;
+    this.ws = null;
   }
 
   private onOpen(): void {
-    this.retry = 0;
+    if (this.retry) {
+      this.retry = 0;
+    }
     this.logger.debug('连接 socket 成功');
   }
 
   private async onClose(code: number): Promise<void> {
-    if (!this.is_reconnect) {
-      this.is_reconnect = true;
-    }
-    clearTimeout(this.ack_id);
+    clearTimeout(<NodeJS.Timeout | undefined>this.ackTimeout);
+    this.ackTimeout = null;
+    this.ws!.removeAllListeners();
 
     this.logger.debug(`Code: ${code}`);
     this.logger.warn('关闭 socket 连接');
 
+    if (!this.is_reconnect) {
+      this.ws = null;
+      return;
+    }
     await this.token.renew();
     this.reconnect();
   }
@@ -246,10 +253,10 @@ export class Session extends EventEmitter {
         throw new SessionError('The Payload parameter sent is incorrect.');
       case OpCode.Hello:
         this.heartbeat_interval = payload.d.heartbeat_interval;
-        this.is_reconnect ? this.resume() : this.auth();
+        this.is_reconnect ? this.sendResumePayload() : this.sendAuthPayload();
         break;
       case OpCode.HeartbeatAck:
-        this.ack_id = setTimeout(() => this.heartbeat(), this.heartbeat_interval);
+        this.ackTimeout = setTimeout(() => this.heartbeat(), this.heartbeat_interval);
         break;
     }
   }
@@ -304,7 +311,7 @@ export class Session extends EventEmitter {
     return intents;
   }
 
-  private auth(): void {
+  private sendAuthPayload(): void {
     const payload: IdentifyPayload = {
       op: OpCode.Identify,
       d: {
@@ -316,47 +323,44 @@ export class Session extends EventEmitter {
         properties: {},
       },
     };
+
+    this.is_reconnect = true;
     this.sendPayload(payload);
   }
 
-  private resume(): void {
+  private sendResumePayload(): void {
     const payload: ResumePayload = {
       op: OpCode.Resume,
       d: {
         token: this.token.authorization,
         seq: this.seq,
-        session_id: this.session_id,
+        session_id: this.session_id!,
       },
     };
-
-    if (this.is_reconnect) {
-      this.is_reconnect = false;
-    }
     this.sendPayload(payload);
   }
 
   private async reconnect(): Promise<void> {
-    switch (this.retry) {
-      case 0:
-        this.ws!.removeAllListeners();
-        break;
-      case this.max_retry:
-        this.logger.error('重连失败，请检查网络和配置。');
-        throw new SessionError('Reached the maximum number of reconnection attempts.');
+    if (this.retry === this.max_retry) {
+      this.logger.error('重连失败，请检查网络和配置。');
+      throw new SessionError('Reached the maximum number of reconnection attempts.');
     }
     this.retry++;
 
     try {
       this.logger.info(`尝试重连... x${this.retry}`);
       await wait(this.retry * 3000);
-
-      this.ws = this.connect(this.ws!.url);
+      this.connect(this.ws!.url);
     } catch (error) {
       this.reconnect();
     }
   }
 
-  public connect(url: string): WebSocket {
+  public connect(url: string): void {
+    if (this.ws) {
+      this.logger.warn('已建立会话通信，不要重复连接。');
+      return;
+    }
     this.logger.trace('开始建立 ws 通信...');
 
     const ws = new WebSocket(url);
@@ -366,9 +370,17 @@ export class Session extends EventEmitter {
     ws.on('error', error => this.onError(error));
     ws.on('message', data => this.onMessage(data));
 
+    this.ws = ws;
+  }
+
+  public disconnect(): void {
     if (!this.ws) {
-      this.ws = ws;
+      this.logger.warn('已断开会话通信，不要重复中断。');
+      return;
     }
-    return ws;
+    this.is_reconnect = false;
+
+    this.logger.trace('正在断开 ws 通信...');
+    this.ws.close();
   }
 }

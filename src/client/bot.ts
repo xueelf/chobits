@@ -94,10 +94,24 @@ export class Bot extends EventEmitter {
     this.request = new Request(config.appid);
     this.session = new Session(config, this.token);
     this.api = createApi(this.token);
+  }
 
-    this.token.once('ready', async () => {
-      await this.linkStart();
-    });
+  /**
+   * 登录
+   */
+  public async login(): Promise<void> {
+    await this.token.renew();
+    const { data } = await this.api.getGateway();
+
+    this.session.connect(data.url);
+    this.session.on('dispatch', data => this.onDispatch(data));
+  }
+
+  /**
+   * 登出
+   */
+  public logout(): void {
+    this.session.disconnect();
   }
 
   private onDispatch(data: DispatchData) {
@@ -124,13 +138,6 @@ export class Bot extends EventEmitter {
       }
       event = event.slice(0, i);
     }
-  }
-
-  private async linkStart(): Promise<void> {
-    const { data } = await this.api.getGateway();
-
-    this.session.connect(data.url);
-    this.session.on('dispatch', data => this.onDispatch(data));
   }
 
   private checkConfig() {
