@@ -66,7 +66,7 @@ export default (request: Request) => {
      * 发送富媒体消息到群。
      */
     sendGroupFile(group_openid: string, data: sendGroupFileData): Promise<Result<GroupFile>> {
-      return request.post<GroupFile>(`/v2/groups/${group_openid}/messages`, data);
+      return request.post<GroupFile>(`/v2/groups/${group_openid}/files`, data);
     },
   };
 };
