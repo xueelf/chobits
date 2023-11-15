@@ -220,14 +220,14 @@ export class Session extends EventEmitter {
     clearTimeout(<NodeJS.Timeout | undefined>this.ackTimeout);
     this.ackTimeout = null;
     this.ws!.removeAllListeners();
-
-    this.logger.debug(`Code: ${code}`);
-    this.logger.warn('关闭 socket 连接');
+    this.logger.debug(`Session Exit Code: ${code}.`);
 
     if (!this.is_reconnect) {
       this.ws = null;
+      this.logger.info('会话连接已关闭');
       return;
     }
+    this.logger.warn('会话连接已被中断');
     await this.token.renew();
     this.reconnect();
   }
@@ -357,7 +357,7 @@ export class Session extends EventEmitter {
   }
 
   public connect(url: string): void {
-    if (this.ws) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.logger.warn('已建立会话通信，不要重复连接。');
       return;
     }

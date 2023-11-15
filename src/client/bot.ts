@@ -100,7 +100,6 @@ export class Bot extends EventEmitter {
    * 登录
    */
   public async login(): Promise<void> {
-    await this.token.renew();
     const { data } = await this.api.getGateway();
 
     this.session.connect(data.url);

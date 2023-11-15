@@ -42,6 +42,9 @@ bot.on('at.message.create', data => {
 // bot.on('message.create', data => {
 //   console.log(data);
 // });
+
+// 账号登录
+bot.login();
 ```
 
 ## API
@@ -53,6 +56,14 @@ bot.on('at.message.create', data => {
 ### Bot.request
 
 基于 fetch 封装，可发送自定义网络请求。
+
+### Bot.login
+
+机器人账号登录。
+
+### Bot.logout
+
+机器人账号登出。
 
 ## 事件
 
@@ -75,9 +86,11 @@ const { Bot } = require('amesu');
 
 const bot = new Bot();
 
-bot.on('guild.member', data => {
-  console.log(data);
-});
+bot
+  .on('guild.member', data => {
+    console.log(data);
+  })
+  .login();
 ```
 
 这样 `guild.member.add`、`guild.member.update`、`guild.member.remove`，三个事件将会被全部监听，这使得消息订阅更具有灵活性。
