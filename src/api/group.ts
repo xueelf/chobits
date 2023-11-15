@@ -3,7 +3,7 @@ import type { Data, Request, Result } from '@/client/request';
 export interface sendGroupsMessageData extends Data {
   /** 文本内容 */
   content?: string;
-  /** 消息类型 */
+  /** 消息类型： 0 是文本，1 图文混排 ，2 是 markdown 3 ark，4 embed */
   msg_type: 0 | 1 | 2 | 3 | 4;
   markdown?: Record<string, unknown>;
   keyboard?: Record<string, unknown>;
@@ -23,7 +23,7 @@ export interface sendGroupsMessageData extends Data {
    */
   event_id?: string;
   /** 前置收到的消息 ID，用于发送被动消息 */
-  msg_id?: string;
+  msg_id: string;
 }
 
 export interface GroupMessage {

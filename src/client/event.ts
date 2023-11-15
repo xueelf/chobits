@@ -35,6 +35,105 @@ export interface MessageAuditPassData {
   seq_in_channel: string;
 }
 
+interface GroupAddRobotData {
+  /** 加入的时间戳 */
+  timestamp: number;
+  /** 加入群的群 openid */
+  group_openid: string;
+  /** 操作添加机器人进群的群成员 openid */
+  op_member_openid: string;
+}
+
+interface GroupDelRobotData {
+  /** 移除的时间戳 */
+  timestamp: number;
+  /** 移除群的群 openid */
+  group_openid: string;
+  /** 操作移除机器人退群的群成员 openid */
+  op_member_openid: string;
+}
+
+interface GroupMessageReject {
+  /** 操作的时间戳 */
+  timestamp: number;
+  /** 操作群的群 openid */
+  group_openid: string;
+  /** 操作群成员的 openid */
+  op_member_openid: string;
+}
+
+interface GroupMessageReceive {
+  /** 操作的时间戳 */
+  timestamp: number;
+  /** 操作群的群 openid */
+  group_openid: string;
+  /** 操作群成员的 openid */
+  op_member_openid: string;
+}
+
+interface FriendAdd {
+  /** 添加时间戳 */
+  timestamp: number;
+  /** 用户 openid */
+  openid: string;
+}
+
+interface FriendDel {
+  /** 删除时间戳 */
+  timestamp: number;
+  /** 用户 openid */
+  openid: string;
+}
+
+interface C2cMsgReject {
+  /** 操作时间戳 */
+  timestamp: number;
+  /** 用户 openid */
+  openid: string;
+}
+
+interface C2cMsgReceive {
+  /** 操作时间戳 */
+  timestamp: number;
+  /** 用户 openid */
+  openid: string;
+}
+
+interface C2cMessageCreate {
+  /** 平台方消息ID，可以用于被动消息发送 */
+  id: string;
+  /** 发送者 */
+  author: {
+    /** 用户 openid */
+    user_openid: string;
+  };
+  /** 文本消息内容 */
+  content: string;
+  /** 消息生产时间 */
+  timestamp: string;
+  /** 富媒体文件附件 */
+  attachments: object[];
+}
+
+interface GroupAtMessageCreate {
+  /** 平台方消息ID，可以用于被动消息发送 */
+  id: string;
+  /** 发送者 */
+  author: {
+    id: string;
+    /** 用户 openid */
+    member_openid: string;
+  };
+  /** 消息内容 */
+  content: string;
+  /** 消息生产时间 */
+  timestamp: string;
+  /** 群聊的 openid */
+  group_openid: string;
+  /** 富媒体文件附件 */
+  attachments: object[];
+}
+
 export interface BotEvent {
   // GUILDS
   /** 当机器人加入新 guild 时 */
@@ -119,6 +218,28 @@ export interface BotEvent {
   'at.message.create': (data: Message) => void;
   /** **仅公域**，当频道的消息被删除时 */
   'public.message.delete': (data: unknown) => void;
+
+  // GROUP_MESSAGES
+  /** 机器人被添加到群聊 */
+  'group.add.robot': (data: GroupAddRobotData) => void;
+  /** 机器人被移出群聊 */
+  'group.del.robot': (data: GroupDelRobotData) => void;
+  /** 群管理员主动在机器人资料页操作关闭通知 */
+  'group.message.reject': (data: GroupMessageReject) => void;
+  /** 群管理员主动在机器人资料页操作开启通知 */
+  'group.message.receive': (data: GroupMessageReceive) => void;
+  /** 用户添加机器人'好友'到消息列表 */
+  'friend.add': (data: FriendAdd) => void;
+  /** 用户删除机器人'好友' */
+  'friend.del': (data: FriendDel) => void;
+  /** 用户在机器人资料卡手动关闭"主动消息"推送 */
+  'c2c.msg.reject': (data: C2cMsgReject) => void;
+  /** 用户在机器人资料卡手动开启"主动消息"推送开关 */
+  'c2c.msg.receive': (data: C2cMsgReceive) => void;
+  /** 用户在单聊发送消息给机器人 */
+  'c2c.message.create': (data: C2cMessageCreate) => void;
+  /** 用户在群聊 @ 机器人发送消息 */
+  'group.at.message.create': (data: GroupAtMessageCreate) => void;
 
   // TODO: ／人◕ ‿‿ ◕人＼ SESSION 文档没提供类型，我暂时只遇到过这俩，待补充
   /** 连接会话通信 */
