@@ -4,9 +4,8 @@ import { EventEmitter } from 'node:events';
 import { createApi } from '@/api';
 import { Token } from '@/client/token';
 import { BotEvent } from '@/client/event';
-import { Request } from '@/client/request';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
-import { LogLevel, createLogger } from '@/utils/logger';
+import { LogLevel, Request, createLogger, objectToString } from '@/utils';
 
 export interface BotConfig {
   /** 机器人 ID */
@@ -86,7 +85,7 @@ export class Bot extends EventEmitter {
     this.checkConfig();
 
     this.token = new Token(<Required<BotConfig>>config);
-    this.request = new Request(config.appid);
+    this.request = this.createRequest();
     this.session = new Session(config, this.token);
     this.api = createApi(this.token);
   }
@@ -142,5 +141,22 @@ export class Bot extends EventEmitter {
       this.logger.error(`检测到 events 为空，请查阅相关文档：${wiki}`);
       throw new BotError('Events cannot be empty.');
     }
+  }
+
+  private createRequest() {
+    const request = new Request();
+
+    request.useRequestInterceptor(config => {
+      this.logger.trace('开始发起网络请求...');
+      this.logger.debug(`Request: ${objectToString(config)}`);
+
+      return config;
+    });
+
+    request.useResponseInterceptor(result => {
+      this.logger.debug(`Response: ${objectToString(result.data)}`);
+      return result;
+    });
+    return request;
   }
 }

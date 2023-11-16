@@ -1,13 +1,7 @@
-import type { Logger } from 'log4js';
-import { getLogger } from '@/utils/logger';
-import { AnyObject, deepAssign, objectToParams, objectToString } from '@/utils/common';
+import { AnyObject, deepAssign, objectToParams } from '@/utils/common';
 
 /** 方法 */
 export type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'PATCH';
-/** 请求拦截器 */
-export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
-/** 响应拦截器 */
-export type ResponseInterceptor = (data: AnyObject) => AnyObject | Promise<AnyObject>;
 
 /** 请求配置项 */
 export interface RequestConfig extends RequestInit {
@@ -19,6 +13,10 @@ export interface RequestConfig extends RequestInit {
 type Config = Omit<RequestConfig, 'method' | 'url'>;
 
 export type Data = AnyObject | null;
+/** 请求拦截器 */
+export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
+/** 响应拦截器 */
+export type ResponseInterceptor = (result: Result) => Result | Promise<Result>;
 
 /** 请求结果集 */
 export interface Result<T = Data> {
@@ -41,12 +39,10 @@ class RequestError extends Error {
 }
 
 export class Request {
-  private logger: Logger;
   private requestInterceptors: RequestInterceptor[];
   private responseInterceptors: ResponseInterceptor[];
 
-  constructor(appid: string) {
-    this.logger = getLogger(appid);
+  constructor() {
     this.requestInterceptors = [];
     this.responseInterceptors = [];
   }
@@ -72,8 +68,6 @@ export class Request {
     for (const interceptor of this.requestInterceptors) {
       config = await interceptor(config);
     }
-    this.logger.trace('开始发起网络请求...');
-
     const response = await fetch((config.baseURL ?? '') + config.url, config);
     const result: Partial<Result> = {
       status: response.status,
@@ -82,21 +76,17 @@ export class Request {
       headers: response.headers,
     };
 
-    this.logger.debug(`Request: ${objectToString(config)}`);
-
     try {
       result.data = <Data>await response.json();
-
-      for (const interceptor of this.responseInterceptors) {
-        result.data = await interceptor(result.data!);
-      }
-      this.logger.debug(`Response: ${objectToString(result.data)}`);
     } catch (error) {
       if (!response.ok) {
-        this.logger.error(error);
         throw error instanceof Error ? error : new RequestError('Request failed.');
       }
       result.data = null;
+    }
+
+    for (const interceptor of this.responseInterceptors) {
+      deepAssign(result, await interceptor(<Result>result));
     }
     return <Result<T>>result;
   }
