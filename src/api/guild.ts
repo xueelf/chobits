@@ -1,9 +1,9 @@
-import type { Data, Request, Result } from '@/client/request';
+import type { Request, Result } from '@/utils';
 import type { Guild } from '@/model/guild';
 import type { Member, Role } from '@/model/member';
 import type { Channel, ChannelSubType, ChannelType, PrivateType, SpeakPermission } from '@/model/channel';
 
-export interface GuildChannelData extends Data {
+export interface CreateGuildChannelParams {
   /** 子频道名称 */
   name: string;
   /** 子频道类型 */
@@ -24,12 +24,19 @@ export interface GuildChannelData extends Data {
   application_id: string;
 }
 
+export interface GetGuildMembersParams {
+  /** 将上一次回包中next填入， 如果是第一次请求填 0，默认为 0 */
+  start_index: string;
+  /** 分页大小，1-400，默认是 1。成员较多的频道尽量使用较大的 limit 值，以减少请求数 */
+  limit: number;
+}
+
 export interface GuildRoleMembers {
   data: Member[];
   next: string;
 }
 
-export interface DeleteGuildUserMemberData extends Data {
+export interface DeleteGuildUserMemberParams {
   /** 删除成员的同时，将该用户添加到频道黑名单中 */
   add_blacklist: boolean;
   /** 删除成员的同时，撤回该成员的消息，可以指定撤回消息的时间范围 */
@@ -45,7 +52,7 @@ export interface GuildRoles {
   role_num_limit: string;
 }
 
-export interface GuildRolesData extends Data {
+export interface GuildRoleParams {
   /** 名称 */
   name?: string;
   /** ARGB 的 HEX 十六进制颜色值转换后的十进制数值 */
@@ -54,14 +61,14 @@ export interface GuildRolesData extends Data {
   hoist?: number;
 }
 
-export interface CreateGuildRoles {
+export interface CreateGuildRole {
   /** 身份组 ID */
   role_id: string;
   /** 所创建的频道身份组对象 */
   role: Role[];
 }
 
-export interface UpdateGuildRoles {
+export interface UpdateGuildRole {
   /** 频道 ID */
   guild_id: string;
   /** 身份组 ID */
@@ -70,7 +77,7 @@ export interface UpdateGuildRoles {
   role: Role[];
 }
 
-export interface AddGuildMemberRolesData extends Data {
+export interface GuildMemberRoleParams {
   channel: Channel;
 }
 
@@ -93,8 +100,8 @@ export default (request: Request) => {
     /**
      * 在 guild_id 指定的频道下创建一个子频道。
      */
-    createGuildChannel(guild_id: string, data: GuildChannelData): Promise<Result<Channel>> {
-      return request.post<Channel>(`/guilds/${guild_id}/channels`, data);
+    createGuildChannel(guild_id: string, params: CreateGuildChannelParams): Promise<Result<Channel>> {
+      return request.post<Channel>(`/guilds/${guild_id}/channels`, params);
     },
 
     /**
@@ -110,12 +117,16 @@ export default (request: Request) => {
     getGuildRoleMembers(
       guild_id: string,
       role_id: string,
-      start_index: string = '0',
-      limit: number = 1,
+      params: GetGuildMembersParams,
     ): Promise<Result<GuildRoleMembers>> {
-      return request.get<GuildRoleMembers>(
-        `/guilds/${guild_id}/roles/${role_id}/members?start_index=${start_index}&limit=${limit}`,
-      );
+      const defaultParams: GetGuildMembersParams = {
+        start_index: '0',
+        limit: 1,
+      };
+      return request.get<GuildRoleMembers>(`/guilds/${guild_id}/roles/${role_id}/members`, {
+        ...defaultParams,
+        ...params,
+      });
     },
 
     /**
@@ -128,8 +139,8 @@ export default (request: Request) => {
     /**
      * 删除 guild_id 指定的频道下的成员 user_id。
      */
-    deleteGuildUserMember(guild_id: string, user_id: string, data: DeleteGuildUserMemberData): Promise<Result> {
-      return request.delete(`/guilds/${guild_id}/members/${user_id}`, data);
+    deleteGuildUserMember(guild_id: string, user_id: string, params: DeleteGuildUserMemberParams): Promise<Result> {
+      return request.delete(`/guilds/${guild_id}/members/${user_id}`, params);
     },
 
     /**
@@ -140,48 +151,48 @@ export default (request: Request) => {
     },
 
     /**
-     * 在 guild_id 指定的频道下创建一个身份组。
+     * 用于在 guild_id 指定的频道下创建一个身份组。
      */
-    createGuildRoles(guild_id: string, data: GuildRolesData): Promise<Result<CreateGuildRoles>> {
-      return request.post<CreateGuildRoles>(`/guilds/${guild_id}/roles`, data);
+    createGuildRole(guild_id: string, params: GuildRoleParams): Promise<Result<CreateGuildRole>> {
+      return request.post<CreateGuildRole>(`/guilds/${guild_id}/roles`, params);
     },
 
     /**
      * 修改频道 guild_id 下 role_id 指定的身份组。
      */
-    updateGuildRoles(guild_id: string, role_id: string, data: GuildRolesData): Promise<Result<UpdateGuildRoles>> {
-      return request.patch<UpdateGuildRoles>(`/guilds/${guild_id}/roles/${role_id}`, data);
+    updateGuildRole(guild_id: string, role_id: string, params: GuildRoleParams): Promise<Result<UpdateGuildRole>> {
+      return request.patch<UpdateGuildRole>(`/guilds/${guild_id}/roles/${role_id}`, params);
     },
 
     /**
      * 删除频道 guild_id下 role_id 对应的身份组。
      */
-    deleteGuildRoles(guild_id: string, role_id: string): Promise<Result> {
+    deleteGuildRole(guild_id: string, role_id: string): Promise<Result> {
       return request.delete(`/guilds/${guild_id}/roles/${role_id}`);
     },
 
     /**
      * 将频道 guild_id 下的用户 user_id 添加到身份组 role_id 。
      */
-    addGuildMemberRoles(
+    addGuildMemberRole(
       guild_id: string,
       user_id: string,
       role_id: string,
-      data: AddGuildMemberRolesData,
+      params: GuildMemberRoleParams,
     ): Promise<Result> {
-      return request.put(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`, data);
+      return request.put(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`, params);
     },
 
     /**
      * 将用户 user_id 从 频道 guild_id 的 role_id 身份组中移除。
      */
-    deleteGuildMemberRoles(
+    deleteGuildMemberRole(
       guild_id: string,
       user_id: string,
       role_id: string,
-      data: AddGuildMemberRolesData,
+      params: GuildMemberRoleParams,
     ): Promise<Result> {
-      return request.delete(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`, data);
+      return request.delete(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`, params);
     },
   };
 };

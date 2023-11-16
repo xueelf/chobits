@@ -1,6 +1,6 @@
-import type { Data, Request, Result } from '@/client/request';
+import type { Request, Result } from '@/utils';
 
-export interface sendGroupsMessageData extends Data {
+export interface SendGroupsMessageParams {
   /** 文本内容 */
   content?: string;
   /** 消息类型： 0 是文本，1 图文混排 ，2 是 markdown 3 ark，4 embed */
@@ -33,7 +33,7 @@ export interface GroupMessage {
   timestamp: number;
 }
 
-export interface sendGroupFileData extends Data {
+export interface SendGroupFileParams {
   /** 媒体类型 */
   file_type: number;
   /** 需要发送媒体资源的 url */
@@ -58,15 +58,15 @@ export default (request: Request) => {
     /**
      * 发送消息到群。
      */
-    sendGroupMessage(group_openid: string, data: sendGroupsMessageData): Promise<Result<GroupMessage>> {
-      return request.post<GroupMessage>(`/v2/groups/${group_openid}/messages`, data);
+    sendGroupMessage(group_openid: string, params: SendGroupsMessageParams): Promise<Result<GroupMessage>> {
+      return request.post<GroupMessage>(`/v2/groups/${group_openid}/messages`, params);
     },
 
     /**
      * 发送富媒体消息到群。
      */
-    sendGroupFile(group_openid: string, data: sendGroupFileData): Promise<Result<GroupFile>> {
-      return request.post<GroupFile>(`/v2/groups/${group_openid}/files`, data);
+    sendGroupFile(group_openid: string, params: SendGroupFileParams): Promise<Result<GroupFile>> {
+      return request.post<GroupFile>(`/v2/groups/${group_openid}/files`, params);
     },
   };
 };

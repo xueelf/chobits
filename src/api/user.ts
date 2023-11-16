@@ -1,8 +1,8 @@
+import type { Request, Result } from '@/utils';
 import type { User } from '@/model/user';
-import type { Data, Request, Result } from '@/client/request';
-import { Guild } from '@/model/guild';
+import type { Guild } from '@/model/guild';
 
-export interface UserMessageData extends Data {
+export interface UserMessageParams {
   /** 文本内容 */
   content?: string;
   msg_type: 0 | 1 | 2 | 3 | 4;
@@ -39,7 +39,7 @@ export interface UserMessage {
   timestamp: number;
 }
 
-export interface UserMessageFileData extends Data {
+export interface UserMessageFileParams {
   /** 媒体类型 */
   file_type: number;
   /** 需要发送媒体资源的 url */
@@ -64,15 +64,15 @@ export default (request: Request) => {
     /**
      * 单独发送消息给用户。
      */
-    sendUserMessage(openid: string, data: UserMessageData): Promise<Result<UserMessage>> {
-      return request.post<UserMessage>(`/v2/users/${openid}/messages`, data);
+    sendUserMessage(openid: string, params: UserMessageParams): Promise<Result<UserMessage>> {
+      return request.post<UserMessage>(`/v2/users/${openid}/messages`, params);
     },
 
     /**
      * 单独发送富媒体消息给用户。
      */
-    sendUserFile(openid: string, data: UserMessageFileData): Promise<Result<UserFile>> {
-      return request.post<UserFile>(`/v2/users/${openid}/files`, data);
+    sendUserFile(openid: string, params: UserMessageFileParams): Promise<Result<UserFile>> {
+      return request.post<UserFile>(`/v2/users/${openid}/files`, params);
     },
 
     /**

@@ -1,14 +1,14 @@
 import type { Message } from '@/model/message';
-import type { Request, Result } from '@/client/request';
-import type { sendChannelMessageData } from '@/api/channel';
+import type { Request, Result } from '@/utils';
+import type { SendChannelMessageParams } from '@/api/channel';
 
 export default (request: Request) => {
   return {
     /**
      * 用于发送频道私信消息，前提是已经创建了私信会话。
      */
-    sendDmMessage(guild_id: string, data: sendChannelMessageData): Promise<Result<Message>> {
-      return request.post<Message>(`/dms/${guild_id}/messages`, data);
+    sendDmMessage(guild_id: string, params: SendChannelMessageParams): Promise<Result<Message>> {
+      return request.post<Message>(`/dms/${guild_id}/messages`, params);
     },
 
     /**

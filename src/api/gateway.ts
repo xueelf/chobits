@@ -1,4 +1,4 @@
-import type { Request, Result } from '@/client/request';
+import type { Request, Result } from '@/utils';
 
 export interface Gateway {
   /** 用于连接 `websocket` 的地址。 */

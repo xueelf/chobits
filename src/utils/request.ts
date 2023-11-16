@@ -1,7 +1,16 @@
 import { AnyObject, deepAssign, objectToParams } from '@/utils/common';
 
 /** 方法 */
-export type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'PATCH';
+type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'PATCH';
+type Data = AnyObject | null;
+type Config = Omit<RequestConfig, 'method' | 'url'>;
+
+class RequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RequestError';
+  }
+}
 
 /** 请求配置项 */
 export interface RequestConfig extends RequestInit {
@@ -10,9 +19,6 @@ export interface RequestConfig extends RequestInit {
   url: string;
 }
 
-type Config = Omit<RequestConfig, 'method' | 'url'>;
-
-export type Data = AnyObject | null;
 /** 请求拦截器 */
 export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
 /** 响应拦截器 */
@@ -29,13 +35,6 @@ export interface Result<T = Data> {
   statusText: string;
   /** 请求头 */
   headers: Headers;
-}
-
-class RequestError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'RequestError';
-  }
 }
 
 export class Request {

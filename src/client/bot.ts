@@ -1,11 +1,11 @@
 import type { Logger } from 'log4js';
 
 import { EventEmitter } from 'node:events';
-import { createApi } from '@/api';
+import { getApi } from '@/api';
 import { Token } from '@/client/token';
 import { BotEvent } from '@/client/event';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
-import { LogLevel, Request, createLogger, objectToString } from '@/utils';
+import { LogLevel, Request, createLogger, deepAssign, objectToString } from '@/utils';
 
 export interface BotConfig {
   /** 机器人 ID */
@@ -19,6 +19,8 @@ export interface BotConfig {
   /** 日志等级 */
   log_level?: LogLevel;
 }
+
+type Api = ReturnType<typeof getApi>;
 
 class BotError extends Error {
   constructor(message: string) {
@@ -71,7 +73,7 @@ export interface Bot extends EventEmitter {
 export class Bot extends EventEmitter {
   /** 记录器 */
   public logger: Logger;
-  public api: ReturnType<typeof createApi>;
+  public api: Api;
   public request: Request;
 
   private token: Token;
@@ -84,10 +86,10 @@ export class Bot extends EventEmitter {
     this.logger = createLogger(config.appid, config.log_level);
     this.checkConfig();
 
-    this.token = new Token(<Required<BotConfig>>config);
+    this.api = this.createApi();
     this.request = this.createRequest();
+    this.token = new Token(<Required<BotConfig>>config);
     this.session = new Session(config, this.token);
-    this.api = createApi(this.token);
   }
 
   /**
@@ -143,18 +145,44 @@ export class Bot extends EventEmitter {
     }
   }
 
-  private createRequest() {
+  private createApi(): Api {
     const request = new Request();
 
-    request.useRequestInterceptor(config => {
-      this.logger.trace('开始发起网络请求...');
-      this.logger.debug(`Request: ${objectToString(config)}`);
+    request.useRequestInterceptor(async config => {
+      this.logger.trace('开始调用接口请求...');
+      await this.token.renew();
+
+      deepAssign(config, {
+        baseURL: 'https://api.sgroup.qq.com',
+        headers: {
+          'Authorization': this.token.authorization,
+          'X-Union-Appid': this.token.config.appid,
+        },
+      });
+      this.logger.debug(`API Request: ${objectToString(config)}`);
 
       return config;
     });
 
     request.useResponseInterceptor(result => {
-      this.logger.debug(`Response: ${objectToString(result.data)}`);
+      this.logger.debug(`API Response: ${objectToString(result.data)}`);
+      return result;
+    });
+    return getApi(request);
+  }
+
+  private createRequest(): Request {
+    const request = new Request();
+
+    request.useRequestInterceptor(config => {
+      this.logger.trace('开始发起网络请求...');
+      this.logger.debug(`HTTP Request: ${objectToString(config)}`);
+
+      return config;
+    });
+
+    request.useResponseInterceptor(result => {
+      this.logger.debug(`HTTP Response: ${objectToString(result.data)}`);
       return result;
     });
     return request;

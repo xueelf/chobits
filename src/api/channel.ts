@@ -1,10 +1,11 @@
-import type { Data, Request, Result } from '@/client/request';
+import type { Request, Result } from '@/utils';
 import type { Channel, ChannelPermission, PrivateType, SpeakPermission } from '@/model/channel';
 import type { Message, MessageArk, MessageEmbed, MessageMarkdown, MessageReference } from '@/model/message';
 
-export interface sendChannelMessageData extends Data {
+export interface SendChannelMessageParams {
   /** 消息内容 */
   content?: string;
+  /** embed 消息 */
   embed?: MessageEmbed;
   /** ark 消息对象 */
   ark?: MessageArk;
@@ -14,10 +15,11 @@ export interface sendChannelMessageData extends Data {
   image?: string;
   /** 要回复的消息id(Message.id), 在 AT_CREATE_MESSAGE 事件中获取。 */
   msg_id?: string;
+  /** markdown 消息对象 */
   markdown?: MessageMarkdown;
 }
 
-export interface updateChannelMessageData extends Data {
+export interface updateChannelMessageParams {
   /** 子频道名 */
   name?: string;
   /** 排序 */
@@ -30,11 +32,11 @@ export interface updateChannelMessageData extends Data {
   speak_permission?: SpeakPermission;
 }
 
-export interface ChannelOnlineNum extends Data {
+export interface ChannelOnlineNum {
   online_nums: number;
 }
 
-export interface updateChannelPermissionData extends Data {
+export interface updateChannelPermissionParams {
   /** 字符串形式的位图表示赋予用户的权限 */
   add: string;
   /** 字符串形式的位图表示删除用户的权限 */
@@ -44,14 +46,14 @@ export interface updateChannelPermissionData extends Data {
 export default (request: Request) => {
   return {
     /**
-     * 发动消息到文字子频道。
+     * 用于向 channel_id 指定的子频道发送消息。
      */
-    sendChannelMessage(channel_id: string, data: sendChannelMessageData): Promise<Result<Message>> {
-      return request.post<Message>(`/channels/${channel_id}/messages`, data);
+    sendChannelMessage(channel_id: string, params: SendChannelMessageParams): Promise<Result<Message>> {
+      return request.post<Message>(`/channels/${channel_id}/messages`, params);
     },
 
     /**
-     * 撤回子频道消息。
+     * 用于撤回子频道 channel_id 下的消息 message_id。
      */
     recallChannelMessage(channel_id: string, message_id: string, hidetip: boolean = false): Promise<Result> {
       return request.delete(`/channels/${channel_id}/messages/${message_id}?hidetip=${hidetip}`);
@@ -67,8 +69,8 @@ export default (request: Request) => {
     /**
      * 修改 channel_id 指定的子频道的信息。
      */
-    updateChannelInfo(channel_id: string, data: updateChannelMessageData): Promise<Result<Channel>> {
-      return request.patch<Channel>(`/channels/${channel_id}`, data);
+    updateChannelInfo(channel_id: string, params: updateChannelMessageParams): Promise<Result<Channel>> {
+      return request.patch<Channel>(`/channels/${channel_id}`, params);
     },
 
     /**
@@ -93,14 +95,14 @@ export default (request: Request) => {
     },
 
     /**
-     * 修改子频道 channel_id 下用户 user_id 的权限。
+     * 用于修改子频道 channel_id 下用户 user_id 的权限。
      */
     updateChannelMemberPermission(
       channel_id: string,
       user_id: string,
-      data: updateChannelPermissionData,
+      params: updateChannelPermissionParams,
     ): Promise<Result> {
-      return request.put(`/channels/${channel_id}/members/${user_id}/permissions`, data);
+      return request.put(`/channels/${channel_id}/members/${user_id}/permissions`, params);
     },
 
     /**
@@ -116,9 +118,9 @@ export default (request: Request) => {
     updateChannelRolePermission(
       channel_id: string,
       role_id: string,
-      data: updateChannelPermissionData,
+      params: updateChannelPermissionParams,
     ): Promise<Result> {
-      return request.put(`/channels/${channel_id}/roles/${role_id}/permissions`, data);
+      return request.put(`/channels/${channel_id}/roles/${role_id}/permissions`, params);
     },
   };
 };
