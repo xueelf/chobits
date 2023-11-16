@@ -1,3 +1,5 @@
+export type AnyObject = Record<string, any>;
+
 /**
  * 对象深合并，用法与 `Object.assign()` 保持一致。
  *
@@ -5,7 +7,7 @@
  * @param sources - 源对象，包含将被合并的属性。
  * @returns 目标对象。
  */
-export function deepAssign(target: Record<string, any>, ...sources: unknown[]): object {
+export function deepAssign(target: AnyObject, ...sources: unknown[]): object {
   for (let i = 0; i < sources.length; i++) {
     const source = sources[i];
 
@@ -31,13 +33,22 @@ export function deepAssign(target: Record<string, any>, ...sources: unknown[]): 
       if (typeof target[key] !== `object` || !target[key]) {
         target[key] = {};
       }
-      deepAssign(target[key] as Record<string, any>, value);
+      deepAssign(target[key], value);
     });
   }
   return target;
 }
 
-export function objectToString(object: object) {
+export function objectToParams(object: AnyObject) {
+  const params = new URLSearchParams();
+
+  for (const key in object) {
+    params.append(key, object[key]);
+  }
+  return params.toString();
+}
+
+export function objectToString(object: object | null) {
   return JSON.stringify(object, null, 2);
 }
 

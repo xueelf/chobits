@@ -1,24 +1,35 @@
 import type { Logger } from 'log4js';
-
 import { getLogger } from '@/utils/logger';
-import { deepAssign, objectToString } from '@/utils/common';
+import { AnyObject, deepAssign, objectToParams, objectToString } from '@/utils/common';
 
-export type Data = Record<string, unknown>;
-export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+/** 方法 */
+export type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'PATCH';
+/** 请求拦截器 */
 export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
-export type ResponseInterceptor = (result: Partial<Result>) => Partial<Result> | Promise<Partial<Result>> | undefined;
+/** 响应拦截器 */
+export type ResponseInterceptor = (data: AnyObject) => AnyObject | Promise<AnyObject>;
 
+/** 请求配置项 */
 export interface RequestConfig extends RequestInit {
   baseURL?: string;
   method: Method;
   url: string;
 }
 
+type Config = Omit<RequestConfig, 'method' | 'url'>;
+
+export type Data = AnyObject | null;
+
+/** 请求结果集 */
 export interface Result<T = Data> {
   data: T;
+  /** 请求配置项 */
   config: RequestConfig;
+  /** 响应状态码 */
   status: number;
+  /** 状态码消息 */
   statusText: string;
+  /** 请求头 */
   headers: Headers;
 }
 
@@ -40,23 +51,24 @@ export class Request {
     this.responseInterceptors = [];
   }
 
-  public useRequestInterceptor(interceptor: RequestInterceptor) {
+  /** 添加请求拦截器 */
+  public useRequestInterceptor(interceptor: RequestInterceptor): void {
     this.requestInterceptors.push(interceptor);
   }
 
-  private useResponseInterceptor(interceptor: ResponseInterceptor) {
+  /** 添加响应拦截器 */
+  public useResponseInterceptor(interceptor: ResponseInterceptor): void {
     this.responseInterceptors.push(interceptor);
   }
 
   public async base<T>(config: RequestConfig): Promise<Result<T>> {
-    const defaultConfig: Omit<RequestConfig, 'method' | 'url'> = {
+    const defaultConfig: Config = {
       headers: {
         'Content-Type': 'application/json',
       },
     };
     config = <RequestConfig>deepAssign(defaultConfig, config);
 
-    // 请求拦截器
     for (const interceptor of this.requestInterceptors) {
       config = await interceptor(config);
     }
@@ -75,22 +87,24 @@ export class Request {
     try {
       result.data = <Data>await response.json();
 
-      // 响应拦截器
       for (const interceptor of this.responseInterceptors) {
-        // TODO: ／人◕ ‿‿ ◕人＼ 目前用不到
+        result.data = await interceptor(result.data!);
       }
       this.logger.debug(`Response: ${objectToString(result.data)}`);
     } catch (error) {
       if (!response.ok) {
         this.logger.error(error);
-        throw error instanceof Error ? error : new RequestError('Request failed');
+        throw error instanceof Error ? error : new RequestError('Request failed.');
       }
-      result.data = {};
+      result.data = null;
     }
     return <Result<T>>result;
   }
 
-  public get<T = Data>(url: string, config?: Omit<RequestConfig, 'method' | 'url'>): Promise<Result<T>> {
+  public get<T = Data>(url: string, params?: AnyObject, config?: Config): Promise<Result<T>> {
+    if (params) {
+      url += (/\?/.test(url) ? '&' : '?') + objectToParams(params);
+    }
     return this.base<T>({
       url,
       method: 'GET',
@@ -98,40 +112,8 @@ export class Request {
     });
   }
 
-  public post<T = Data>(
-    url: string,
-    data?: Data,
-    config: Omit<RequestConfig, 'method' | 'url'> = {},
-  ): Promise<Result<T>> {
-    config.body = JSON.stringify(data);
-
-    return this.base<T>({
-      url,
-      method: 'POST',
-      ...config,
-    });
-  }
-
-  public put<T = Data>(
-    url: string,
-    data?: Data,
-    config: Omit<RequestConfig, 'method' | 'url'> = {},
-  ): Promise<Result<T>> {
-    config.body = JSON.stringify(data);
-
-    return this.base<T>({
-      url,
-      method: 'PUT',
-      ...config,
-    });
-  }
-
-  public delete<T = Data>(
-    url: string,
-    data?: Data,
-    config: Omit<RequestConfig, 'method' | 'url'> = {},
-  ): Promise<Result<T>> {
-    config.body = JSON.stringify(data);
+  public delete<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
+    config.body = JSON.stringify(params);
 
     return this.base<T>({
       url,
@@ -140,12 +122,28 @@ export class Request {
     });
   }
 
-  public patch<T = Data>(
-    url: string,
-    data?: Data,
-    config: Omit<RequestConfig, 'method' | 'url'> = {},
-  ): Promise<Result<T>> {
-    config.body = JSON.stringify(data);
+  public post<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
+    config.body = JSON.stringify(params);
+
+    return this.base<T>({
+      url,
+      method: 'POST',
+      ...config,
+    });
+  }
+
+  public put<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
+    config.body = JSON.stringify(params);
+
+    return this.base<T>({
+      url,
+      method: 'PUT',
+      ...config,
+    });
+  }
+
+  public patch<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
+    config.body = JSON.stringify(params);
 
     return this.base<T>({
       url,
