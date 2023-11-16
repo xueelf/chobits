@@ -34,15 +34,15 @@ const bot = new Bot({
 
 // 监听频道消息
 bot.on('at.message.create', async data => {
-  // 收到任意 at 消息后发送 "hello world"
+  // 收到任意 at 消息后在频道回复 "hello world"
   await bot.api.sendChannelMessage(data.channel_id, {
     content: 'hello world',
   });
 });
 
-// 监听群消息
+// 监听群聊消息
 bot.on('group.at.message.create', async data => {
-  // 收到任意 at 消息后发送 "hello world"
+  // 收到任意 at 消息后在群聊回复 "hello world"
   await bot.api.sendGroupMessage(data.group_openid, {
     msg_type: 0,
     content: 'hello world',
@@ -64,13 +64,45 @@ bot.online();
 
 基于 fetch 封装，可发送自定义网络请求。
 
-### Bot.online
+### Bot.online()
 
 机器人上线。
 
-### Bot.offline
+### Bot.offline()
 
 机器人下线。
+
+### Request.useRequestInterceptor(interceptor)
+
+添加请求拦截器。
+
+### Request.useResponseInterceptor(interceptor)
+
+添加响应拦截器。
+
+### Request.base(config)
+
+发送网络请求。（基础封装）
+
+### Request.get(url[, params][, config])
+
+发送 GET 请求。
+
+### Request.delete(url[, params][, config])
+
+发送 DELETE 请求。
+
+### Request.post(url[, params][, config])
+
+发送 POST 请求。
+
+### Request.put(url[, params][, config])
+
+发送 PUT 请求。
+
+### Request.patch(url[, params][, config])
+
+发送 PATCH 请求。
 
 ## 事件
 
@@ -119,6 +151,10 @@ bot
 ### 为什么部分 API 没有返回结果？
 
 腾讯是近期才开放群聊 API 内测的，提供的文档也很不完善，目前存在字段、返回结果不一致，v1、v2 接口混用（鉴权方式不一样）等问题，所以调用某些接口可能会无法达到预期。
+
+### 为什么 request 不使用 axios 封装？
+
+axios 太大了，目前基于 fetch 的封装 build 后大小仅 3 kb 不到，基本满足大多数使用场景。如果你想要使用 axios 或者其它网络请求库，可以自行安装依赖。
 
 ### 这个 SDK 能做什么？
 
