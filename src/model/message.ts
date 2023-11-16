@@ -112,3 +112,14 @@ interface MessageAttachment {
   /** 下载地址 */
   url: string;
 }
+
+export interface MessageSetting {
+  /** 是否允许创建私信 */
+  disable_create_dm: string;
+  /** 是否允许发主动消息 */
+  disable_push_msg: string;
+  /** 子频道 id 数组 */
+  channel_ids: string[];
+  /** 每个子频道允许主动推送消息最大消息条数 */
+  channel_push_max_num: number;
+}

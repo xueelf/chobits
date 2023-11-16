@@ -1,7 +1,9 @@
 import type { Request, Result } from '@/utils';
 import type { Guild } from '@/model/guild';
 import type { Member, Role } from '@/model/member';
+import type { ApiPermission, ApiPermissionDemand, ApiPermissionDemandIdentify } from '@/model/permission';
 import type { Channel, ChannelSubType, ChannelType, PrivateType, SpeakPermission } from '@/model/channel';
+import { MessageSetting } from '@/model/message';
 
 export interface CreateGuildChannelParams {
   /** 子频道名称 */
@@ -79,6 +81,31 @@ export interface UpdateGuildRole {
 
 export interface GuildMemberRoleParams {
   channel: Channel;
+}
+
+export interface GuildApiPermissions {
+  apis: ApiPermission[];
+}
+
+export interface SendGuildApiPermissionDemandParams {
+  /** 授权链接发送的子频道 id */
+  channel_id: string;
+  /** api 权限需求标识对象 */
+  api_identify: ApiPermissionDemandIdentify[];
+  /** 机器人申请对应的 API 接口权限后可以使用功能的描述 */
+  desc: string;
+}
+
+export interface GuildMuteParams {
+  /** 禁言到期时间戳，绝对时间戳，单位：秒（与 mute_seconds 字段同时赋值的话，以该字段为准） */
+  mute_end_timestamp?: string;
+  /** 禁言多少秒（两个字段二选一，默认以 mute_end_timestamp 为准） */
+  mute_seconds?: string;
+}
+
+export interface GuildMembersMuteParams extends GuildMuteParams {
+  /** 禁言成员的 user_id 列表，即 User 的 id */
+  user_ids: string[];
 }
 
 export default (request: Request) => {
@@ -193,6 +220,51 @@ export default (request: Request) => {
       params: GuildMemberRoleParams,
     ): Promise<Result> {
       return request.delete(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`, params);
+    },
+
+    /**
+     * 用于获取机器人在频道 guild_id 内可以使用的权限列表。
+     */
+    getGuildApiPermissions(guild_id: string): Promise<Result<GuildApiPermissions>> {
+      return request.get<GuildApiPermissions>(`/guilds/${guild_id}/api_permission`);
+    },
+
+    /**
+     * 发送机器人在频道接口权限的授权链接。
+     */
+    sendGuildApiPermissionDemand(
+      guild_id: string,
+      params: SendGuildApiPermissionDemandParams,
+    ): Promise<Result<ApiPermissionDemand>> {
+      return request.post<ApiPermissionDemand>(`/guilds/${guild_id}/api_permission/demand`, params);
+    },
+
+    /**
+     * 用于获取机器人在频道 guild_id 内的消息频率设置。
+     */
+    getGuildMessageSetting(guild_id: string): Promise<Result<MessageSetting>> {
+      return request.get<MessageSetting>(`/guilds/${guild_id}/message/setting`);
+    },
+
+    /**
+     * 用于将频道的全体成员（非管理员）禁言。
+     */
+    guildMute(guild_id: string, params: GuildMuteParams): Promise<Result> {
+      return request.patch(`/guilds/${guild_id}/mute`, params);
+    },
+
+    /**
+     * 用于禁言频道 guild_id 下的成员 user_id。
+     */
+    guildMemberMute(guild_id: string, user_id: string, params: GuildMuteParams): Promise<Result> {
+      return request.patch(`/guilds/${guild_id}/members/${user_id}/mute`, params);
+    },
+
+    /**
+     * 用于将频道的指定批量成员（非管理员）禁言。
+     */
+    guildMembersMute(guild_id: string, params: GuildMembersMuteParams): Promise<Result> {
+      return request.patch(`/guilds/${guild_id}/mute`, params);
     },
   };
 };
