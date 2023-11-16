@@ -6,12 +6,7 @@ import { Token } from '@/client/token';
 import { BotEvent } from '@/client/event';
 import { Request } from '@/client/request';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
-import { deepAssign } from '@/utils/common';
 import { LogLevel, createLogger } from '@/utils/logger';
-
-type AsyncReturnType<T extends (...args: any[]) => Promise<any>> = T extends (...args: any[]) => Promise<infer R>
-  ? R
-  : never;
 
 export interface BotConfig {
   /** 机器人 ID */

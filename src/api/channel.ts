@@ -1,5 +1,5 @@
 import type { Data, Request, Result } from '@/client/request';
-import type { Channel, PrivateType, SpeakPermission } from '@/model/channel';
+import type { Channel, ChannelPermission, PrivateType, SpeakPermission } from '@/model/channel';
 import type { Message, MessageArk, MessageEmbed, MessageMarkdown, MessageReference } from '@/model/message';
 
 export interface sendChannelMessageData extends Data {
@@ -32,6 +32,13 @@ export interface updateChannelMessageData extends Data {
 
 export interface ChannelOnlineNum extends Data {
   online_nums: number;
+}
+
+export interface updateChannelPermissionData extends Data {
+  /** 字符串形式的位图表示赋予用户的权限 */
+  add: string;
+  /** 字符串形式的位图表示删除用户的权限 */
+  remove: string;
 }
 
 export default (request: Request) => {
@@ -76,6 +83,42 @@ export default (request: Request) => {
      */
     getChannelOnlineNum(channel_id: string): Promise<Result<ChannelOnlineNum>> {
       return request.get<ChannelOnlineNum>(`/channels/${channel_id}/online_nums`);
+    },
+
+    /**
+     * 获取子频道 channel_id 下用户 user_id 的权限。
+     */
+    getChannelMemberPermission(channel_id: string, user_id: string): Promise<Result<ChannelPermission>> {
+      return request.get<ChannelPermission>(`/channels/${channel_id}/members/${user_id}/permissions`);
+    },
+
+    /**
+     * 修改子频道 channel_id 下用户 user_id 的权限。
+     */
+    updateChannelMemberPermission(
+      channel_id: string,
+      user_id: string,
+      data: updateChannelPermissionData,
+    ): Promise<Result> {
+      return request.put(`/channels/${channel_id}/members/${user_id}/permissions`, data);
+    },
+
+    /**
+     * 获取子频道 channel_id 下身份组 role_id 的权限。
+     */
+    getChannelRolePermission(channel_id: string, role_id: string): Promise<Result<ChannelPermission>> {
+      return request.get<ChannelPermission>(`/channels/${channel_id}/roles/${role_id}/permissions`);
+    },
+
+    /**
+     * 修改子频道 channel_id 下身份组 role_id 的权限。
+     */
+    updateChannelRolePermission(
+      channel_id: string,
+      role_id: string,
+      data: updateChannelPermissionData,
+    ): Promise<Result> {
+      return request.put(`/channels/${channel_id}/roles/${role_id}/permissions`, data);
     },
   };
 };

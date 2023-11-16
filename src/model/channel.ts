@@ -31,3 +31,14 @@ export interface Channel {
   /** 用户拥有的子频道权限 */
   permissions: Permissions;
 }
+
+export interface ChannelPermission {
+  /** 子频道 id */
+  channel_id: string;
+  /** 用户 id 或 身份组 id，只会返回其中之一 */
+  user_id?: string;
+  /** 用户 id 或 身份组 id，只会返回其中之一 */
+  role_id?: string;
+  /** 用户拥有的子频道权限 */
+  permissions: string;
+}

@@ -23,3 +23,18 @@ export interface MemberWithGuildID {
   /**	用户加入频道的时间 */
   joined_at: number;
 }
+
+export interface Role {
+  /** 身份组ID */
+  id: string;
+  /** 名称 */
+  name: string;
+  /** ARGB 的 HEX 十六进制颜色值转换后的十进制数值 */
+  color: number;
+  /** 是否在成员列表中单独展示: 0-否, 1-是 */
+  hoist: number;
+  /** 人数 */
+  number: number;
+  /** 成员上限 */
+  member_limit: number;
+}

@@ -97,7 +97,7 @@ bot
   .on('guild.member', data => {
     console.log(data);
   })
-  .login();
+  .online();
 ```
 
 这样 `guild.member.add`、`guild.member.update`、`guild.member.remove`，三个事件将会被全部监听，这使得消息订阅更具有灵活性。
