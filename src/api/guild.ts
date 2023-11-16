@@ -4,6 +4,7 @@ import type { Member, Role } from '@/model/member';
 import type { ApiPermission, ApiPermissionDemand, ApiPermissionDemandIdentify } from '@/model/permission';
 import type { Channel, ChannelSubType, ChannelType, PrivateType, SpeakPermission } from '@/model/channel';
 import { MessageSetting } from '@/model/message';
+import { Announce, RecommendChannel } from '@/model/announce';
 
 export interface CreateGuildChannelParams {
   /** 子频道名称 */
@@ -108,34 +109,45 @@ export interface GuildMembersMuteParams extends GuildMuteParams {
   user_ids: string[];
 }
 
+export interface CreateGuildAnnounceParams {
+  /** 选填，消息 id，message_id 有值则优选将某条消息设置为成员公告 */
+  message_id: string;
+  /** 选填，子频道 id，message_id 有值则为必填。 */
+  channel_id: string;
+  /** 选填，公告类别 0:成员公告，1:欢迎公告，默认为成员公告 */
+  announces_type: number;
+  /** 选填，推荐子频道列表，会一次全部替换推荐子频道列表 */
+  recommend_channels: RecommendChannel[];
+}
+
 export default (request: Request) => {
   return {
     /**
      * 获取 `guild_id` 指定的频道的详情。
      */
     getGuildInfo(guild_id: string): Promise<Result<Guild>> {
-      return request.get<Guild>(`/guilds/${guild_id}`);
+      return request.get(`/guilds/${guild_id}`);
     },
 
     /**
      * 获取 guild_id 指定的频道下的子频道列表。
      */
     getGuildChannels(guild_id: string): Promise<Result<Channel[]>> {
-      return request.get<Channel[]>(`/guilds/${guild_id}/channels`);
+      return request.get(`/guilds/${guild_id}/channels`);
     },
 
     /**
      * 在 guild_id 指定的频道下创建一个子频道。
      */
     createGuildChannel(guild_id: string, params: CreateGuildChannelParams): Promise<Result<Channel>> {
-      return request.post<Channel>(`/guilds/${guild_id}/channels`, params);
+      return request.post(`/guilds/${guild_id}/channels`, params);
     },
 
     /**
      * 获取 guild_id 指定的频道中所有成员的详情列表，支持分页。
      */
     getGuildMembers(guild_id: string, after: string = '0', limit: number = 1): Promise<Result<Member[]>> {
-      return request.get<Member[]>(`/guilds/${guild_id}/members?after=${after}&limit=${limit}`);
+      return request.get(`/guilds/${guild_id}/members?after=${after}&limit=${limit}`);
     },
 
     /**
@@ -150,7 +162,7 @@ export default (request: Request) => {
         start_index: '0',
         limit: 1,
       };
-      return request.get<GuildRoleMembers>(`/guilds/${guild_id}/roles/${role_id}/members`, {
+      return request.get(`/guilds/${guild_id}/roles/${role_id}/members`, {
         ...defaultParams,
         ...params,
       });
@@ -160,7 +172,7 @@ export default (request: Request) => {
      * 获取 guild_id 指定的频道中 user_id 对应成员的详细信息。
      */
     getGuildUserMember(guild_id: string, user_id: string): Promise<Result<Member>> {
-      return request.get<Member>(`/guilds/${guild_id}/members/${user_id}`);
+      return request.get(`/guilds/${guild_id}/members/${user_id}`);
     },
 
     /**
@@ -174,21 +186,21 @@ export default (request: Request) => {
      * 获取 guild_id 指定的频道下的身份组列表。
      */
     getGuildRoles(guild_id: string): Promise<Result<GuildRoles>> {
-      return request.get<GuildRoles>(`/guilds/${guild_id}/roles`);
+      return request.get(`/guilds/${guild_id}/roles`);
     },
 
     /**
      * 用于在 guild_id 指定的频道下创建一个身份组。
      */
     createGuildRole(guild_id: string, params: GuildRoleParams): Promise<Result<CreateGuildRole>> {
-      return request.post<CreateGuildRole>(`/guilds/${guild_id}/roles`, params);
+      return request.post(`/guilds/${guild_id}/roles`, params);
     },
 
     /**
      * 修改频道 guild_id 下 role_id 指定的身份组。
      */
     updateGuildRole(guild_id: string, role_id: string, params: GuildRoleParams): Promise<Result<UpdateGuildRole>> {
-      return request.patch<UpdateGuildRole>(`/guilds/${guild_id}/roles/${role_id}`, params);
+      return request.patch(`/guilds/${guild_id}/roles/${role_id}`, params);
     },
 
     /**
@@ -226,7 +238,7 @@ export default (request: Request) => {
      * 用于获取机器人在频道 guild_id 内可以使用的权限列表。
      */
     getGuildApiPermissions(guild_id: string): Promise<Result<GuildApiPermissions>> {
-      return request.get<GuildApiPermissions>(`/guilds/${guild_id}/api_permission`);
+      return request.get(`/guilds/${guild_id}/api_permission`);
     },
 
     /**
@@ -236,14 +248,14 @@ export default (request: Request) => {
       guild_id: string,
       params: SendGuildApiPermissionDemandParams,
     ): Promise<Result<ApiPermissionDemand>> {
-      return request.post<ApiPermissionDemand>(`/guilds/${guild_id}/api_permission/demand`, params);
+      return request.post(`/guilds/${guild_id}/api_permission/demand`, params);
     },
 
     /**
      * 用于获取机器人在频道 guild_id 内的消息频率设置。
      */
     getGuildMessageSetting(guild_id: string): Promise<Result<MessageSetting>> {
-      return request.get<MessageSetting>(`/guilds/${guild_id}/message/setting`);
+      return request.get(`/guilds/${guild_id}/message/setting`);
     },
 
     /**
@@ -265,6 +277,20 @@ export default (request: Request) => {
      */
     guildMembersMute(guild_id: string, params: GuildMembersMuteParams): Promise<Result> {
       return request.patch(`/guilds/${guild_id}/mute`, params);
+    },
+
+    /**
+     * 用于创建频道全局公告，公告类型分为 消息类型的频道公告 和 推荐子频道类型的频道公告 。
+     */
+    createGuildAnnounce(guild_id: string, params: CreateGuildAnnounceParams): Promise<Result<Announce>> {
+      return request.post(`/guilds/${guild_id}/announces`, params);
+    },
+
+    /**
+     * 用于删除频道 guild_id 下指定 message_id 的全局公告。
+     */
+    deleteGuildAnnounce(guild_id: string, message_id: string): Promise<Result> {
+      return request.delete(`/guilds/${guild_id}/announces/${message_id}`);
     },
   };
 };

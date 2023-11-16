@@ -31,14 +31,14 @@ export default (request: Request) => {
      * 获取通用 WSS 接入点。
      */
     getGateway(): Promise<Result<Gateway>> {
-      return request.get<Gateway>('/gateway');
+      return request.get('/gateway');
     },
 
     /**
      * 获取带分片 WSS 接入点。
      */
     getGatewayBot(): Promise<Result<GatewayBot>> {
-      return request.get<GatewayBot>('/gateway/bot');
+      return request.get('/gateway/bot');
     },
   };
 };

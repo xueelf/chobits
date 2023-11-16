@@ -123,3 +123,12 @@ export interface MessageSetting {
   /** 每个子频道允许主动推送消息最大消息条数 */
   channel_push_max_num: number;
 }
+
+export interface PinMessage {
+  /** 频道 id */
+  guild_id: string;
+  /** 子频道 id */
+  channel_id: string;
+  /** 子频道内精华消息 id 数组 */
+  message_ids: string[];
+}

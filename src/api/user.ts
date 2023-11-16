@@ -65,28 +65,28 @@ export default (request: Request) => {
      * 单独发送消息给用户。
      */
     sendUserMessage(openid: string, params: UserMessageParams): Promise<Result<UserMessage>> {
-      return request.post<UserMessage>(`/v2/users/${openid}/messages`, params);
+      return request.post(`/v2/users/${openid}/messages`, params);
     },
 
     /**
      * 单独发送富媒体消息给用户。
      */
     sendUserFile(openid: string, params: UserMessageFileParams): Promise<Result<UserFile>> {
-      return request.post<UserFile>(`/v2/users/${openid}/files`, params);
+      return request.post(`/v2/users/${openid}/files`, params);
     },
 
     /**
      * 获取当前机器人详情。
      */
     getUserInfo(): Promise<Result<User>> {
-      return request.get<User>(`/users/@me`);
+      return request.get(`/users/@me`);
     },
 
     /**
      * 获取用户频道列表。
      */
     getUserGuilds(): Promise<Result<Guild[]>> {
-      return request.get<Guild[]>(`/users/@me/guilds`);
+      return request.get(`/users/@me/guilds`);
     },
   };
 };

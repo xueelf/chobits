@@ -8,7 +8,7 @@ export default (request: Request) => {
      * 用于发送频道私信消息，前提是已经创建了私信会话。
      */
     sendDmMessage(guild_id: string, params: SendChannelMessageParams): Promise<Result<Message>> {
-      return request.post<Message>(`/dms/${guild_id}/messages`, params);
+      return request.post(`/dms/${guild_id}/messages`, params);
     },
 
     /**

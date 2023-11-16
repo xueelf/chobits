@@ -1,7 +1,7 @@
 import type { Logger } from 'log4js';
 
 import { EventEmitter } from 'node:events';
-import { getApi } from '@/api';
+import { generateApi } from '@/api';
 import { Token } from '@/client/token';
 import { BotEvent } from '@/client/event';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
@@ -20,7 +20,7 @@ export interface BotConfig {
   log_level?: LogLevel;
 }
 
-type Api = ReturnType<typeof getApi>;
+type Api = ReturnType<typeof generateApi>;
 
 class BotError extends Error {
   constructor(message: string) {
@@ -168,7 +168,7 @@ export class Bot extends EventEmitter {
       this.logger.debug(`API Response: ${objectToString(result.data)}`);
       return result;
     });
-    return getApi(request);
+    return generateApi(request);
   }
 
   private createRequest(): Request {

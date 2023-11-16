@@ -59,14 +59,14 @@ export default (request: Request) => {
      * 发送消息到群。
      */
     sendGroupMessage(group_openid: string, params: SendGroupsMessageParams): Promise<Result<GroupMessage>> {
-      return request.post<GroupMessage>(`/v2/groups/${group_openid}/messages`, params);
+      return request.post(`/v2/groups/${group_openid}/messages`, params);
     },
 
     /**
      * 发送富媒体消息到群。
      */
     sendGroupFile(group_openid: string, params: SendGroupFileParams): Promise<Result<GroupFile>> {
-      return request.post<GroupFile>(`/v2/groups/${group_openid}/files`, params);
+      return request.post(`/v2/groups/${group_openid}/files`, params);
     },
   };
 };

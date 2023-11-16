@@ -1,6 +1,9 @@
 import type { Request, Result } from '@/utils';
+import type { Schedule } from '@/model/schedule';
+import type { AudioControl } from '@/model/audio';
+import type { Format, Thread, ThreadInfo } from '@/model/forum';
 import type { Channel, ChannelPermission, PrivateType, SpeakPermission } from '@/model/channel';
-import type { Message, MessageArk, MessageEmbed, MessageMarkdown, MessageReference } from '@/model/message';
+import type { Message, MessageArk, MessageEmbed, MessageMarkdown, MessageReference, PinMessage } from '@/model/message';
 
 export interface SendChannelMessageParams {
   /** 消息内容 */
@@ -43,13 +46,37 @@ export interface updateChannelPermissionParams {
   remove: string;
 }
 
+export interface ChannelScheduleParams {
+  schedule: Omit<Schedule, 'id'>;
+}
+
+export interface ChannelMicParams {
+  channel_id: string;
+}
+
+export interface ChannelThread {
+  /** 帖子列表对象 */
+  threads: Thread;
+  /** 是否拉取完毕(0:否；1:是) */
+  is_finish: number;
+}
+
+export interface CreateChannelThreadParams {
+  /** 帖子标题 */
+  title: string;
+  /** 帖子内容 */
+  content: string;
+  /** 帖子文本格式 */
+  format: Format;
+}
+
 export default (request: Request) => {
   return {
     /**
      * 用于向 channel_id 指定的子频道发送消息。
      */
     sendChannelMessage(channel_id: string, params: SendChannelMessageParams): Promise<Result<Message>> {
-      return request.post<Message>(`/channels/${channel_id}/messages`, params);
+      return request.post(`/channels/${channel_id}/messages`, params);
     },
 
     /**
@@ -63,14 +90,14 @@ export default (request: Request) => {
      * 获取 channel_id 指定的子频道的详情。
      */
     getChannelInfo(channel_id: string): Promise<Result<Channel>> {
-      return request.get<Channel>(`/channels/${channel_id}`);
+      return request.get(`/channels/${channel_id}`);
     },
 
     /**
      * 修改 channel_id 指定的子频道的信息。
      */
     updateChannelInfo(channel_id: string, params: updateChannelMessageParams): Promise<Result<Channel>> {
-      return request.patch<Channel>(`/channels/${channel_id}`, params);
+      return request.patch(`/channels/${channel_id}`, params);
     },
 
     /**
@@ -84,14 +111,14 @@ export default (request: Request) => {
      * 获取子频道在线成员数。
      */
     getChannelOnlineNum(channel_id: string): Promise<Result<ChannelOnlineNum>> {
-      return request.get<ChannelOnlineNum>(`/channels/${channel_id}/online_nums`);
+      return request.get(`/channels/${channel_id}/online_nums`);
     },
 
     /**
      * 获取子频道 channel_id 下用户 user_id 的权限。
      */
     getChannelMemberPermission(channel_id: string, user_id: string): Promise<Result<ChannelPermission>> {
-      return request.get<ChannelPermission>(`/channels/${channel_id}/members/${user_id}/permissions`);
+      return request.get(`/channels/${channel_id}/members/${user_id}/permissions`);
     },
 
     /**
@@ -109,7 +136,7 @@ export default (request: Request) => {
      * 获取子频道 channel_id 下身份组 role_id 的权限。
      */
     getChannelRolePermission(channel_id: string, role_id: string): Promise<Result<ChannelPermission>> {
-      return request.get<ChannelPermission>(`/channels/${channel_id}/roles/${role_id}/permissions`);
+      return request.get(`/channels/${channel_id}/roles/${role_id}/permissions`);
     },
 
     /**
@@ -121,6 +148,115 @@ export default (request: Request) => {
       params: updateChannelPermissionParams,
     ): Promise<Result> {
       return request.put(`/channels/${channel_id}/roles/${role_id}/permissions`, params);
+    },
+
+    /**
+     * 用于添加子频道 channel_id 内的精华消息。
+     */
+    addChannelPin(channel_id: string, message_id: string): Promise<Result<PinMessage>> {
+      return request.put(`/channels/${channel_id}/pins/${message_id}`);
+    },
+
+    /**
+     * 用于删除子频道 channel_id 下指定 message_id 的精华消息。
+     */
+    deleteChannelPin(channel_id: string, message_id: string): Promise<Result> {
+      return request.delete(`/channels/${channel_id}/pins/${message_id}`);
+    },
+
+    /**
+     * 用于获取子频道 channel_id 内的精华消息。
+     */
+    getChannelPin(channel_id: string): Promise<Result<PinMessage>> {
+      return request.get(`/channels/${channel_id}/pins`);
+    },
+
+    /**
+     * 用于获取channel_id指定的子频道中当天的日程列表。
+     */
+    getChannelSchedule(channel_id: string, since?: number): Promise<Result<Schedule>> {
+      return request.get(`/channels/${channel_id}/schedules?since=${since}`);
+    },
+
+    /**
+     * 获取日程子频道 channel_id 下 schedule_id 指定的的日程的详情。
+     */
+    getChannelScheduleInfo(channel_id: string, schedule_id: string): Promise<Result<Schedule>> {
+      return request.get(`/channels/${channel_id}/schedules/${schedule_id}`);
+    },
+
+    /**
+     * 用于在 channel_id 指定的日程子频道下创建一个日程。
+     */
+    createChannelSchedule(channel_id: string, params: ChannelScheduleParams): Promise<Result<Schedule>> {
+      return request.post(`/channels/${channel_id}/schedules`, params);
+    },
+
+    /**
+     * 用于修改日程子频道 channel_id 下 schedule_id 指定的日程的详情。
+     */
+    updateChannelSchedule(
+      channel_id: string,
+      schedule_id: string,
+      params: ChannelScheduleParams,
+    ): Promise<Result<Schedule>> {
+      return request.patch(`/channels/${channel_id}/schedules/${schedule_id}`, params);
+    },
+
+    /**
+     * 用于删除日程子频道 channel_id 下 schedule_id 指定的日程。
+     */
+    deleteChannelSchedule(channel_id: string, schedule_id: string): Promise<Result> {
+      return request.delete(`/channels/${channel_id}/schedules/${schedule_id}`);
+    },
+
+    /**
+     * 用于控制子频道 channel_id 下的音频。
+     */
+    channelAudioControl(channel_id: string, params: AudioControl): Promise<Result> {
+      return request.post(`/channels/${channel_id}/audio`, params);
+    },
+
+    /**
+     * 机器人在 channel_id 对应的语音子频道上麦。
+     */
+    channelMicOn(channel_id: string, params: ChannelMicParams): Promise<Result> {
+      return request.put(`/channels/${channel_id}/mic`, params);
+    },
+
+    /**
+     * 机器人在 channel_id 对应的语音子频道下麦。
+     */
+    channelMicOff(channel_id: string, params: ChannelMicParams): Promise<Result> {
+      return request.delete(`/channels/${channel_id}/mic`, params);
+    },
+
+    /**
+     * 该接口用于获取子频道下的帖子列表。
+     */
+    getChannelThread(channel_id: string): Promise<Result<ChannelThread>> {
+      return request.get(`/channels/${channel_id}/threads`);
+    },
+
+    /**
+     * 该接口用于获取子频道下的帖子详情。
+     */
+    getChannelThreadInfo(channel_id: string, thread_id: string): Promise<Result<ThreadInfo>> {
+      return request.get(`/channels/${channel_id}/threads/${thread_id}`);
+    },
+
+    /**
+     * 发表帖子。
+     */
+    createChannelThread(channel_id: string, params: CreateChannelThreadParams): Promise<Result<ChannelThread>> {
+      return request.put(`/channels/${channel_id}/threads`, params);
+    },
+
+    /**
+     * 用于删除指定子频道下的某个帖子。
+     */
+    deleteChannelThread(channel_id: string, thread_id: string): Promise<Result> {
+      return request.delete(`/channels/${channel_id}/threads/${thread_id}`);
     },
   };
 };
