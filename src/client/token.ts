@@ -39,7 +39,7 @@ export class Token {
   /** 记录器 */
   private logger: Logger;
 
-  constructor(public config: Required<BotConfig>) {
+  constructor(private config: BotConfig) {
     this.value = '';
     this.lifespan = 0;
     this.logger = getLogger(config.appid);

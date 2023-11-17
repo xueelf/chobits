@@ -203,7 +203,7 @@ export class Session extends EventEmitter {
     this.is_reconnect = false;
     this.logger = getLogger(config.appid);
     this.retry = 0;
-    this.max_retry = 3;
+    this.max_retry = config.max_retry!;
     this.seq = 0;
     this.session_id = null;
     this.ws = null;

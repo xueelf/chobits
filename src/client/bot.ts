@@ -7,6 +7,7 @@ import { BotEvent } from '@/client/event';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
 import { LogLevel, Request, createLogger, deepAssign, objectToString } from '@/utils';
 
+/** 机器人配置项 */
 export interface BotConfig {
   /** 机器人 ID */
   appid: string;
@@ -16,6 +17,8 @@ export interface BotConfig {
   secret: string;
   /** 订阅事件 */
   events: IntentEvent[];
+  /** 掉线重连数 */
+  max_retry?: number;
   /** 日志等级 */
   log_level?: LogLevel;
 }
@@ -79,8 +82,9 @@ export class Bot extends EventEmitter {
   private token: Token;
   private session: Session;
 
-  constructor(private config: BotConfig) {
+  constructor(public config: BotConfig) {
     super();
+    config.max_retry ??= 3;
     config.log_level ??= 'INFO';
 
     this.logger = createLogger(config.appid, config.log_level);
@@ -88,7 +92,7 @@ export class Bot extends EventEmitter {
 
     this.api = this.createApi();
     this.request = this.createRequest();
-    this.token = new Token(<Required<BotConfig>>config);
+    this.token = new Token(config);
     this.session = new Session(config, this.token);
   }
 
@@ -156,7 +160,7 @@ export class Bot extends EventEmitter {
         baseURL: 'https://api.sgroup.qq.com',
         headers: {
           'Authorization': this.token.authorization,
-          'X-Union-Appid': this.token.config.appid,
+          'X-Union-Appid': this.config.appid,
         },
       });
       this.logger.debug(`API Request: ${objectToString(config)}`);

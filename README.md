@@ -5,22 +5,25 @@
 
 ---
 
-[![npm package](https://img.shields.io/npm/v/amesu?color=616DF8&label=amesu&style=flat-square&labelColor=FAFAFA&logo=npm)](https://www.npmjs.com/package/amesu)
-[![node engine](https://img.shields.io/node/v/amesu?color=339933&style=flat-square&labelColor=FAFAFA&logo=Node.js)](https://nodejs.org)
+![package](https://img.shields.io/npm/v/amesu?label=amesu&style=flat-square&logo=npm&labelColor=FAFAFA)
+![engine](https://img.shields.io/node/v/amesu?style=flat-square&logo=Node.js&labelColor=FAFAFA)
+![downloads](https://img.shields.io/npm/dt/amesu?style=flat-square&logo=tinder&logoColor=FF8C00&labelColor=FAFAFA&color=616DF8)
 
 本项目是一个在 Node.js 环境下运行的 QQ 机器人第三方 SDK。
 
-## 介绍
+## Introduction
 
-> 由于腾讯是近期上线的群聊 API，官方文档的内容与实际情况 **有较大差异**，请勿将其用于生产环境。
+> 由于腾讯是近期上线的群聊 API，官方文档的内容与实际表现 **有部分差异**，请勿将其用于生产环境。
 
 项目的名字来源于 Cygames 开发和发行的游戏 《公主连结 Re:Dive》 中的登场角色 アメス，其罗马音 amesu 用作了本项目的名字。
 
-## 使用
+## Install
 
 ```shell
-npm i amesu # or pnpm add amesu
+npm i amesu
 ```
+
+## Usage
 
 ```javascript
 const { Bot } = require('amesu');
@@ -52,6 +55,59 @@ bot.on('group.at.message.create', async data => {
 
 // 机器人上线
 bot.online();
+```
+
+## Event
+
+目前 socket 返回的事件全部为大写，并用下划线做分割。但是在 Node.js 的 `EventEmitter` 中，事件名一般使用小写字母。
+
+这是因为事件名通常表示一种行为或状态，而不是一个特定的类或构造函数。根据 JavaScript 的命名约定，使用小写字母来表示这些行为或状态更为常见和推荐。
+
+所以 amesu 针对事件名做了以下处理：
+
+- 事件名全部转换为小写
+- 使用小数点替换下划线
+- 会话事件添加 `session` 前缀
+
+例如 `MESSAGE_CREATE` -> `message.create`，`READY` -> `session.ready`。
+
+你可以仅监听事件的部分前缀，例如：
+
+```javascript
+const { Bot } = require('amesu');
+
+const bot = new Bot();
+
+bot
+  .on('guild.member', data => {
+    console.log(data);
+  })
+  .online();
+```
+
+这样 `guild.member.add`、`guild.member.update`、`guild.member.remove`，三个事件将会被全部监听，这使得消息订阅更具有灵活性。
+
+## Config
+
+```typescript
+/** 机器人配置项 */
+interface BotConfig {
+  /** 机器人 ID */
+  appid: string;
+  /** 机器人令牌 */
+  token: string;
+  /** 机器人密钥 */
+  secret: string;
+  /** 订阅事件 */
+  events: IntentEvent[];
+  /** 掉线重连数，默认 3 */
+  max_retry?: number;
+  /** 日志等级，默认 "INFO" */
+  log_level?: LogLevel;
+}
+
+/** 日志等级，具体使用可查阅 log4js */
+type LogLevel = 'ALL' | 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
 ```
 
 ## API
@@ -104,36 +160,6 @@ bot.online();
 
 发送 PATCH 请求。
 
-## 事件
-
-目前 socket 返回的事件全部为大写，并用下划线做分割。但是在 Node.js 的 `EventEmitter` 中，事件名一般使用小写字母。
-
-这是因为事件名通常表示一种行为或状态，而不是一个特定的类或构造函数。根据 JavaScript 的命名约定，使用小写字母来表示这些行为或状态更为常见和推荐。
-
-所以 amesu 针对事件名做了以下处理：
-
-- 事件名全部转换为小写
-- 使用小数点替换下划线
-- 会话事件添加 `session` 前缀
-
-例如 `MESSAGE_CREATE` -> `message.create`，`READY` -> `session.ready`。
-
-你可以仅监听事件的部分前缀，例如：
-
-```javascript
-const { Bot } = require('amesu');
-
-const bot = new Bot();
-
-bot
-  .on('guild.member', data => {
-    console.log(data);
-  })
-  .online();
-```
-
-这样 `guild.member.add`、`guild.member.update`、`guild.member.remove`，三个事件将会被全部监听，这使得消息订阅更具有灵活性。
-
 ## FAQ
 
 ### 为什么要做这个项目？
@@ -154,10 +180,16 @@ bot
 
 ### 为什么 request 不使用 axios 封装？
 
-axios 太大了，基于 fetch 的封装 build 后大小仅 3 kb 不到，基本满足大多数使用场景。如果你想要使用 axios 或者其它网络请求库，可以自行安装依赖。
+axios 太大了，基于 fetch 的封装 build 后大小仅 3 kb 不到，基本满足大部分的使用场景。如果你想要使用 axios 或者其它网络请求库，可以自行安装依赖。
 
 ### 这个 SDK 能做什么？
 
 频道与群聊的消息收发已测试完毕，API 返回结果与 interface 不符的问题还待腾讯后续完善文档和接口统一。
 
 当前 amesu 已经有了完整的鉴权流程（会话保活、掉线重连、凭证刷新），并做了日志和网络请求的封装，后面没什么问题就不会再有大改了。如果有 API 缺失，在 `api` 文件内参考格式直接添加 url 就可以正常使用，也欢迎来提 pr。
+
+### 怎么样去编写一个插件？
+
+amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个机器人解决方案，这两者不应该耦合。
+
+如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 90 kb+ 的大小，而官方 SDK 却占据了 430 kb+。
