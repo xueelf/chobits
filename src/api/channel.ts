@@ -82,7 +82,7 @@ export default (request: Request) => {
     /**
      * 用于撤回子频道 channel_id 下的消息 message_id。
      */
-    recallChannelMessage(channel_id: string, message_id: string, hidetip: boolean = false): Promise<Result> {
+    deleteChannelMessage(channel_id: string, message_id: string, hidetip: boolean = false): Promise<Result> {
       return request.delete(`/channels/${channel_id}/messages/${message_id}?hidetip=${hidetip}`);
     },
 

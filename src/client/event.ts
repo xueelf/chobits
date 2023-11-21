@@ -1,31 +1,10 @@
 import { ReadyData, ResumedData } from '@/client/session';
 import { Message } from '@/model/message';
 
-export type SessionReadyData = ReadyData;
-export type SessionResumedData = ResumedData;
+type SessionReadyData = ReadyData;
+type SessionResumedData = ResumedData;
 
-export interface MessageCreateData {
-  author: {
-    avatar: string;
-    bot: boolean;
-    id: string;
-    username: string;
-  };
-  channel_id: string;
-  content: string;
-  guild_id: string;
-  id: string;
-  member: {
-    joined_at: string;
-    nick: string;
-    roles: string[];
-  };
-  seq: number;
-  seq_in_channel: string;
-  timestamp: string;
-}
-
-export interface MessageAuditPassData {
+interface MessageAuditPassData {
   audit_id: string;
   audit_time: string;
   channel_id: string;
@@ -181,7 +160,7 @@ export interface BotEvent {
 
   // MESSAGE_AUDIT
   /** 消息审核通过 */
-  'message.audit.pass': (data: unknown) => void;
+  'message.audit.pass': (data: MessageAuditPassData) => void;
   /** 消息审核不通过 */
   'message.audit.reject': (data: unknown) => void;
 

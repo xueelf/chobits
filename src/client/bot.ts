@@ -5,7 +5,7 @@ import { generateApi } from '@/api';
 import { Token } from '@/client/token';
 import { BotEvent } from '@/client/event';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
-import { LogLevel, Request, createLogger, deepAssign, objectToString } from '@/utils';
+import { AnyObject, LogLevel, Request, RequestError, Result, createLogger, deepAssign, objectToString } from '@/utils';
 
 /** 机器人配置项 */
 export interface BotConfig {
@@ -24,6 +24,14 @@ export interface BotConfig {
 }
 
 type Api = ReturnType<typeof generateApi>;
+
+type ApiData =
+  | AnyObject
+  | null
+  | {
+      code: number;
+      message: string;
+    };
 
 class BotError extends Error {
   constructor(message: string) {
@@ -168,8 +176,14 @@ export class Bot extends EventEmitter {
       return config;
     });
 
-    request.useResponseInterceptor(result => {
-      this.logger.debug(`API Response: ${objectToString(result.data)}`);
+    request.useResponseInterceptor((result: Result<ApiData>) => {
+      const { data } = result;
+
+      this.logger.debug(`API Response: ${objectToString(data)}`);
+
+      if (data?.code) {
+        throw new RequestError(`Code ${data.code}, ${data.message}.`);
+      }
       return result;
     });
     return generateApi(request);

@@ -5,7 +5,7 @@ type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'PATCH';
 type Data = AnyObject | null;
 type Config = Omit<RequestConfig, 'method' | 'url'>;
 
-class RequestError extends Error {
+export class RequestError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'RequestError';
