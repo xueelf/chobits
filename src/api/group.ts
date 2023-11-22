@@ -3,11 +3,14 @@ import type { Request, Result } from '@/utils';
 export interface SendGroupsMessageParams {
   /** 文本内容 */
   content?: string;
-  /** 消息类型： 0 是文本，1 图文混排 ，2 是 markdown 3 ark，4 embed */
-  msg_type: 0 | 1 | 2 | 3 | 4;
+  /** 消息类型： 0 文本，1 图文混排 ，2 markdown 3 ark，4 embed 7 富媒体 */
+  msg_type: 0 | 1 | 2 | 3 | 4 | 7;
   markdown?: Record<string, unknown>;
   keyboard?: Record<string, unknown>;
   ark?: Record<string, unknown>;
+  media?: {
+    file_info: string;
+  };
   /**
    * @deprecated 暂不支持
    */
@@ -23,7 +26,12 @@ export interface SendGroupsMessageParams {
    */
   event_id?: string;
   /** 前置收到的消息 ID，用于发送被动消息 */
-  msg_id: string;
+  msg_id?: string;
+  /**
+   * 回复消息的序号，与 msg_id 联合使用，避免相同消息 id 回复重复发送，不填默认是 1。
+   * 相同的 msg_id + msg_seq 重复发送会失败。
+   */
+  msg_seq?: number;
 }
 
 export interface GroupMessage {
@@ -38,7 +46,7 @@ export interface SendGroupFileParams {
   file_type: number;
   /** 需要发送媒体资源的 url */
   url: string;
-  /** 固定是：true */
+  /** 设置 true 会直接发送消息到目标端，且会占用主动消息频次 */
   srv_send_msg: boolean;
   /**
    * @deprecated 暂未支持

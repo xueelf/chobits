@@ -5,10 +5,14 @@ import type { Guild } from '@/model/guild';
 export interface UserMessageParams {
   /** 文本内容 */
   content?: string;
-  msg_type: 0 | 1 | 2 | 3 | 4;
+  /** 消息类型： 0 文本，1 图文混排 ，2 markdown 3 ark，4 embed 7 富媒体 */
+  msg_type: 0 | 1 | 2 | 3 | 4 | 7;
   markdown?: Record<string, unknown>;
   keyboard?: Record<string, unknown>;
   ark?: Record<string, unknown>;
+  media?: {
+    file_info: string;
+  };
   /**
    * @deprecated 暂不支持
    */
@@ -44,7 +48,7 @@ export interface UserMessageFileParams {
   file_type: number;
   /** 需要发送媒体资源的 url */
   url: string;
-  /** 固定是：true */
+  /** 设置 true 会直接发送消息到目标端，且会占用主动消息频次 */
   srv_send_msg: boolean;
   /**
    * @deprecated 暂未支持
