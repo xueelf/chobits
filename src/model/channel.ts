@@ -1,4 +1,4 @@
-// https://bot.q.qq.com/wiki/develop/api-231017/server-inter/channel/manage/channel/model.html#channel
+// https://bot.q.qq.com/wiki/develop/api-v2/server-inter/channel/manage/channel/model.html#channel
 export type ChannelType = 0 | 1 | 2 | 3 | 4 | 10005 | 10006 | 10007;
 export type ChannelSubType = 0 | 1 | 2 | 3;
 export type PrivateType = 0 | 1 | 2;

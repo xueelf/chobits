@@ -40,6 +40,8 @@ class BotError extends Error {
   }
 }
 
+type EventInterceptor = (dispatch: DispatchData) => DispatchData | Promise<DispatchData>;
+
 export interface Bot extends EventEmitter {
   addListener<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
   addListener(event: string | symbol, listener: (...args: unknown[]) => void): this;
@@ -82,13 +84,13 @@ export interface Bot extends EventEmitter {
 }
 
 export class Bot extends EventEmitter {
-  /** 记录器 */
   public logger: Logger;
   public api: Api;
   public request: Request;
 
   private token: Token;
   private session: Session;
+  private eventInterceptors: EventInterceptor[];
 
   constructor(public config: BotConfig) {
     super();
@@ -102,6 +104,7 @@ export class Bot extends EventEmitter {
     this.request = this.createRequest();
     this.token = new Token(config);
     this.session = new Session(config, this.token);
+    this.eventInterceptors = [];
   }
 
   /**
@@ -121,36 +124,42 @@ export class Bot extends EventEmitter {
     this.session.disconnect();
   }
 
-  private onDispatch(data: DispatchData) {
-    const { t, d } = data;
-    const eventData = {
+  /**
+   * 添加事件拦截器。
+   */
+  public useEventInterceptor(interceptor: EventInterceptor) {
+    this.eventInterceptors.push(interceptor);
+  }
+
+  private async onDispatch(dispatch: DispatchData) {
+    for (const interceptor of this.eventInterceptors) {
+      dispatch = await interceptor(dispatch);
+    }
+    const { t, d } = dispatch;
+    const data = {
       t,
       ...d,
     };
-
-    let event = t.replace(/_/g, '.').toLowerCase();
+    const events = t.toLowerCase().split('_');
 
     // 不存在下划线就是 session 自身的事件，例如 READY、RESUMED
-    if (!/\./.test(event)) {
-      event = `session.${event}`;
+    if (events.length === 1) {
+      events.unshift('session');
     }
-    while (true) {
-      this.emit(event, eventData);
+
+    do {
+      const event = events.join('.');
+
+      this.emit(event, data);
       this.logger.debug(`推送 "${event}" 事件`);
-
-      const i = event.lastIndexOf('.');
-
-      if (i === -1) {
-        break;
-      }
-      event = event.slice(0, i);
-    }
+      events.pop();
+    } while (events.length);
   }
 
   private checkConfig() {
     if (!this.config.events.length) {
       const wiki =
-        'https://bot.q.qq.com/wiki/develop/api-231017/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents';
+        'https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents';
 
       this.logger.error(`检测到 events 为空，请查阅相关文档：${wiki}`);
       throw new BotError('Events cannot be empty.');

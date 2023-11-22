@@ -128,6 +128,10 @@ type LogLevel = 'ALL' | 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
 
 机器人下线。
 
+### Bot.useEventInterceptor(interceptor)
+
+添加事件拦截器。
+
 ### Request.useRequestInterceptor(interceptor)
 
 添加请求拦截器。
