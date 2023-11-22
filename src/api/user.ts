@@ -40,7 +40,7 @@ export interface UserMessage {
   /** 消息唯一 ID */
   id: string;
   /** 发送时间 */
-  timestamp: number;
+  timestamp: string;
 }
 
 export interface UserMessageFileParams {
@@ -60,7 +60,7 @@ export interface UserFile {
   /** 消息唯一 ID */
   id: string;
   /** 发送时间 */
-  timestamp: number;
+  timestamp: string;
 }
 
 export default (request: Request) => {

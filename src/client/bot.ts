@@ -190,9 +190,15 @@ export class Bot extends EventEmitter {
 
       this.logger.debug(`API Response: ${objectToString(data)}`);
 
-      if (data?.code) {
-        throw new RequestError(`Code ${data.code}, ${data.message}.`);
-      }
+      /**
+       * TODO: API 异常处理
+       *
+       * 失败一定会返回 code 与 message，成功的 response 却完全没统一结构
+       * 时而字符串时而对象，时而有 code 时而没 data，没任何规律，tx 的架构到底在想什么？
+       */
+      // if (data?.code) {
+      //   throw new RequestError(`Code ${data.code}, ${data.message}.`);
+      // }
       return result;
     });
     return generateApi(request);

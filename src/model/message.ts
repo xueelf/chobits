@@ -79,9 +79,9 @@ export interface Message {
   /** 消息内容 */
   content: string;
   /** 消息创建时间 */
-  timestamp: number;
+  timestamp: string;
   /** 消息编辑时间 */
-  edited_timestamp: number;
+  edited_timestamp: string;
   /** 是否是 @ 全员消息 */
   mention_everyone: boolean;
   /** 消息创建者 */

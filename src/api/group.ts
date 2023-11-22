@@ -38,7 +38,7 @@ export interface GroupMessage {
   /** 消息唯一 ID */
   id: string;
   /** 发送时间 */
-  timestamp: number;
+  timestamp: string;
 }
 
 export interface SendGroupFileParams {
@@ -58,7 +58,7 @@ export interface GroupFile {
   /** 消息唯一 ID */
   id: string;
   /** 发送时间 */
-  timestamp: number;
+  timestamp: string;
 }
 
 export default (request: Request) => {

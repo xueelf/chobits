@@ -1,10 +1,10 @@
 import { ReadyData, ResumedData } from '@/client/session';
 import { Message } from '@/model/message';
 
-type SessionReadyData = ReadyData;
-type SessionResumedData = ResumedData;
+export type SessionReady = ReadyData;
+export type SessionResumed = ResumedData;
 
-interface MessageAuditPassData {
+export interface MessageAuditPass {
   audit_id: string;
   audit_time: string;
   channel_id: string;
@@ -14,71 +14,71 @@ interface MessageAuditPassData {
   seq_in_channel: string;
 }
 
-interface GroupAddRobotData {
+export interface GroupAddRobot {
   /** 加入的时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 加入群的群 openid */
   group_openid: string;
   /** 操作添加机器人进群的群成员 openid */
   op_member_openid: string;
 }
 
-interface GroupDelRobotData {
+export interface GroupDelRobot {
   /** 移除的时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 移除群的群 openid */
   group_openid: string;
   /** 操作移除机器人退群的群成员 openid */
   op_member_openid: string;
 }
 
-interface GroupMessageReject {
+export interface GroupMessageReject {
   /** 操作的时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 操作群的群 openid */
   group_openid: string;
   /** 操作群成员的 openid */
   op_member_openid: string;
 }
 
-interface GroupMessageReceive {
+export interface GroupMessageReceive {
   /** 操作的时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 操作群的群 openid */
   group_openid: string;
   /** 操作群成员的 openid */
   op_member_openid: string;
 }
 
-interface FriendAdd {
+export interface FriendAdd {
   /** 添加时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 用户 openid */
   openid: string;
 }
 
-interface FriendDel {
+export interface FriendDel {
   /** 删除时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 用户 openid */
   openid: string;
 }
 
-interface C2cMsgReject {
+export interface C2cMsgReject {
   /** 操作时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 用户 openid */
   openid: string;
 }
 
-interface C2cMsgReceive {
+export interface C2cMsgReceive {
   /** 操作时间戳 */
-  timestamp: number;
+  timestamp: string;
   /** 用户 openid */
   openid: string;
 }
 
-interface C2cMessageCreate {
+export interface C2cMessageCreate {
   /** 平台方消息ID，可以用于被动消息发送 */
   id: string;
   /** 发送者 */
@@ -94,7 +94,7 @@ interface C2cMessageCreate {
   attachments: object[];
 }
 
-interface GroupAtMessageCreate {
+export interface GroupAtMessageCreate {
   /** 平台方消息ID，可以用于被动消息发送 */
   id: string;
   /** 发送者 */
@@ -160,7 +160,7 @@ export interface BotEvent {
 
   // MESSAGE_AUDIT
   /** 消息审核通过 */
-  'message.audit.pass': (data: MessageAuditPassData) => void;
+  'message.audit.pass': (data: MessageAuditPass) => void;
   /** 消息审核不通过 */
   'message.audit.reject': (data: unknown) => void;
 
@@ -200,9 +200,9 @@ export interface BotEvent {
 
   // GROUP_MESSAGES
   /** 机器人被添加到群聊 */
-  'group.add.robot': (data: GroupAddRobotData) => void;
+  'group.add.robot': (data: GroupAddRobot) => void;
   /** 机器人被移出群聊 */
-  'group.del.robot': (data: GroupDelRobotData) => void;
+  'group.del.robot': (data: GroupDelRobot) => void;
   /** 群管理员主动在机器人资料页操作关闭通知 */
   'group.message.reject': (data: GroupMessageReject) => void;
   /** 群管理员主动在机器人资料页操作开启通知 */
@@ -222,7 +222,7 @@ export interface BotEvent {
 
   // TODO: ／人◕ ‿‿ ◕人＼ SESSION 文档没提供类型，我暂时只遇到过这俩，待补充
   /** 连接会话通信 */
-  'session.ready': (data: SessionReadyData) => void;
+  'session.ready': (data: SessionReady) => void;
   /** 重连会话 */
-  'session.resumed': (data: SessionResumedData) => void;
+  'session.resumed': (data: SessionResumed) => void;
 }
