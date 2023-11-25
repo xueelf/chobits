@@ -270,7 +270,7 @@ export class Session extends EventEmitter {
         const { session_id } = d;
 
         this.session_id = session_id;
-        this.logger.info(`Hello, ${d.user.username}`);
+        this.logger.mark(`Hello, ${d.user.username}`);
       case DispatchType.RESUMED:
         this.logger.trace('开始发送心跳...');
         this.heartbeat();
@@ -281,7 +281,6 @@ export class Session extends EventEmitter {
       d,
     };
 
-    this.logger.info(`Dispatch: ${objectToString(dispatch)}`);
     this.emit('dispatch', dispatch);
   }
 

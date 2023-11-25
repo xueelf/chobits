@@ -1,9 +1,10 @@
 import type { Logger } from 'log4js';
 
 import { EventEmitter } from 'node:events';
+import { Message } from '@/model';
 import { generateApi } from '@/api';
 import { Token } from '@/client/token';
-import { BotEvent } from '@/client/event';
+import { BotEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/client/event';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
 import { AnyObject, LogLevel, Request, RequestError, Result, createLogger, deepAssign, objectToString } from '@/utils';
 
@@ -24,14 +25,6 @@ export interface BotConfig {
 }
 
 type Api = ReturnType<typeof generateApi>;
-
-type ApiData =
-  | AnyObject
-  | null
-  | {
-      code: number;
-      message: string;
-    };
 
 class BotError extends Error {
   constructor(message: string) {
@@ -99,6 +92,7 @@ export class Bot extends EventEmitter {
 
     this.logger = createLogger(config.appid, config.log_level);
     this.checkConfig();
+    this.logger.mark('Bot is initializing...');
 
     this.api = this.createApi();
     this.request = this.createRequest();
@@ -115,6 +109,12 @@ export class Bot extends EventEmitter {
 
     this.session.connect(data.url);
     this.session.on('dispatch', data => this.onDispatch(data));
+
+    this.on('c2c.message.create', this.onMessage);
+    this.on('group.at.message.create', this.onMessage);
+    this.on('message.create', this.onMessage);
+    this.on('at.message.create', this.onMessage);
+    this.on('direct.message.create', this.onMessage);
   }
 
   /**
@@ -156,6 +156,13 @@ export class Bot extends EventEmitter {
     } while (events.length);
   }
 
+  private onMessage(message: C2cMessageCreate | GroupAtMessageCreate | Message) {
+    const { attachments, content } = message;
+    const text = attachments ? `<attachment>${content}` : content;
+
+    this.logger.info(`Received message: "${text}"`);
+  }
+
   private checkConfig() {
     if (!this.config.events.length) {
       const wiki =
@@ -185,20 +192,13 @@ export class Bot extends EventEmitter {
       return config;
     });
 
-    request.useResponseInterceptor((result: Result<ApiData>) => {
+    request.useResponseInterceptor((result: Result) => {
       const { data } = result;
-
       this.logger.debug(`API Response: ${objectToString(data)}`);
 
-      /**
-       * TODO: API 异常处理
-       *
-       * 失败一定会返回 code 与 message，成功的 response 却完全没统一结构
-       * 时而字符串时而对象，时而有 code 时而没 data，没任何规律，tx 的架构到底在想什么？
-       */
-      // if (data?.code) {
-      //   throw new RequestError(`Code ${data.code}, ${data.message}.`);
-      // }
+      if (data?.code) {
+        throw new RequestError(`Code ${data.code}, ${data.message}.`);
+      }
       return result;
     });
     return generateApi(request);

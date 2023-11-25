@@ -39,6 +39,7 @@ const bot = new Bot({
 bot.on('at.message.create', async data => {
   // 收到任意 at 消息后在频道回复 "hello world"
   await bot.api.sendChannelMessage(data.channel_id, {
+    msg_id: data.id,
     content: 'hello world',
   });
 });
@@ -47,9 +48,9 @@ bot.on('at.message.create', async data => {
 bot.on('group.at.message.create', async data => {
   // 收到任意 at 消息后在群聊回复 "hello world"
   await bot.api.sendGroupMessage(data.group_openid, {
+    msg_id: data.id,
     msg_type: 0,
     content: 'hello world',
-    msg_id: data.id,
   });
 });
 
