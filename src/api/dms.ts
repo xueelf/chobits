@@ -1,6 +1,6 @@
 import type { Message } from '@/model/message';
 import type { Request, Result } from '@/utils';
-import type { SendChannelMessageParams } from '@/api/channel';
+import type { SendChannelMessageParams } from '@/api/channels';
 
 export default (request: Request) => {
   return {

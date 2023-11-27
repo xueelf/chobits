@@ -1,19 +1,19 @@
 import type { Request } from '@/utils';
 
-import dm from '@/api/dm';
-import user from '@/api/user';
-import group from '@/api/group';
-import guild from '@/api/guild';
-import channel from '@/api/channel';
+import dms from '@/api/dms';
+import users from '@/api/users';
+import groups from '@/api/groups';
+import guilds from '@/api/guilds';
+import channels from '@/api/channels';
 import gateway from '@/api/gateway';
 
 export function generateApi(request: Request) {
   return {
-    ...dm(request),
-    ...user(request),
-    ...group(request),
-    ...guild(request),
-    ...channel(request),
+    ...dms(request),
+    ...users(request),
+    ...groups(request),
+    ...guilds(request),
     ...gateway(request),
+    ...channels(request),
   };
 }
