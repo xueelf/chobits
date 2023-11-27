@@ -1,20 +1,125 @@
-import { ReadyData, ResumedData } from '@/client/session';
-import { Message } from '@/model/message';
+import type { AnyObject } from '@/utils/common';
+import type { ReadyData, ResumedData } from '@/client/session';
+import type { Guild } from '@/model/guild';
+import type { Channel } from '@/model/channel';
+import type { AudioAction } from '@/model/audio';
+import type { MemberWithGuildID } from '@/model/member';
+import type { AuditResult, Post, Reply, Thread } from '@/model/forum';
+import type { Message, MessageAudited, MessageReaction } from '@/model/message';
 
-export type SessionReady = ReadyData;
-export type SessionResumed = ResumedData;
+export type SessionReady = ReadyData & { t: 'READY' };
+export type SessionResumed = ResumedData & { t: 'RESUMED' };
 
-export interface MessageAuditPass {
-  audit_id: string;
-  audit_time: string;
-  channel_id: string;
-  create_time: string;
+export type GuildCreate = Guild & {
+  t: 'GUILD_CREATE';
+  op_user_id: string;
+};
+export type GuildUpdate = Guild & {
+  t: 'GUILD_UPDATE';
+  op_user_id: string;
+};
+export type GuildDelete = Guild & {
+  t: 'GUILD_DELETE';
+  op_user_id: string;
+};
+export type ChannelCreate = Channel & {
+  t: 'CHANNEL_CREATE';
+  op_user_id: string;
+};
+export type ChannelUpdate = Channel & {
+  t: 'CHANNEL_UPDATE';
+  op_user_id: string;
+};
+export type ChannelDelete = Channel & {
+  t: 'CHANNEL_DELETE';
+  op_user_id: string;
+};
+
+export type GuildMemberAdd = MemberWithGuildID & {
+  t: 'GUILD_MEMBER_ADD';
+  op_user_id: string;
+};
+export type GuildMemberUpdate = MemberWithGuildID & {
+  t: 'GUILD_MEMBER_UPDATE';
+  op_user_id: string;
+};
+export type GuildMemberRemove = MemberWithGuildID & {
+  t: 'GUILD_MEMBER_REMOVE';
+  op_user_id: string;
+};
+
+export type MessageCreate = Message & { t: 'MESSAGE_CREATE' };
+export type MessageDelete = AnyObject & { t: 'MESSAGE_DELETE' };
+
+export type MessageReactionAdd = AnyObject & { t: 'MESSAGE_REACTION_ADD' };
+export type MessageReactionRemove = MessageReaction & { t: 'MESSAGE_REACTION_REMOVE' };
+
+export type DirectMessageCreate = Message & { t: 'DIRECT_MESSAGE_CREATE' };
+export type DirectMessageDelete = AnyObject & { t: 'DIRECT_MESSAGE_DELETE' };
+
+export interface InteractionCreate {
+  /** 事件类型 */
+  t: 'INTERACTION_CREATE';
+  /** 平台方事件 ID，可以用于被动消息发送 */
+  id: string;
+  /** 按钮事件固定是 11 */
+  type: 11;
+  /** 消息内容 */
+  // TODO: ／人◕ ‿‿ ◕人＼ 文档这里写错了，咱也不知道是啥字段
+  // 'chat_type': number;
+  /** 消息生产时间 */
+  timestamp: string;
+  /** 频道的 openid */
   guild_id: string;
-  message_id: string;
-  seq_in_channel: string;
+  /** 文字子频道的 openid */
+  channel_id: string;
+  /** 群聊的 openid */
+  group_open_id: string;
+  /** 目前只有群和单聊有该字段，1 群聊，2 单聊，后续加入 3 频道 */
+  chat_type: 1 | 2 | 3;
+  data: {
+    resolved: {
+      /** 操作按钮的 data 字段值【在发送按钮时规划】 */
+      button_data: string;
+      /** 操作按钮的 id 字段值【在发送按钮时规划】 */
+
+      button_id: string;
+      /** 操作的用户 openid */
+      user_id: string;
+      /** 操作的消息 id */
+
+      message_id: string;
+    };
+  };
+  /** 默认 1 */
+  version: number;
+  /** 机器人的 appid */
+  application_id: string;
 }
 
+export type MessageAuditPass = MessageAudited & { t: 'MESSAGE_AUDIT_PASS' };
+export type MessageAuditReject = MessageAudited & { t: 'MESSAGE_AUDIT_REJECT' };
+
+export type AudioStart = AudioAction & { t: 'AUDIO_START' };
+export type AudioFinish = AudioAction & { t: 'AUDIO_FINISH' };
+export type AudioOnMic = AudioAction & { t: 'AUDIO_ON_MIC' };
+export type AudioOffMic = AudioAction & { t: 'AUDIO_OFF_MIC' };
+
+export type ForumThreadCreate = Thread & { t: 'FORUM_THREAD_CREATE' };
+export type ForumThreadUpdate = Thread & { t: 'FORUM_THREAD_UPDATE' };
+export type ForumThreadDelete = Thread & { t: 'FORUM_THREAD_DELETE' };
+export type ForumPostCreate = Post & { t: 'FORUM_POST_CREATE' };
+export type ForumPostDelete = Post & { t: 'FORUM_POST_DELETE' };
+export type ForumReplyCreate = Reply & { t: 'FORUM_REPLY_CREATE' };
+export type ForumReplyDelete = Reply & { t: 'FORUM_REPLY_DELETE' };
+export type ForumPublishAuditResult = AuditResult & { t: 'FORUM_PUBLISH_AUDIT_RESULT' };
+
+export type AtMessageCreate = Message & { t: 'AT_MESSAGE_CREATE' };
+export type PublicMessageDelete = AnyObject & { t: 'PUBLIC_MESSAGE_DELETE' };
+
 export interface GroupAddRobot {
+  /** 事件类型 */
+  t: 'GROUP_ADD_ROBOT';
   /** 加入的时间戳 */
   timestamp: string;
   /** 加入群的群 openid */
@@ -24,6 +129,8 @@ export interface GroupAddRobot {
 }
 
 export interface GroupDelRobot {
+  /** 事件类型 */
+  t: 'GROUP_DEL_ROBOT';
   /** 移除的时间戳 */
   timestamp: string;
   /** 移除群的群 openid */
@@ -33,6 +140,8 @@ export interface GroupDelRobot {
 }
 
 export interface GroupMessageReject {
+  /** 事件类型 */
+  t: 'GROUP_MSG_REJECT';
   /** 操作的时间戳 */
   timestamp: string;
   /** 操作群的群 openid */
@@ -42,6 +151,8 @@ export interface GroupMessageReject {
 }
 
 export interface GroupMessageReceive {
+  /** 事件类型 */
+  t: 'GROUP_MSG_RECEIVE';
   /** 操作的时间戳 */
   timestamp: string;
   /** 操作群的群 openid */
@@ -51,6 +162,8 @@ export interface GroupMessageReceive {
 }
 
 export interface FriendAdd {
+  /** 事件类型 */
+  t: 'FRIEND_ADD';
   /** 添加时间戳 */
   timestamp: string;
   /** 用户 openid */
@@ -58,6 +171,8 @@ export interface FriendAdd {
 }
 
 export interface FriendDel {
+  /** 事件类型 */
+  t: 'FRIEND_DEL';
   /** 删除时间戳 */
   timestamp: string;
   /** 用户 openid */
@@ -65,6 +180,8 @@ export interface FriendDel {
 }
 
 export interface C2cMsgReject {
+  /** 事件类型 */
+  t: 'C2C_MSG_REJECT';
   /** 操作时间戳 */
   timestamp: string;
   /** 用户 openid */
@@ -72,6 +189,8 @@ export interface C2cMsgReject {
 }
 
 export interface C2cMsgReceive {
+  /** 事件类型 */
+  t: 'C2C_MSG_RECEIVE';
   /** 操作时间戳 */
   timestamp: string;
   /** 用户 openid */
@@ -79,6 +198,8 @@ export interface C2cMsgReceive {
 }
 
 export interface C2cMessageCreate {
+  /** 事件类型 */
+  t: 'C2C_MESSAGE_CREATE';
   /** 平台方消息ID，可以用于被动消息发送 */
   id: string;
   /** 发送者 */
@@ -95,6 +216,8 @@ export interface C2cMessageCreate {
 }
 
 export interface GroupAtMessageCreate {
+  /** 事件类型 */
+  t: 'GROUP_AT_MESSAGE_CREATE';
   /** 平台方消息ID，可以用于被动消息发送 */
   id: string;
   /** 发送者 */
@@ -114,115 +237,135 @@ export interface GroupAtMessageCreate {
 }
 
 export interface BotEvent {
-  // GUILDS
+  //#region GUILDS
   /** 当机器人加入新 guild 时 */
-  'guild.create': (data: unknown) => void;
+  'guild.create': (event: GuildCreate) => void;
   /** 当 guild 资料发生变更时 */
-  'guild.update': (data: unknown) => void;
+  'guild.update': (event: GuildUpdate) => void;
   /** 当机器人退出 guild 时 */
-  'guild.delete': (data: unknown) => void;
+  'guild.delete': (event: GuildDelete) => void;
   /** 当 channel 被创建时 */
-  'channel.create': (data: unknown) => void;
+  'channel.create': (event: ChannelCreate) => void;
   /** 当 channel 被更新时 */
-  'channel.update': (data: unknown) => void;
+  'channel.update': (event: ChannelUpdate) => void;
   /** 当 channel 被删除时 */
-  'channel.delete': (data: unknown) => void;
+  'channel.delete': (event: ChannelDelete) => void;
+  //#endregion
 
-  // GUILD_MEMBERS
+  //#region GUILD_MEMBERS
   /** 当成员加入时 */
-  'guild.member.add': (data: unknown) => void;
+  'guild.member.add': (event: GuildMemberAdd) => void;
   /** 当成员资料变更时 */
-  'guild.member.update': (data: unknown) => void;
+  'guild.member.update': (event: GuildMemberUpdate) => void;
   /** 当成员被移除时 */
-  'guild.member.remove': (data: unknown) => void;
+  'guild.member.remove': (event: GuildMemberRemove) => void;
+  //#endregion
 
-  // GUILD_MESSAGES
+  //#region GUILD_MESSAGES
   /** **仅私域**，发送消息事件，代表频道内的全部消息，而不只是 at 机器人的消息。内容与 AT_MESSAGE_CREATE 相同 */
-  'message.create': (data: Message) => void;
+  'message.create': (event: MessageCreate) => void;
   /** **仅私域**，删除（撤回）消息事件 */
-  'message.delete': (data: unknown) => void;
+  'message.delete': (event: MessageDelete) => void;
+  //#endregion
 
-  // GUILD_MESSAGE_REACTIONS
+  //#region GUILD_MESSAGE_REACTIONS
   /** 为消息添加表情表态 */
-  'message.reaction.add': (data: unknown) => void;
+  'message.reaction.add': (event: MessageReactionAdd) => void;
   /** 为消息删除表情表态 */
-  'message.reaction.remove': (data: unknown) => void;
+  'message.reaction.remove': (event: MessageReactionRemove) => void;
+  //#endregion
 
-  // DIRECT_MESSAGE
+  //#region DIRECT_MESSAGE
   /** 当收到用户发给机器人的私信消息时 */
-  'direct.message.create': (data: Message) => void;
+  'direct.message.create': (event: DirectMessageCreate) => void;
   /** 删除（撤回）消息事件 */
-  'direct.message.delete': (data: unknown) => void;
+  'direct.message.delete': (event: DirectMessageDelete) => void;
+  //#endregion
 
-  // INTERACTION
-  /** 互动事件创建时 */
-  'interaction.create': (data: unknown) => void;
+  //#region INTERACTION
+  /** 用户点击了消息体的回调按钮 */
+  'interaction.create': (event: InteractionCreate) => void;
+  //#endregion
 
-  // MESSAGE_AUDIT
+  //#region MESSAGE_AUDIT
   /** 消息审核通过 */
-  'message.audit.pass': (data: MessageAuditPass) => void;
+  'message.audit.pass': (event: MessageAuditPass) => void;
   /** 消息审核不通过 */
-  'message.audit.reject': (data: unknown) => void;
+  'message.audit.reject': (event: MessageAuditReject) => void;
+  //#endregion
 
-  // FORUMS_EVENT
+  //#region FORUMS_EVENT
   /** **仅私域**，当用户创建主题时 */
-  'forum.thread.create': (data: unknown) => void;
+  'forum.thread.create': (event: ForumThreadCreate) => void;
   /** **仅私域**，当用户更新主题时 */
-  'forum.thread.update': (data: unknown) => void;
+  'forum.thread.update': (event: ForumThreadUpdate) => void;
   /** **仅私域**，当用户删除主题时 */
-  'forum.thread.delete': (data: unknown) => void;
+  'forum.thread.delete': (event: ForumThreadDelete) => void;
+
   /** **仅私域**，当用户创建帖子时 */
-  'forum.post.create': (data: unknown) => void;
+  'forum.post.create': (event: ForumPostCreate) => void;
   /** **仅私域**，当用户删除帖子时 */
-  'forum.post.delete': (data: unknown) => void;
+  'forum.post.delete': (event: ForumPostDelete) => void;
+
   /** **仅私域**，当用户回复评论时 */
-  'forum.reply.create': (data: unknown) => void;
+  'forum.reply.create': (event: ForumReplyCreate) => void;
   /** **仅私域**，当用户回复评论时 */
-  'forum.reply.delete': (data: unknown) => void;
+  'forum.reply.delete': (event: ForumReplyDelete) => void;
+
   /** **仅私域**，当用户发表审核通过时 */
-  'forum.publish.audit.result': (data: unknown) => void;
+  'forum.publish.audit.result': (event: ForumPublishAuditResult) => void;
+  //#endregion
 
-  // AUDIO_ACTION
+  //#region AUDIO_ACTION
   /** 音频开始播放时 */
-  'audio.start': (data: unknown) => void;
+  'audio.start': (event: AudioStart) => void;
   /** 音频播放结束时 */
-  'audio.finish': (data: unknown) => void;
+  'audio.finish': (event: AudioFinish) => void;
   /** 上麦时 */
-  'audio.on.mic': (data: unknown) => void;
+  'audio.on.mic': (event: AudioOnMic) => void;
   /** 下麦时 */
-  'audio.off.mic': (data: unknown) => void;
+  'audio.off.mic': (event: AudioOffMic) => void;
+  //#endregion
 
-  // PUBLIC_GUILD_MESSAGES
-  /** **仅公域**，当收到 @ 机器人的消息时 */
-  'at.message.create': (data: Message) => void;
+  //#region PUBLIC_GUILD_MESSAGES
+  /** **仅公域**，当收到 at 机器人的消息时 */
+  'at.message.create': (event: AtMessageCreate) => void;
   /** **仅公域**，当频道的消息被删除时 */
-  'public.message.delete': (data: unknown) => void;
+  'public.message.delete': (event: PublicMessageDelete) => void;
+  //#endregion
 
-  // GROUP_MESSAGES
+  //#region GROUP_MESSAGES
   /** 机器人被添加到群聊 */
-  'group.add.robot': (data: GroupAddRobot) => void;
+  'group.add.robot': (event: GroupAddRobot) => void;
   /** 机器人被移出群聊 */
-  'group.del.robot': (data: GroupDelRobot) => void;
+  'group.del.robot': (event: GroupDelRobot) => void;
+
   /** 群管理员主动在机器人资料页操作关闭通知 */
-  'group.message.reject': (data: GroupMessageReject) => void;
+  'group.msg.reject': (event: GroupMessageReject) => void;
   /** 群管理员主动在机器人资料页操作开启通知 */
-  'group.message.receive': (data: GroupMessageReceive) => void;
+  'group.msg.receive': (event: GroupMessageReceive) => void;
+
+  /** 用户在群聊 at 机器人发送消息 */
+  'group.at.message.create': (event: GroupAtMessageCreate) => void;
+
   /** 用户添加机器人'好友'到消息列表 */
-  'friend.add': (data: FriendAdd) => void;
+  'friend.add': (event: FriendAdd) => void;
   /** 用户删除机器人'好友' */
-  'friend.del': (data: FriendDel) => void;
-  /** 用户在机器人资料卡手动关闭"主动消息"推送 */
-  'c2c.msg.reject': (data: C2cMsgReject) => void;
-  /** 用户在机器人资料卡手动开启"主动消息"推送开关 */
-  'c2c.msg.receive': (data: C2cMsgReceive) => void;
+  'friend.del': (event: FriendDel) => void;
+
+  /** 用户在机器人资料卡手动关闭 "主动消息" 推送 */
+  'c2c.msg.reject': (event: C2cMsgReject) => void;
+  /** 用户在机器人资料卡手动开启 "主动消息" 推送开关 */
+  'c2c.msg.receive': (event: C2cMsgReceive) => void;
   /** 用户在单聊发送消息给机器人 */
-  'c2c.message.create': (data: C2cMessageCreate) => void;
-  /** 用户在群聊 @ 机器人发送消息 */
-  'group.at.message.create': (data: GroupAtMessageCreate) => void;
+  'c2c.message.create': (event: C2cMessageCreate) => void;
+  //#endregion
 
   // TODO: ／人◕ ‿‿ ◕人＼ SESSION 文档没提供类型，我暂时只遇到过这俩，待补充
+  //#region SESSION
   /** 连接会话通信 */
-  'session.ready': (data: SessionReady) => void;
+  'session.ready': (event: SessionReady) => void;
   /** 重连会话 */
-  'session.resumed': (data: SessionResumed) => void;
+  'session.resumed': (event: SessionResumed) => void;
+  //#endregion
 }

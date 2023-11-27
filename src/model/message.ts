@@ -132,3 +132,47 @@ export interface PinMessage {
   /** 子频道内精华消息 id 数组 */
   message_ids: string[];
 }
+
+export interface MessageAudited {
+  /** 消息审核 id */
+  audit_id: string;
+  /** 消息 id，只有审核通过事件才会有值 */
+  audit_time: string;
+  /** 频道 id */
+  channel_id: string;
+  /** 子频道 id */
+  create_time: string;
+  /** 消息审核时间 */
+  guild_id: string;
+  /** 消息创建时间 */
+  message_id: string;
+  /** 子频道消息 seq，用于消息间的排序，seq 在同一子频道中按从先到后的顺序递增，不同的子频道之间消息无法排序 */
+  seq_in_channel: string;
+}
+
+// enum ReactionTargetType {}
+
+export interface ReactionTarget {
+  /** 表态对象ID */
+  id: string;
+  type: number;
+}
+
+export interface Emoji {
+  /** 表情ID，系统表情使用数字为ID，emoji使用emoji本身为id */
+  id: string;
+  type: number;
+}
+
+export interface MessageReaction {
+  /** 用户ID */
+  user_id: string;
+  /** 频道ID */
+  guild_id: string;
+  /** 子频道ID */
+  channel_id: string;
+  /** 表态对象 */
+  target: ReactionTarget;
+  /** 表态所用表情 */
+  emoji: Emoji;
+}

@@ -36,19 +36,19 @@ const bot = new Bot({
 });
 
 // 监听频道消息
-bot.on('at.message.create', async data => {
+bot.on('at.message.create', async event => {
   // 收到任意 at 消息后在频道回复 "hello world"
-  await bot.api.sendChannelMessage(data.channel_id, {
-    msg_id: data.id,
+  await bot.api.sendChannelMessage(event.channel_id, {
+    msg_id: event.id,
     content: 'hello world',
   });
 });
 
 // 监听群聊消息
-bot.on('group.at.message.create', async data => {
+bot.on('group.at.message.create', async event => {
   // 收到任意 at 消息后在群聊回复 "hello world"
-  await bot.api.sendGroupMessage(data.group_openid, {
-    msg_id: data.id,
+  await bot.api.sendGroupMessage(event.group_openid, {
+    msg_id: event.id,
     msg_type: 0,
     content: 'hello world',
   });
@@ -80,8 +80,8 @@ const { Bot } = require('amesu');
 const bot = new Bot();
 
 bot
-  .on('guild.member', data => {
-    console.log(data);
+  .on('guild.member', event => {
+    console.log(event);
   })
   .online();
 ```
@@ -197,4 +197,4 @@ axios 太大了，基于 fetch 的封装 build 后大小仅 3 kb 不到，基本
 
 amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个机器人解决方案，这两者不应该耦合。
 
-如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 90 kb+ 的大小，而官方 SDK 却占据了 430 kb+。
+如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 120 kb+ 的大小，而官方 SDK 却占据了 430 kb+。

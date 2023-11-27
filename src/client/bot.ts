@@ -1,12 +1,14 @@
 import type { Logger } from 'log4js';
+import type { Message } from '@/model/message';
+import type { BotEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/client/event';
 
 import { EventEmitter } from 'node:events';
-import { Message } from '@/model';
 import { generateApi } from '@/api';
 import { Token } from '@/client/token';
-import { BotEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/client/event';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
-import { AnyObject, LogLevel, Request, RequestError, Result, createLogger, deepAssign, objectToString } from '@/utils';
+import { LogLevel, createLogger } from '@/utils/logger';
+import { Request, RequestError, Result } from '@/utils/request';
+import { AnyObject, deepAssign, objectToString } from '@/utils/common';
 
 /** 机器人配置项 */
 export interface BotConfig {
@@ -197,6 +199,7 @@ export class Bot extends EventEmitter {
       this.logger.debug(`API Response: ${objectToString(data)}`);
 
       if (data?.code) {
+        this.logger.error(`Code ${data.code}, ${data.message}.`);
         throw new RequestError(`Code ${data.code}, ${data.message}.`);
       }
       return result;
