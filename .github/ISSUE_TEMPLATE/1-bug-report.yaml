@@ -1,0 +1,32 @@
+name: 🐞 Bug
+description: 反馈在使用过程中遇到的问题
+title: "[BUG] <title>"
+labels:
+  - bug
+assignees:
+  - xueelf
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的问题反馈，为了方便更快的定位问题，建议尽可能多地填写以下表格。(\*^▽^\*)
+
+        该 issue 将被用于查找程序中发现的错误和问题，在这之前，请先确认是 amesu 本身的行为导致而非 API 的问题哦。若你想要获取更多 API 使用帮助，可以先查阅 [官方文档](https://bot.q.qq.com/wiki/) 排错。
+  - type: input
+    attributes:
+      label: node 版本
+      description: 你可以输入 `node -v` 查询。
+  - type: input
+    attributes:
+      label: amesu 版本
+      description: 若不是最新版本，可以尝试升级依赖库后确认问题是否还存在。
+  - type: textarea
+    attributes:
+      label: 问题描述
+      description: 阐述相关报错的详细步骤，最好能提供代码片段。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 控制台日志
+      description: 如果方便的话，你可以将 `log_level` 改为 `DEBUG` 或者 `ALL` 提供完成的日志信息。
