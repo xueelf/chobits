@@ -2,7 +2,7 @@ import type { Request, Result } from '@/utils';
 import type { User } from '@/model/user';
 import type { Guild } from '@/model/guild';
 
-export interface UserMessageParams {
+export interface SendUserMessageParams {
   /** 文本内容 */
   content?: string;
   /** 消息类型： 0 文本，1 图文混排 ，2 markdown 3 ark，4 embed 7 富媒体 */
@@ -43,7 +43,7 @@ export interface UserMessage {
   timestamp: string;
 }
 
-export interface UserMessageFileParams {
+export interface SendUserMessageFileParams {
   /** 媒体类型 */
   file_type: number;
   /** 需要发送媒体资源的 url */
@@ -68,14 +68,14 @@ export default (request: Request) => {
     /**
      * 单独发送消息给用户。
      */
-    sendUserMessage(openid: string, params: UserMessageParams): Promise<Result<UserMessage>> {
+    sendUserMessage(openid: string, params: SendUserMessageParams): Promise<Result<UserMessage>> {
       return request.post(`/v2/users/${openid}/messages`, params);
     },
 
     /**
      * 单独发送富媒体消息给用户。
      */
-    sendUserFile(openid: string, params: UserMessageFileParams): Promise<Result<UserFile>> {
+    sendUserFile(openid: string, params: SendUserMessageFileParams): Promise<Result<UserFile>> {
       return request.post(`/v2/users/${openid}/files`, params);
     },
 

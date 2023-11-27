@@ -4,11 +4,14 @@ import type { BotEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/client/
 
 import { EventEmitter } from 'node:events';
 import { generateApi } from '@/api';
+import { UserMessage, SendUserMessageParams } from '@/api/users';
+import { GroupMessage, SendGroupsMessageParams } from '@/api/groups';
+import { SendChannelMessageParams } from '@/api/channels';
 import { Token } from '@/client/token';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
 import { LogLevel, createLogger } from '@/utils/logger';
+import { deepAssign, objectToString } from '@/utils/common';
 import { Request, RequestError, Result } from '@/utils/request';
-import { AnyObject, deepAssign, objectToString } from '@/utils/common';
 
 /** 机器人配置项 */
 export interface BotConfig {
@@ -114,9 +117,8 @@ export class Bot extends EventEmitter {
 
     this.on('c2c.message.create', this.onMessage);
     this.on('group.at.message.create', this.onMessage);
-    this.on('message.create', this.onMessage);
-    this.on('at.message.create', this.onMessage);
     this.on('direct.message.create', this.onMessage);
+    this.on('at.message.create', this.onMessage);
   }
 
   /**
@@ -152,8 +154,10 @@ export class Bot extends EventEmitter {
     do {
       const event = events.join('.');
 
+      this.addReply(t, data);
       this.emit(event, data);
       this.logger.debug(`推送 "${event}" 事件`);
+
       events.pop();
     } while (events.length);
   }
@@ -222,5 +226,36 @@ export class Bot extends EventEmitter {
       return result;
     });
     return request;
+  }
+
+  private addReply(t: string, data: any): void {
+    switch (t) {
+      case 'MESSAGE_CREATE':
+        data.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {
+          return this.api.sendChannelMessage(data.channel_id, params);
+        };
+      case 'AT_MESSAGE_CREATE':
+        data.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {
+          return this.api.sendChannelMessage(data.channel_id, params);
+        };
+        break;
+      case 'DIRECT_MESSAGE_CREATE':
+        data.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {
+          return this.api.sendDmMessage(data.guild_id, params);
+        };
+        break;
+      case 'GROUP_AT_MESSAGE_CREATE':
+        data.reply = (params: SendGroupsMessageParams): Promise<Result<GroupMessage>> => {
+          return this.api.sendGroupMessage(data.group_openid, params);
+        };
+        break;
+      case 'C2C_MESSAGE_CREATE':
+        data.reply = (params: SendUserMessageParams): Promise<Result<UserMessage>> => {
+          return this.api.sendUserMessage(data.author.user_openid, params);
+        };
+        break;
+      default:
+        break;
+    }
   }
 }

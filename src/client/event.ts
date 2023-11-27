@@ -6,6 +6,10 @@ import type { AudioAction } from '@/model/audio';
 import type { MemberWithGuildID } from '@/model/member';
 import type { AuditResult, Post, Reply, Thread } from '@/model/forum';
 import type { Message, MessageAudited, MessageReaction } from '@/model/message';
+import { Result } from '@/utils/request';
+import { SendChannelMessageParams } from '@/api/channels';
+import { GroupMessage, SendGroupsMessageParams } from '@/api/groups';
+import { UserMessage, SendUserMessageParams } from '@/api/users';
 
 export type SessionReady = ReadyData & { t: 'READY' };
 export type SessionResumed = ResumedData & { t: 'RESUMED' };
@@ -48,13 +52,23 @@ export type GuildMemberRemove = MemberWithGuildID & {
   op_user_id: string;
 };
 
-export type MessageCreate = Message & { t: 'MESSAGE_CREATE' };
+export type MessageCreate = Message & {
+  /** 事件类型 */
+  t: 'MESSAGE_CREATE';
+  /** 快捷回复 */
+  reply: (params: SendChannelMessageParams) => Promise<Result<Message>>;
+};
 export type MessageDelete = AnyObject & { t: 'MESSAGE_DELETE' };
 
 export type MessageReactionAdd = AnyObject & { t: 'MESSAGE_REACTION_ADD' };
 export type MessageReactionRemove = MessageReaction & { t: 'MESSAGE_REACTION_REMOVE' };
 
-export type DirectMessageCreate = Message & { t: 'DIRECT_MESSAGE_CREATE' };
+export type DirectMessageCreate = Message & {
+  /** 事件类型 */
+  t: 'DIRECT_MESSAGE_CREATE';
+  /** 快捷回复 */
+  reply: (params: SendChannelMessageParams) => Promise<Result<Message>>;
+};
 export type DirectMessageDelete = AnyObject & { t: 'DIRECT_MESSAGE_DELETE' };
 
 export interface InteractionCreate {
@@ -114,7 +128,12 @@ export type ForumReplyCreate = Reply & { t: 'FORUM_REPLY_CREATE' };
 export type ForumReplyDelete = Reply & { t: 'FORUM_REPLY_DELETE' };
 export type ForumPublishAuditResult = AuditResult & { t: 'FORUM_PUBLISH_AUDIT_RESULT' };
 
-export type AtMessageCreate = Message & { t: 'AT_MESSAGE_CREATE' };
+export type AtMessageCreate = Message & {
+  /** 事件类型 */
+  t: 'AT_MESSAGE_CREATE';
+  /** 快捷回复 */
+  reply: (params: SendChannelMessageParams) => Promise<Result<Message>>;
+};
 export type PublicMessageDelete = AnyObject & { t: 'PUBLIC_MESSAGE_DELETE' };
 
 export interface GroupAddRobot {
@@ -213,6 +232,8 @@ export interface C2cMessageCreate {
   timestamp: string;
   /** 富媒体文件附件 */
   attachments: object[];
+  /** 快捷回复 */
+  reply: (params: SendUserMessageParams) => Promise<Result<UserMessage>>;
 }
 
 export interface GroupAtMessageCreate {
@@ -234,6 +255,8 @@ export interface GroupAtMessageCreate {
   group_openid: string;
   /** 富媒体文件附件 */
   attachments: object[];
+  /** 快捷回复 */
+  reply: (params: SendGroupsMessageParams) => Promise<Result<GroupMessage>>;
 }
 
 export interface BotEvent {
