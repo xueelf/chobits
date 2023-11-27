@@ -154,7 +154,7 @@ class SessionError extends Error {
 export type IntentEvent = keyof typeof Intent;
 
 export interface DispatchData {
-  t: keyof typeof DispatchType;
+  t: string;
   d: any;
 }
 
@@ -374,7 +374,7 @@ export class Session extends EventEmitter {
 
   public disconnect(): void {
     if (!this.ws) {
-      this.logger.warn('已断开会话通信，不要重复中断。');
+      this.logger.warn('未建立会话通信，无效的操作。');
       return;
     }
     this.is_reconnect = false;

@@ -37,8 +37,8 @@ const bot = new Bot({
 
 // 监听频道消息
 bot.on('at.message.create', async event => {
-  // 收到任意 at 消息后在频道回复 "hello world"
-  await bot.api.sendChannelMessage(event.channel_id, {
+  // 快捷回复
+  await event.reply({
     msg_id: event.id,
     content: 'hello world',
   });
@@ -46,7 +46,7 @@ bot.on('at.message.create', async event => {
 
 // 监听群聊消息
 bot.on('group.at.message.create', async event => {
-  // 收到任意 at 消息后在群聊回复 "hello world"
+  // API 调用
   await bot.api.sendGroupMessage(event.group_openid, {
     msg_id: event.id,
     msg_type: 0,
@@ -103,7 +103,7 @@ interface BotConfig {
   events: IntentEvent[];
   /** 掉线重连数，默认 3 */
   max_retry?: number;
-  /** 日志等级，默认 "INFO" */
+  /** 日志等级，默认 "INFO"，仅输出收到的指令信息 */
   log_level?: LogLevel;
 }
 
