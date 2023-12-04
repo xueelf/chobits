@@ -1,4 +1,4 @@
-import { ClientConfig } from '@/client/bot';
+import { ClientConfig } from '@/bot/client';
 import { objectToString } from '@/utils/common';
 import { Logger, getLogger } from '@/utils/logger';
 

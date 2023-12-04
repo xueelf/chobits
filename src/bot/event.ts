@@ -1,5 +1,5 @@
 import type { AnyObject } from '@/utils/common';
-import type { ReadyData, ResumedData } from '@/client/session';
+import type { ReadyData, ResumedData } from '@/bot/session';
 import type { Guild } from '@/model/guild';
 import type { Channel } from '@/model/channel';
 import type { AudioAction } from '@/model/audio';

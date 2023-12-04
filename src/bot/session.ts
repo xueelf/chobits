@@ -1,8 +1,8 @@
-import type { Token } from '@/client/token';
+import type { Token } from '@/bot/token';
 
 import { RawData, WebSocket } from 'ws';
 import { EventEmitter } from 'node:events';
-import { ClientConfig } from '@/client/bot';
+import { ClientConfig } from '@/bot/client';
 import { Logger, getLogger } from '@/utils/logger';
 import { objectToString, wait } from '@/utils/common';
 

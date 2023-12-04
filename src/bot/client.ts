@@ -1,13 +1,13 @@
 import type { Message } from '@/model/message';
-import type { ClientEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/client/event';
+import type { ClientEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/bot/event';
 
 import { EventEmitter } from 'node:events';
 import { generateApi } from '@/api';
 import { UserMessage, SendUserMessageParams } from '@/api/users';
 import { GroupMessage, SendGroupsMessageParams } from '@/api/groups';
 import { SendChannelMessageParams } from '@/api/channels';
-import { Token } from '@/client/token';
-import { DispatchData, IntentEvent, Session } from '@/client/session';
+import { Token } from '@/bot/token';
+import { DispatchData, IntentEvent, Session } from '@/bot/session';
 import { deepAssign, objectToString } from '@/utils/common';
 import { Request, RequestError, Result } from '@/utils/request';
 import { LogLevel, Logger, createLogger } from '@/utils/logger';
