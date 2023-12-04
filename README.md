@@ -193,22 +193,31 @@ axios 太大了，基于 fetch 的封装 build 后大小仅 3 kb 不到，基本
 
 当前 amesu 已经有了完整的鉴权流程（会话保活、掉线重连、凭证刷新），并做了日志和网络请求的封装，后面没什么问题就不会再有大改了。如果有 API 缺失，在 `api` 文件内参考格式直接添加 url 就可以正常使用，也欢迎来提 pr。
 
-### 怎么样去编写一个插件？
+## 插件开发
 
-amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个机器人解决方案，这两者不应该耦合。
+amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个机器人解决方案，这两者不应该耦合，所以并未原生提供插件支持。
 
 如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 120 kb+ 的大小，而官方 SDK 却占据了 430 kb+。
 
 若不想手搓，可以使用 [kokkoro](https://github.com/kokkorojs/kokkoro) 框架进行机器人开发：
 
-```tex
-.
-├ index.js
-└ plugin.js
+```shell
+npm i @kokkoro/core
 ```
 
-```js
-// plugin.js
+你可以在根目录创建 plugins 文件夹来存放你编写的插件。
+
+```tex
+.
+├ plugins/
+│ └ demo/
+└ index.js
+```
+
+当然，这并不是强制要求，推荐这么做只是为了方便模块管理。
+
+```javascript
+// plugins/demo/index.js
 import { useCommand, useEvent } from '@kokkoro/core';
 
 /**
@@ -220,22 +229,56 @@ export const metadata = {
 };
 
 export default function Demo() {
-  useEvent(event => console.log('Bot online.'), ['session.ready']);
+  useEvent(() => console.log('Bot online.'), ['session.ready']);
 
   useCommand('/测试', () => 'hello world');
   useCommand('/复读 <message>', event => event.query.message);
 }
 ```
 
-```js
-// index.js
-import { Bot, mountPlugin } from 'amesu';
+只要对插件进行 `mountPlugin` 操作就可将其挂载：
 
-await mountPlugin('./plugin.js');
+```javascript
+// index.js
+import { Bot, mountPlugin } from '@kokkoro/core';
+
+await mountPlugin('./plugins/demo/index.js');
 
 /**
  * @type {import('@kokkoro/core').BotConfig}
  */
 const config = {};
 const bot = new Bot(config);
+
+bot.online();
 ```
+
+当然，你也可以直接安装 npm 插件来进行使用。
+
+```shell
+npm i kokkoro-plugin-hitokoto
+```
+
+```javascript
+// index.js
+import { Bot, mountPlugin } from '@kokkoro/core';
+
+await mountPlugin('./plugins/demo/index.js');
+await mountPlugin('kokkoro-plugin-hitokoto');
+
+/**
+ * @type {import('@kokkoro/core').BotConfig}
+ */
+const config = {};
+const bot = new Bot(config);
+
+bot.online();
+```
+
+运行项目时一定要使用 `--experimental-import-meta-resolve`，否则会导致插件无法被正常解析。
+
+```shell
+node --experimental-import-meta-resolve index.js
+```
+
+更多示例可查看 core [README](https://github.com/kokkorojs/kokkoro/blob/master/packages/core/README.md) 自述。
