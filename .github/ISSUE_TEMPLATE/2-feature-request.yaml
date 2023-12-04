@@ -1,0 +1,23 @@
+name: 🚀 Feature
+description: 请求新功能的开发
+title: "[FEAT] <title>"
+labels:
+  - enhancement
+assignees:
+  - xueelf
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的问题反馈，为了方便更快的定位问题，建议尽可能多地填写以下表格。(\*^▽^\*)
+
+        该 issue 将被用于程序中的新功能开发，在这之前请先确认 amesu 是否已实现类似的功能哦。若你想要获取更多使用帮助，可以先查阅 [README](https://github.com/xueelf/amesu#readme) 说明。
+  - type: textarea
+    attributes:
+      label: 功能描述
+      description: 阐述相关功能点，最好能提供伪代码示例。
+  - type: textarea
+    attributes:
+      label: 此功能的开发将会解决什么问题？
+    validations:
+      required: true
