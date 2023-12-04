@@ -1,6 +1,5 @@
-import type { Logger } from 'log4js';
 import type { Message } from '@/model/message';
-import type { BotEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/client/event';
+import type { ClientEvent, C2cMessageCreate, GroupAtMessageCreate } from '@/client/event';
 
 import { EventEmitter } from 'node:events';
 import { generateApi } from '@/api';
@@ -9,12 +8,12 @@ import { GroupMessage, SendGroupsMessageParams } from '@/api/groups';
 import { SendChannelMessageParams } from '@/api/channels';
 import { Token } from '@/client/token';
 import { DispatchData, IntentEvent, Session } from '@/client/session';
-import { LogLevel, createLogger } from '@/utils/logger';
 import { deepAssign, objectToString } from '@/utils/common';
 import { Request, RequestError, Result } from '@/utils/request';
+import { LogLevel, Logger, createLogger } from '@/utils/logger';
 
-/** 机器人配置项 */
-export interface BotConfig {
+/** 客户端配置项 */
+export interface ClientConfig {
   /** 机器人 ID */
   appid: string;
   /** 机器人令牌 */
@@ -31,57 +30,57 @@ export interface BotConfig {
 
 type Api = ReturnType<typeof generateApi>;
 
-class BotError extends Error {
+class ClientError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'BotError';
+    this.name = 'ClientError';
   }
 }
 
 type EventInterceptor = (dispatch: DispatchData) => DispatchData | Promise<DispatchData>;
 
-export interface Bot extends EventEmitter {
-  addListener<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
+export interface Client extends EventEmitter {
+  addListener<T extends keyof ClientEvent>(event: T, listener: ClientEvent[T]): this;
   addListener(event: string | symbol, listener: (...args: unknown[]) => void): this;
 
-  on<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
+  on<T extends keyof ClientEvent>(event: T, listener: ClientEvent[T]): this;
   on(event: string | symbol, listener: (...args: unknown[]) => void): this;
 
-  once<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
+  once<T extends keyof ClientEvent>(event: T, listener: ClientEvent[T]): this;
   once(event: string | symbol, listener: (...args: unknown[]) => void): this;
 
-  removeListener<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
+  removeListener<T extends keyof ClientEvent>(event: T, listener: ClientEvent[T]): this;
   removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
 
-  off<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
+  off<T extends keyof ClientEvent>(event: T, listener: ClientEvent[T]): this;
   off(event: string | symbol, listener: (...args: unknown[]) => void): this;
 
-  removeAllListeners<T extends keyof BotEvent>(event?: T): this;
+  removeAllListeners<T extends keyof ClientEvent>(event?: T): this;
   removeAllListeners(event?: string | symbol): this;
 
-  listeners<T extends keyof BotEvent>(event: T): Function[];
+  listeners<T extends keyof ClientEvent>(event: T): Function[];
   listeners(event: string | symbol): Function[];
 
-  rawListeners<T extends keyof BotEvent>(event: T): Function[];
+  rawListeners<T extends keyof ClientEvent>(event: T): Function[];
   rawListeners(event: string | symbol): Function[];
 
-  emit<T extends keyof BotEvent>(event: T, ...args: Parameters<BotEvent[T]>): boolean;
+  emit<T extends keyof ClientEvent>(event: T, ...args: Parameters<ClientEvent[T]>): boolean;
   emit(event: string | symbol, ...args: any[]): boolean;
 
-  listenerCount<T extends keyof BotEvent>(event: T, listener?: BotEvent[T]): number;
+  listenerCount<T extends keyof ClientEvent>(event: T, listener?: ClientEvent[T]): number;
   listenerCount(event: string | symbol, listener?: Function): number;
 
-  prependListener<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
+  prependListener<T extends keyof ClientEvent>(event: T, listener: ClientEvent[T]): this;
   prependListener(event: string | symbol, listener: (...args: any[]) => void): this;
 
-  prependOnceListener<T extends keyof BotEvent>(event: T, listener: BotEvent[T]): this;
+  prependOnceListener<T extends keyof ClientEvent>(event: T, listener: ClientEvent[T]): this;
   prependOnceListener(event: string | symbol, listener: (...args: any[]) => void): this;
 
-  eventNames<T extends keyof BotEvent>(): T[];
+  eventNames<T extends keyof ClientEvent>(): T[];
   eventNames(): Array<string | symbol>;
 }
 
-export class Bot extends EventEmitter {
+export class Client extends EventEmitter {
   public logger: Logger;
   public api: Api;
   public request: Request;
@@ -90,14 +89,14 @@ export class Bot extends EventEmitter {
   private session: Session;
   private eventInterceptors: EventInterceptor[];
 
-  constructor(public config: BotConfig) {
+  constructor(public config: ClientConfig) {
     super();
     config.max_retry ??= 3;
     config.log_level ??= 'INFO';
 
     this.logger = createLogger(config.appid, config.log_level);
     this.checkConfig();
-    this.logger.mark('Bot is initializing...');
+    this.logger.mark('Client is initializing...');
 
     this.api = this.createApi();
     this.request = this.createRequest();
@@ -129,8 +128,6 @@ export class Bot extends EventEmitter {
           d.reply = (params: SendUserMessageParams): Promise<Result<UserMessage>> => {
             return this.api.sendUserMessage(d.author.user_openid, params);
           };
-          break;
-        default:
           break;
       }
       return dispatch;
@@ -177,7 +174,10 @@ export class Bot extends EventEmitter {
       try {
         dispatch = await interceptor(dispatch);
       } catch (error) {
-        this.logger.error(error instanceof Error ? error.message : error);
+        const message = error instanceof Error ? error.message : objectToString(error);
+
+        this.logger.error(message);
+        throw new ClientError(message);
       }
     }
     const { t, d } = dispatch;
@@ -214,7 +214,7 @@ export class Bot extends EventEmitter {
         'https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents';
 
       this.logger.error(`检测到 events 为空，请查阅相关文档：${wiki}`);
-      throw new BotError('Events cannot be empty.');
+      throw new ClientError('Events cannot be empty.');
     }
   }
 
@@ -242,7 +242,7 @@ export class Bot extends EventEmitter {
       this.logger.debug(`API Response: ${objectToString(data)}`);
 
       if (data?.code) {
-        this.logger.error(`Code ${data.code}, ${data.message}.`);
+        this.logger.error(`API Code: ${data.code}, ${data.message}.`);
         throw new RequestError(`Code ${data.code}, ${data.message}.`);
       }
       return result;

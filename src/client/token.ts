@@ -1,8 +1,6 @@
-import type { Logger } from 'log4js';
-
-import { BotConfig } from '@/client/bot';
-import { getLogger } from '@/utils/logger';
+import { ClientConfig } from '@/client/bot';
 import { objectToString } from '@/utils/common';
+import { Logger, getLogger } from '@/utils/logger';
 
 interface AppAccessToken {
   /** 获取到的凭证。 */
@@ -39,7 +37,7 @@ export class Token {
   /** 记录器 */
   private logger: Logger;
 
-  constructor(private config: BotConfig) {
+  constructor(private config: ClientConfig) {
     this.value = '';
     this.lifespan = 0;
     this.logger = getLogger(config.appid);

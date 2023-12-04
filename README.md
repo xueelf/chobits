@@ -26,9 +26,9 @@ npm i amesu
 ## Usage
 
 ```javascript
-const { Bot } = require('amesu');
+const { Client } = require('amesu');
 
-const bot = new Bot({
+const client = new Client({
   appid: '1145141919',
   token: '38bc73e16208135fb111c0c573a44eaa',
   secret: '6208135fb111c0c5',
@@ -36,7 +36,7 @@ const bot = new Bot({
 });
 
 // 监听频道消息
-bot.on('at.message.create', async event => {
+client.on('at.message.create', async event => {
   // 快捷回复
   await event.reply({
     msg_id: event.id,
@@ -45,9 +45,9 @@ bot.on('at.message.create', async event => {
 });
 
 // 监听群聊消息
-bot.on('group.at.message.create', async event => {
+client.on('group.at.message.create', async event => {
   // API 调用
-  await bot.api.sendGroupMessage(event.group_openid, {
+  await client.api.sendGroupMessage(event.group_openid, {
     msg_id: event.id,
     msg_type: 0,
     content: 'hello world',
@@ -55,7 +55,7 @@ bot.on('group.at.message.create', async event => {
 });
 
 // 机器人上线
-bot.online();
+client.online();
 ```
 
 ## Event
@@ -75,11 +75,11 @@ bot.online();
 你可以仅监听事件的部分前缀，例如：
 
 ```javascript
-const { Bot } = require('amesu');
+const { Client } = require('amesu');
 
-const bot = new Bot();
+const client = new Client();
 
-bot
+client
   .on('guild.member', event => {
     console.log(event);
   })
@@ -91,8 +91,8 @@ bot
 ## Config
 
 ```typescript
-/** 机器人配置项 */
-interface BotConfig {
+/** 客户端配置项 */
+interface ClientConfig {
   /** 机器人 ID */
   appid: string;
   /** 机器人令牌 */
@@ -113,23 +113,23 @@ type LogLevel = 'ALL' | 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
 
 ## API
 
-### Bot.api
+### Client.api
 
 封装了官方文档所提供的 api 接口，可直接调用。（并不是所有 api 都能返回期望的结果）
 
-### Bot.request
+### Client.request
 
 基于 fetch 封装，可发送自定义网络请求。
 
-### Bot.online()
+### Client.online()
 
 机器人上线。
 
-### Bot.offline()
+### Client.offline()
 
 机器人下线。
 
-### Bot.useEventInterceptor(interceptor)
+### Client.useEventInterceptor(interceptor)
 
 添加事件拦截器。
 

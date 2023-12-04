@@ -259,7 +259,7 @@ export interface GroupAtMessageCreate {
   reply: (params: SendGroupsMessageParams) => Promise<Result<GroupMessage>>;
 }
 
-export interface BotEvent {
+export interface ClientEvent {
   //#region GUILDS
   /** 当机器人加入新 guild 时 */
   'guild.create': (event: GuildCreate) => void;

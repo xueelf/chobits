@@ -1,10 +1,9 @@
-import type { Logger } from 'log4js';
 import type { Token } from '@/client/token';
 
 import { RawData, WebSocket } from 'ws';
 import { EventEmitter } from 'node:events';
-import { BotConfig } from '@/client/bot';
-import { getLogger } from '@/utils/logger';
+import { ClientConfig } from '@/client/bot';
+import { Logger, getLogger } from '@/utils/logger';
 import { objectToString, wait } from '@/utils/common';
 
 enum OpCode {
@@ -196,7 +195,7 @@ export class Session extends EventEmitter {
   private session_id: string | null;
   private ws: WebSocket | null;
 
-  constructor(private config: BotConfig, private token: Token) {
+  constructor(private config: ClientConfig, private token: Token) {
     super();
 
     this.ackTimeout = null;

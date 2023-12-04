@@ -1,4 +1,4 @@
-export type AnyObject = Record<string, any>;
+export type AnyObject = Record<any, any>;
 
 /**
  * 对象深合并，用法与 `Object.assign()` 保持一致。
@@ -48,7 +48,7 @@ export function objectToParams(object: AnyObject) {
   return params.toString();
 }
 
-export function objectToString(object: object | null) {
+export function objectToString(object: unknown) {
   return JSON.stringify(object, null, 2);
 }
 

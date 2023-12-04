@@ -1,5 +1,6 @@
-import log4js, { Level, Logger } from 'log4js';
+import log4js, { Level } from 'log4js';
 
+export type Logger = log4js.Logger;
 /** 日志等级 */
 export type LogLevel = 'ALL' | 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
 
