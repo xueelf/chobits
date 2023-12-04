@@ -198,3 +198,44 @@ axios 太大了，基于 fetch 的封装 build 后大小仅 3 kb 不到，基本
 amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个机器人解决方案，这两者不应该耦合。
 
 如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 120 kb+ 的大小，而官方 SDK 却占据了 430 kb+。
+
+若不想手搓，可以使用 [kokkoro](https://github.com/kokkorojs/kokkoro) 框架进行机器人开发：
+
+```tex
+.
+├ index.js
+└ plugin.js
+```
+
+```js
+// plugin.js
+import { useCommand, useEvent } from '@kokkoro/core';
+
+/**
+ * @type {import('@kokkoro/core').Metadata}
+ */
+export const metadata = {
+  name: 'demo',
+  description: '插件示例',
+};
+
+export default function Demo() {
+  useEvent(event => console.log('Bot online.'), ['session.ready']);
+
+  useCommand('/测试', () => 'hello world');
+  useCommand('/复读 <message>', event => event.query.message);
+}
+```
+
+```js
+// index.js
+import { Bot, mountPlugin } from 'amesu';
+
+await mountPlugin('./plugin.js');
+
+/**
+ * @type {import('@kokkoro/core').BotConfig}
+ */
+const config = {};
+const bot = new Bot(config);
+```
