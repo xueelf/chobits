@@ -81,7 +81,7 @@ export interface UpdateGuildRole {
 }
 
 export interface GuildMemberRoleParams {
-  channel: Channel;
+  channel: Pick<Channel, 'id'>;
 }
 
 export interface GuildApiPermissions {
@@ -217,7 +217,7 @@ export default (request: Request) => {
       guild_id: string,
       user_id: string,
       role_id: string,
-      params: GuildMemberRoleParams,
+      params?: GuildMemberRoleParams,
     ): Promise<Result> {
       return request.put(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`, params);
     },
@@ -229,7 +229,7 @@ export default (request: Request) => {
       guild_id: string,
       user_id: string,
       role_id: string,
-      params: GuildMemberRoleParams,
+      params?: GuildMemberRoleParams,
     ): Promise<Result> {
       return request.delete(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`, params);
     },
