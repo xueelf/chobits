@@ -111,22 +111,34 @@ export class Client extends EventEmitter {
         case 'MESSAGE_CREATE':
         case 'AT_MESSAGE_CREATE':
           d.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {
-            return this.api.sendChannelMessage(d.channel_id, params);
+            return this.api.sendChannelMessage(d.channel_id, {
+              msg_id: d.id,
+              ...params,
+            });
           };
           break;
         case 'DIRECT_MESSAGE_CREATE':
           d.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {
-            return this.api.sendDmMessage(d.guild_id, params);
+            return this.api.sendDmMessage(d.guild_id, {
+              msg_id: d.id,
+              ...params,
+            });
           };
           break;
         case 'GROUP_AT_MESSAGE_CREATE':
           d.reply = (params: SendGroupsMessageParams): Promise<Result<GroupMessage>> => {
-            return this.api.sendGroupMessage(d.group_openid, params);
+            return this.api.sendGroupMessage(d.group_openid, {
+              msg_id: d.id,
+              ...params,
+            });
           };
           break;
         case 'C2C_MESSAGE_CREATE':
           d.reply = (params: SendUserMessageParams): Promise<Result<UserMessage>> => {
-            return this.api.sendUserMessage(d.author.user_openid, params);
+            return this.api.sendUserMessage(d.author.user_openid, {
+              msg_id: d.id,
+              ...params,
+            });
           };
           break;
       }

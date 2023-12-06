@@ -39,7 +39,6 @@ const client = new Client({
 client.on('at.message.create', async event => {
   // 快捷回复
   await event.reply({
-    msg_id: event.id,
     content: 'hello world',
   });
 });
@@ -57,6 +56,8 @@ client.on('group.at.message.create', async event => {
 // 机器人上线
 client.online();
 ```
+
+事件回调中的 `reply` 函数是 `client.api` 的语法糖，会根据**消息事件**类型指向对应的 api 函数，并自动传入 from_id 与 msg_id。
 
 ## Event
 
@@ -107,8 +108,8 @@ interface ClientConfig {
   log_level?: LogLevel;
 }
 
-/** 日志等级，具体使用可查阅 log4js */
-type LogLevel = 'ALL' | 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+/** 日志等级，具体使用可查阅 log4js 文档 */
+type LogLevel = 'OFF' | 'FATAL' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE' | 'ALL';
 ```
 
 ## API
@@ -165,41 +166,13 @@ type LogLevel = 'ALL' | 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
 
 发送 PATCH 请求。
 
-## FAQ
-
-### 为什么要做这个项目？
-
-因为官方 [频道 SDK](https://github.com/tencent-connect/bot-node-sdk) 已经有一年半没更新了，不支持群聊而且使用体验有点糟糕。
-
-### 为什么 config 一定要指定 events？
-
-如果你是公域机器人，那么在使用官方 SDK 不传入 events 情况下，就会不断重连并在控制台疯狂输出。
-
-原因是部分事件仅限私域机器人使用，如果公域机器人订阅了就会抛异常，私域机器人订阅了公域事件却不会有任何问题...
-
-官方 SDK 的逻辑是没有传 events 就默认监听全部事件，这是不合理的。现在也没有任何手段知道机器人是否是公域和私域，因此只能手动在 config 传入。
-
-### 为什么部分 API 没有返回结果？
-
-腾讯是近期才开放群聊 API 内测的，提供的文档也很不完善，目前存在字段、返回结果不一致，v1、v2 接口混用（鉴权方式不一样）等问题，所以调用某些接口可能会无法达到预期。
-
-### 为什么 request 不使用 axios 封装？
-
-axios 太大了，基于 fetch 的封装 build 后大小仅 3 kb 不到，基本满足大部分的使用场景。如果你想要使用 axios 或者其它网络请求库，可以自行安装依赖。
-
-### 这个 SDK 能做什么？
-
-频道与群聊的消息收发已测试完毕，API 返回结果与 interface 不符的问题还待腾讯后续完善文档和接口统一。
-
-当前 amesu 已经有了完整的鉴权流程（会话保活、掉线重连、凭证刷新），并做了日志和网络请求的封装，后面没什么问题就不会再有大改了。如果有 API 缺失，在 `api` 文件内参考格式直接添加 url 就可以正常使用，也欢迎来提 pr。
-
 ## 插件开发
 
 amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个机器人解决方案，这两者不应该耦合，所以并未原生提供插件支持。
 
 如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 120 kb+ 的大小，而官方 SDK 却占据了 430 kb+。
 
-若不想手搓，可以使用 [kokkoro](https://github.com/kokkorojs/kokkoro) 框架进行机器人开发：
+若不想手搓，可以使用 [kokkoro](https://github.com/kokkorojs/kokkoro) 框架进行机器人开发。如果不想集成框架体系，那么你可以直接安装 core 依赖自定义插件。
 
 ```shell
 npm i @kokkoro/core
@@ -253,7 +226,7 @@ const bot = new Bot(config);
 bot.online();
 ```
 
-当然，你也可以直接安装 npm 插件来进行使用。
+你也可以直接安装 npm 插件来进行使用。
 
 ```shell
 npm i kokkoro-plugin-hitokoto
@@ -275,10 +248,38 @@ const bot = new Bot(config);
 bot.online();
 ```
 
-运行项目时一定要使用 `--experimental-import-meta-resolve`，否则会导致插件无法被正常解析。
+运行项目时，一定要使用 `--experimental-import-meta-resolve`，否则会导致插件无法被正常解析。
 
 ```shell
 node --experimental-import-meta-resolve index.js
 ```
 
 更多示例可查看 core [README](https://github.com/kokkorojs/kokkoro/blob/master/packages/core/README.md) 自述。
+
+## FAQ
+
+### 为什么要做这个项目？
+
+因为官方 [频道 SDK](https://github.com/tencent-connect/bot-node-sdk) 已经有一年半没更新了，不支持群聊而且使用体验有点糟糕。
+
+### 为什么 config 一定要指定 events？
+
+如果你是公域机器人，那么在使用官方 SDK 不传入 events 情况下，就会不断重连并在控制台疯狂输出。
+
+原因是部分事件仅限私域机器人使用，如果公域机器人订阅了就会抛异常，私域机器人订阅了公域事件却不会有任何问题...
+
+官方 SDK 的逻辑是没有传 events 就默认监听全部事件，这是不合理的。现在也没有任何手段知道机器人是否是公域和私域，因此只能手动在 config 传入。
+
+### 为什么部分 API 没有返回结果？
+
+腾讯是近期才开放群聊 API 内测的，提供的文档也很不完善，目前存在字段、返回结果不一致，v1、v2 接口混用（鉴权方式不一样）等问题，所以调用某些接口可能会无法达到预期。
+
+### 为什么 request 不使用 axios 封装？
+
+axios 太大了，基于 fetch 的封装 build 后大小仅 3 kb 不到，基本满足大部分的使用场景。如果你想要使用 axios 或者其它网络请求库，可以自行安装依赖。
+
+### 这个 SDK 能做什么？
+
+频道与群聊的消息收发已测试完毕，API 返回结果与 interface 不符的问题还待腾讯后续完善文档和接口统一。
+
+当前 amesu 已经有了完整的鉴权流程（会话保活、掉线重连、凭证刷新），并做了日志和网络请求的封装，后面没什么问题就不会再有大改了。如果有 API 缺失，在 `api` 文件内参考格式直接添加 url 就可以正常使用，也欢迎来提 pr。
