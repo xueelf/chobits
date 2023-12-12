@@ -48,8 +48,11 @@ export function objectToParams(object: AnyObject) {
   return params.toString();
 }
 
-export function objectToString(object: unknown) {
-  return JSON.stringify(object, null, 2);
+export function objectToString(value: unknown) {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return JSON.stringify(value, null, 2);
 }
 
 export async function wait(ms: number): Promise<void> {
