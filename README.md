@@ -13,9 +13,9 @@
 
 ## Introduction
 
-> 由于腾讯是近期上线的群聊 API，官方文档的内容与实际表现 **有部分差异**，请勿将其用于生产环境。
+> 由于腾讯是近期上线的群聊 API，官方文档的内容与实际表现**有部分差异**，请勿将其用于生产环境。
 
-项目的名字来源于 Cygames 开发和发行的游戏 《公主连结 Re:Dive》 中的登场角色 アメス，其罗马音 amesu 用作了本项目的名字。
+项目的名字来源于 Cygames 开发和发行的游戏『公主连结 Re:Dive』中的登场角色「アメス」，其罗马音 **amesu** 用作了本项目的名字。
 
 ## Install
 
@@ -57,7 +57,7 @@ client.on('group.at.message.create', async event => {
 client.online();
 ```
 
-事件回调中的 `reply` 函数是 `client.api` 的语法糖，会根据**消息事件**类型指向对应的 api 函数，并自动传入 from_id 与 msg_id。
+事件回调中的 `reply()` 函数是 `client.api` 的语法糖，会根据**消息事件**的类型指向对应消息发送的 api 函数，并自动传入 from_id 与 msg_id。
 
 ## Event
 
@@ -172,89 +172,39 @@ amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个�
 
 如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 120 kb+ 的大小，而官方 SDK 却占据了 430 kb+。
 
-若不想手搓，可以使用 [kokkoro](https://github.com/kokkorojs/kokkoro) 框架进行机器人开发。如果不想集成框架体系，那么你可以直接安装 core 依赖自定义插件。
+若不想手搓，可以使用 [kokkoro](https://github.com/kokkorojs/kokkoro) 框架进行机器人开发。如果不想集成框架体系，那么你也可以直接安装 `@kokkoro/core` 依赖去自定义插件。
 
 ```shell
 npm i @kokkoro/core
 ```
 
-你可以在根目录创建 plugins 文件夹来存放你编写的插件。
-
-```tex
-.
-├ plugins/
-│ └ demo/
-└ index.js
-```
-
-当然，这并不是强制要求，推荐这么做只是为了方便模块管理。
+插件代码示例：
 
 ```javascript
-// plugins/demo/index.js
 import { useCommand, useEvent } from '@kokkoro/core';
 
 /**
  * @type {import('@kokkoro/core').Metadata}
  */
 export const metadata = {
-  name: 'demo',
+  name: 'example',
   description: '插件示例',
 };
 
-export default function Demo() {
-  useEvent(() => console.log('Bot online.'), ['session.ready']);
+export default function Example() {
+  useEvent(
+    ctx => {
+      ctx.logger.mark('Bot online.');
+    },
+    ['session.ready'],
+  );
 
   useCommand('/测试', () => 'hello world');
-  useCommand('/复读 <message>', event => event.query.message);
+  useCommand('/复读 <message>', ctx => ctx.query.message);
 }
 ```
 
-只要对插件进行 `mountPlugin` 操作就可将其挂载：
-
-```javascript
-// index.js
-import { Bot, mountPlugin } from '@kokkoro/core';
-
-await mountPlugin('./plugins/demo/index.js');
-
-/**
- * @type {import('@kokkoro/core').BotConfig}
- */
-const config = {};
-const bot = new Bot(config);
-
-bot.online();
-```
-
-你也可以直接安装 npm 插件来进行使用。
-
-```shell
-npm i kokkoro-plugin-hitokoto
-```
-
-```javascript
-// index.js
-import { Bot, mountPlugin } from '@kokkoro/core';
-
-await mountPlugin('./plugins/demo/index.js');
-await mountPlugin('kokkoro-plugin-hitokoto');
-
-/**
- * @type {import('@kokkoro/core').BotConfig}
- */
-const config = {};
-const bot = new Bot(config);
-
-bot.online();
-```
-
-运行项目时，一定要使用 `--experimental-import-meta-resolve`，否则会导致插件无法被正常解析。
-
-```shell
-node --experimental-import-meta-resolve index.js
-```
-
-更多示例可查看 core [README](https://github.com/kokkorojs/kokkoro/blob/master/packages/core/README.md) 自述。
+更多示例可查看 core 的 [README](https://github.com/kokkorojs/kokkoro/blob/master/packages/core/README.md) 自述。
 
 ## FAQ
 
