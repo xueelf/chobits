@@ -63,6 +63,15 @@ export interface UserFile {
   timestamp: string;
 }
 
+export interface GetUserGuildsParams {
+  /** 读此 guild id 之前的数据	before 设置时， 先反序，再分页 */
+  before: string;
+  /** 读此 guild id 之后的数据	after 和 before 同时设置时， after 参数无效 */
+  after: string;
+  /** 每次拉取多少条数据	默认 100, 最大 100 */
+  limit: number;
+}
+
 export default (request: Request) => {
   return {
     /**
@@ -89,8 +98,8 @@ export default (request: Request) => {
     /**
      * 获取用户频道列表。
      */
-    getUserGuilds(): Promise<Result<Guild[]>> {
-      return request.get(`/users/@me/guilds`);
+    getUserGuilds(params: GetUserGuildsParams): Promise<Result<Guild[]>> {
+      return request.get(`/users/@me/guilds`, params);
     },
   };
 };
