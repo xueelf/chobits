@@ -65,11 +65,11 @@ export interface UserFile {
 
 export interface GetUserGuildsParams {
   /** 读此 guild id 之前的数据	before 设置时， 先反序，再分页 */
-  before: string;
+  before?: string;
   /** 读此 guild id 之后的数据	after 和 before 同时设置时， after 参数无效 */
-  after: string;
+  after?: string;
   /** 每次拉取多少条数据	默认 100, 最大 100 */
-  limit: number;
+  limit?: number;
 }
 
 export default (request: Request) => {

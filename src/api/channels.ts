@@ -5,6 +5,9 @@ import type { Format, Thread, ThreadInfo } from '@/model/forum';
 import type { Channel, ChannelPermission, PrivateType, SpeakPermission } from '@/model/channel';
 import type { Message, MessageArk, MessageEmbed, MessageMarkdown, MessageReference, PinMessage } from '@/model/message';
 
+/**
+ * @link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/post_messages.html#%E9%80%9A%E7%94%A8%E5%8F%82%E6%95%B0
+ */
 export interface SendChannelMessageParams {
   /** 消息内容 */
   content?: string;
@@ -16,13 +19,17 @@ export interface SendChannelMessageParams {
   message_reference?: MessageReference;
   /** 图片 url 地址，平台会转存该图片，用于下发图片消息 */
   image?: string;
-  /** 要回复的消息id(Message.id), 在 AT_CREATE_MESSAGE 事件中获取。 */
+  /** 要回复的消息 id, 在 `at.create.message` 事件中获取。 */
   msg_id?: string;
+  /** 要回复的事件 id, 在各事件对象中获取。 */
+  event_id?: string;
   /** markdown 消息对象 */
   markdown?: MessageMarkdown;
+  /** form-data 支持直接通过文件上传的方式发送图片。 */
+  file_image?: unknown;
 }
 
-export interface updateChannelMessageParams {
+export interface UpdateChannelMessageParams {
   /** 子频道名 */
   name?: string;
   /** 排序 */
@@ -39,7 +46,7 @@ export interface ChannelOnlineNum {
   online_nums: number;
 }
 
-export interface updateChannelPermissionParams {
+export interface UpdateChannelPermissionParams {
   /** 字符串形式的位图表示赋予用户的权限 */
   add: string;
   /** 字符串形式的位图表示删除用户的权限 */
@@ -96,7 +103,7 @@ export default (request: Request) => {
     /**
      * 修改 channel_id 指定的子频道的信息。
      */
-    updateChannelInfo(channel_id: string, params: updateChannelMessageParams): Promise<Result<Channel>> {
+    updateChannelInfo(channel_id: string, params: UpdateChannelMessageParams): Promise<Result<Channel>> {
       return request.patch(`/channels/${channel_id}`, params);
     },
 
@@ -127,7 +134,7 @@ export default (request: Request) => {
     updateChannelMemberPermission(
       channel_id: string,
       user_id: string,
-      params: updateChannelPermissionParams,
+      params: UpdateChannelPermissionParams,
     ): Promise<Result> {
       return request.put(`/channels/${channel_id}/members/${user_id}/permissions`, params);
     },
@@ -145,7 +152,7 @@ export default (request: Request) => {
     updateChannelRolePermission(
       channel_id: string,
       role_id: string,
-      params: updateChannelPermissionParams,
+      params: UpdateChannelPermissionParams,
     ): Promise<Result> {
       return request.put(`/channels/${channel_id}/roles/${role_id}/permissions`, params);
     },

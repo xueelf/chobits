@@ -108,6 +108,19 @@ export class Client extends EventEmitter {
       const { t, d } = dispatch;
 
       switch (t) {
+        // TODO: ／人◕ ‿‿ ◕人＼ event_id（腾讯传统艺能了，文档里写了但是没给字段，有种小程序的美）
+        // case 'GUILD_MEMBER_ADD':
+        // case 'GUILD_MEMBER_UPDATE':
+        // case 'GUILD_MEMBER_REMOVE':
+        // case 'MESSAGE_REACTION_ADD':
+        // case 'MESSAGE_REACTION_REMOVE':
+        // case 'FORUM_THREAD_CREATE':
+        // case 'FORUM_THREAD_UPDATE':
+        // case 'FORUM_THREAD_DELETE':
+        // case 'FORUM_POST_CREATE':
+        // case 'FORUM_POST_DELETE':
+        // case 'FORUM_REPLY_CREATE':
+        // case 'FORUM_REPLY_DELETE':
         case 'MESSAGE_CREATE':
         case 'AT_MESSAGE_CREATE':
           d.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {

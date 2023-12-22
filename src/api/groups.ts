@@ -3,14 +3,14 @@ import type { Request, Result } from '@/utils';
 export interface SendGroupsMessageParams {
   /** 文本内容 */
   content?: string;
-  /** 消息类型： 0 文本，1 图文混排 ，2 markdown 3 ark，4 embed 7 富媒体 */
-  msg_type: 0 | 1 | 2 | 3 | 4 | 7;
+  /** 消息类型： 0 是文本，2 是 markdown，3 ark，4 embed，7 media 富媒体 */
+  msg_type: 0 | 2 | 3 | 4 | 7;
   markdown?: Record<string, unknown>;
   keyboard?: Record<string, unknown>;
-  ark?: Record<string, unknown>;
   media?: {
     file_info: string;
   };
+  ark?: Record<string, unknown>;
   /**
    * @deprecated 暂不支持
    */
