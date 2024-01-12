@@ -108,19 +108,25 @@ export class Client extends EventEmitter {
       const { t, d } = dispatch;
 
       switch (t) {
-        // TODO: ／人◕ ‿‿ ◕人＼ event_id（腾讯传统艺能了，文档里写了但是没给字段，有种小程序的美）
-        // case 'GUILD_MEMBER_ADD':
-        // case 'GUILD_MEMBER_UPDATE':
-        // case 'GUILD_MEMBER_REMOVE':
-        // case 'MESSAGE_REACTION_ADD':
-        // case 'MESSAGE_REACTION_REMOVE':
-        // case 'FORUM_THREAD_CREATE':
-        // case 'FORUM_THREAD_UPDATE':
-        // case 'FORUM_THREAD_DELETE':
-        // case 'FORUM_POST_CREATE':
-        // case 'FORUM_POST_DELETE':
-        // case 'FORUM_REPLY_CREATE':
-        // case 'FORUM_REPLY_DELETE':
+        case 'GUILD_MEMBER_ADD':
+        case 'GUILD_MEMBER_UPDATE':
+        case 'GUILD_MEMBER_REMOVE':
+        case 'MESSAGE_REACTION_ADD':
+        case 'MESSAGE_REACTION_REMOVE':
+        case 'FORUM_THREAD_CREATE':
+        case 'FORUM_THREAD_UPDATE':
+        case 'FORUM_THREAD_DELETE':
+        case 'FORUM_POST_CREATE':
+        case 'FORUM_POST_DELETE':
+        case 'FORUM_REPLY_CREATE':
+        case 'FORUM_REPLY_DELETE':
+          d.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {
+            return this.api.sendChannelMessage(d.channel_id, {
+              event_id: d.id,
+              ...params,
+            });
+          };
+          break;
         case 'MESSAGE_CREATE':
         case 'AT_MESSAGE_CREATE':
           d.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {
@@ -234,7 +240,7 @@ export class Client extends EventEmitter {
   }
 
   private checkConfig() {
-    if (!this.config.events.length) {
+    if (!this.config.events?.length) {
       const wiki =
         'https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents';
 

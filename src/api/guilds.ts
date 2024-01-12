@@ -1,8 +1,18 @@
 import type { Request, Result } from '@/utils';
 import type { Guild } from '@/model/guild';
 import type { Member, Role } from '@/model/member';
-import type { ApiPermission, ApiPermissionDemand, ApiPermissionDemandIdentify } from '@/model/permission';
-import type { Channel, ChannelSubType, ChannelType, PrivateType, SpeakPermission } from '@/model/channel';
+import type {
+  ApiPermission,
+  ApiPermissionDemand,
+  ApiPermissionDemandIdentify,
+} from '@/model/permission';
+import type {
+  Channel,
+  ChannelSubType,
+  ChannelType,
+  PrivateType,
+  SpeakPermission,
+} from '@/model/channel';
 import { MessageSetting } from '@/model/message';
 import { Announce, RecommendChannel } from '@/model/announce';
 
@@ -139,14 +149,21 @@ export default (request: Request) => {
     /**
      * 在 guild_id 指定的频道下创建一个子频道。
      */
-    createGuildChannel(guild_id: string, params: CreateGuildChannelParams): Promise<Result<Channel>> {
+    createGuildChannel(
+      guild_id: string,
+      params: CreateGuildChannelParams,
+    ): Promise<Result<Channel>> {
       return request.post(`/guilds/${guild_id}/channels`, params);
     },
 
     /**
      * 获取 guild_id 指定的频道中所有成员的详情列表，支持分页。
      */
-    getGuildMembers(guild_id: string, after: string = '0', limit: number = 1): Promise<Result<Member[]>> {
+    getGuildMembers(
+      guild_id: string,
+      after: string = '0',
+      limit: number = 1,
+    ): Promise<Result<Member[]>> {
       return request.get(`/guilds/${guild_id}/members?after=${after}&limit=${limit}`);
     },
 
@@ -178,7 +195,11 @@ export default (request: Request) => {
     /**
      * 删除 guild_id 指定的频道下的成员 user_id。
      */
-    deleteGuildUserMember(guild_id: string, user_id: string, params: DeleteGuildUserMemberParams): Promise<Result> {
+    deleteGuildUserMember(
+      guild_id: string,
+      user_id: string,
+      params: DeleteGuildUserMemberParams,
+    ): Promise<Result> {
       return request.delete(`/guilds/${guild_id}/members/${user_id}`, params);
     },
 
@@ -199,7 +220,11 @@ export default (request: Request) => {
     /**
      * 修改频道 guild_id 下 role_id 指定的身份组。
      */
-    updateGuildRole(guild_id: string, role_id: string, params: GuildRoleParams): Promise<Result<UpdateGuildRole>> {
+    updateGuildRole(
+      guild_id: string,
+      role_id: string,
+      params: GuildRoleParams,
+    ): Promise<Result<UpdateGuildRole>> {
       return request.patch(`/guilds/${guild_id}/roles/${role_id}`, params);
     },
 
@@ -282,7 +307,10 @@ export default (request: Request) => {
     /**
      * 用于创建频道全局公告，公告类型分为 消息类型的频道公告 和 推荐子频道类型的频道公告 。
      */
-    createGuildAnnounce(guild_id: string, params: CreateGuildAnnounceParams): Promise<Result<Announce>> {
+    createGuildAnnounce(
+      guild_id: string,
+      params: CreateGuildAnnounceParams,
+    ): Promise<Result<Announce>> {
       return request.post(`/guilds/${guild_id}/announces`, params);
     },
 

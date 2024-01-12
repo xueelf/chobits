@@ -101,7 +101,11 @@ export class Request {
     });
   }
 
-  public delete<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
+  public delete<T = Data>(
+    url: string,
+    params?: AnyObject,
+    config: Config = {},
+  ): Promise<Result<T>> {
     config.body = JSON.stringify(params);
 
     return this.base<T>({

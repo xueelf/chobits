@@ -14,7 +14,11 @@ export default (request: Request) => {
     /**
      * 撤回频道私信消息。
      */
-    recallDmMessage(guild_id: string, message_id: string, hidetip: boolean = false): Promise<Result> {
+    recallDmMessage(
+      guild_id: string,
+      message_id: string,
+      hidetip: boolean = false,
+    ): Promise<Result> {
       return request.delete(`/dms/${guild_id}/messages/${message_id}?hidetip=${hidetip}`);
     },
   };

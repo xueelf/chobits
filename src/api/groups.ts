@@ -66,7 +66,10 @@ export default (request: Request) => {
     /**
      * 发送消息到群。
      */
-    sendGroupMessage(group_openid: string, params: SendGroupsMessageParams): Promise<Result<GroupMessage>> {
+    sendGroupMessage(
+      group_openid: string,
+      params: SendGroupsMessageParams,
+    ): Promise<Result<GroupMessage>> {
       return request.post(`/v2/groups/${group_openid}/messages`, params);
     },
 

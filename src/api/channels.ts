@@ -3,7 +3,14 @@ import type { Schedule } from '@/model/schedule';
 import type { AudioControl } from '@/model/audio';
 import type { Format, Thread, ThreadInfo } from '@/model/forum';
 import type { Channel, ChannelPermission, PrivateType, SpeakPermission } from '@/model/channel';
-import type { Message, MessageArk, MessageEmbed, MessageMarkdown, MessageReference, PinMessage } from '@/model/message';
+import type {
+  Message,
+  MessageArk,
+  MessageEmbed,
+  MessageMarkdown,
+  MessageReference,
+  PinMessage,
+} from '@/model/message';
 
 /**
  * @link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/post_messages.html#%E9%80%9A%E7%94%A8%E5%8F%82%E6%95%B0
@@ -82,14 +89,21 @@ export default (request: Request) => {
     /**
      * 用于向 channel_id 指定的子频道发送消息。
      */
-    sendChannelMessage(channel_id: string, params: SendChannelMessageParams): Promise<Result<Message>> {
+    sendChannelMessage(
+      channel_id: string,
+      params: SendChannelMessageParams,
+    ): Promise<Result<Message>> {
       return request.post(`/channels/${channel_id}/messages`, params);
     },
 
     /**
      * 用于撤回子频道 channel_id 下的消息 message_id。
      */
-    deleteChannelMessage(channel_id: string, message_id: string, hidetip: boolean = false): Promise<Result> {
+    deleteChannelMessage(
+      channel_id: string,
+      message_id: string,
+      hidetip: boolean = false,
+    ): Promise<Result> {
       return request.delete(`/channels/${channel_id}/messages/${message_id}?hidetip=${hidetip}`);
     },
 
@@ -103,7 +117,10 @@ export default (request: Request) => {
     /**
      * 修改 channel_id 指定的子频道的信息。
      */
-    updateChannelInfo(channel_id: string, params: UpdateChannelMessageParams): Promise<Result<Channel>> {
+    updateChannelInfo(
+      channel_id: string,
+      params: UpdateChannelMessageParams,
+    ): Promise<Result<Channel>> {
       return request.patch(`/channels/${channel_id}`, params);
     },
 
@@ -124,7 +141,10 @@ export default (request: Request) => {
     /**
      * 获取子频道 channel_id 下用户 user_id 的权限。
      */
-    getChannelMemberPermission(channel_id: string, user_id: string): Promise<Result<ChannelPermission>> {
+    getChannelMemberPermission(
+      channel_id: string,
+      user_id: string,
+    ): Promise<Result<ChannelPermission>> {
       return request.get(`/channels/${channel_id}/members/${user_id}/permissions`);
     },
 
@@ -142,7 +162,10 @@ export default (request: Request) => {
     /**
      * 获取子频道 channel_id 下身份组 role_id 的权限。
      */
-    getChannelRolePermission(channel_id: string, role_id: string): Promise<Result<ChannelPermission>> {
+    getChannelRolePermission(
+      channel_id: string,
+      role_id: string,
+    ): Promise<Result<ChannelPermission>> {
       return request.get(`/channels/${channel_id}/roles/${role_id}/permissions`);
     },
 
@@ -195,7 +218,10 @@ export default (request: Request) => {
     /**
      * 用于在 channel_id 指定的日程子频道下创建一个日程。
      */
-    createChannelSchedule(channel_id: string, params: ChannelScheduleParams): Promise<Result<Schedule>> {
+    createChannelSchedule(
+      channel_id: string,
+      params: ChannelScheduleParams,
+    ): Promise<Result<Schedule>> {
       return request.post(`/channels/${channel_id}/schedules`, params);
     },
 
@@ -255,7 +281,10 @@ export default (request: Request) => {
     /**
      * 发表帖子。
      */
-    createChannelThread(channel_id: string, params: CreateChannelThreadParams): Promise<Result<ChannelThread>> {
+    createChannelThread(
+      channel_id: string,
+      params: CreateChannelThreadParams,
+    ): Promise<Result<ChannelThread>> {
       return request.put(`/channels/${channel_id}/threads`, params);
     },
 
