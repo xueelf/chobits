@@ -104,7 +104,7 @@ interface ClientConfig {
   events: IntentEvent[];
   /** 掉线重连数，默认 3 */
   max_retry?: number;
-  /** 日志等级，默认 "INFO"，仅输出收到的指令信息 */
+  /** 日志等级，默认 'INFO'，仅输出收到的指令信息 */
   log_level?: LogLevel;
 }
 
@@ -142,7 +142,7 @@ type LogLevel = 'OFF' | 'FATAL' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE' 
 
 添加响应拦截器。
 
-### Request.base(config)
+### Request.basis(config)
 
 发送网络请求。（基础封装）
 
@@ -170,7 +170,7 @@ type LogLevel = 'OFF' | 'FATAL' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE' 
 
 Amesu 仅仅是一个用于帮助建立 socket 通信的 SDK，而不是一个机器人解决方案，这两者不应该耦合，所以并未原生提供插件支持。
 
-如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 120 kb+ 的大小，而官方 SDK 却占据了 430 kb+。
+如果你想要开发插件，建立属于自己的生态，可以直接将她作为依赖进行二次开发。她十分的轻便，没有复杂的依赖项。拥有完整类型提示的同时，仅有 120 kb 的大小，而官方 SDK 却占据了 430 kb+。
 
 若不想手搓，可以使用 [kokkoro](https://github.com/kokkorojs/kokkoro) 框架进行机器人开发。如果不想集成框架体系，那么你也可以直接安装 `@kokkoro/core` 依赖去自定义插件。
 
@@ -194,7 +194,7 @@ export const metadata = {
 export default function Example() {
   useEvent(
     ctx => {
-      ctx.logger.mark('Bot online.');
+      ctx.logger.mark('link start');
     },
     ['session.ready'],
   );
@@ -210,7 +210,7 @@ export default function Example() {
 
 ### 为什么要做这个项目？
 
-因为官方 [频道 SDK](https://github.com/tencent-connect/bot-node-sdk) 已经有一年半没更新了，不支持群聊而且使用体验有点糟糕。
+因为官方 [频道 SDK](https://github.com/tencent-connect/bot-node-sdk) 已经有 2 年没更新了，不支持群聊而且使用体验非常糟糕。
 
 ### 为什么 config 一定要指定 events？
 
@@ -218,7 +218,7 @@ export default function Example() {
 
 原因是部分事件仅限私域机器人使用，如果公域机器人订阅了就会抛异常，私域机器人订阅了公域事件却不会有任何问题...
 
-官方 SDK 的逻辑是没有传 events 就默认监听全部事件，这是不合理的。现在也没有任何手段知道机器人是否是公域和私域，因此只能手动在 config 传入。
+官方 SDK 的逻辑是没有传 events 就默认监听全部事件（其实也并不是全部，文档里有遗漏），这是不合理的。现在也没有任何手段知道机器人是公域还是私域，以及是否拥有群聊权限等问题，因此只能手动在 config 传入。
 
 ### 为什么部分 API 没有返回结果？
 
