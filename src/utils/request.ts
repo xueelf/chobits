@@ -1,9 +1,7 @@
-import { AnyObject, deepAssign, objectToParams } from '@/utils/common';
+import { deepAssign, objectToParams, parseBody, parseError } from '@/utils/common';
 
-/** 方法 */
 type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'PATCH';
-type Data = AnyObject | null;
-type Config = Omit<RequestConfig, 'method' | 'url'>;
+type Config = Omit<RequestConfig, 'method' | 'url' | 'body'>;
 
 export class RequestError extends Error {
   constructor(message: string) {
@@ -12,20 +10,19 @@ export class RequestError extends Error {
   }
 }
 
-/** 请求配置项 */
 export interface RequestConfig extends RequestInit {
-  baseURL?: string;
   method: Method;
   url: string;
+  origin?: string;
 }
 
 /** 请求拦截器 */
 export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
 /** 响应拦截器 */
-export type ResponseInterceptor = (result: Result) => Result | Promise<Result>;
+export type ResponseInterceptor<T = unknown> = (result: Result<T>) => Result | Promise<Result>;
 
-/** 请求结果集 */
-export interface Result<T = Data> {
+/** 结果集 */
+export interface Result<T = unknown> {
   data: T;
   /** 请求配置项 */
   config: RequestConfig;
@@ -52,23 +49,27 @@ export class Request {
   }
 
   /** 添加响应拦截器 */
-  public useResponseInterceptor(interceptor: ResponseInterceptor): void {
-    this.responseInterceptors.push(interceptor);
+  public useResponseInterceptor<T>(interceptor: ResponseInterceptor<T>): void {
+    this.responseInterceptors.push(<ResponseInterceptor>interceptor);
   }
 
-  public async base<T>(config: RequestConfig): Promise<Result<T>> {
-    const defaultConfig: Config = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-    config = <RequestConfig>deepAssign(defaultConfig, config);
+  public async basis<T>(config: RequestConfig): Promise<Result<T>> {
+    if (typeof config.body === 'string') {
+      const defaultConfig: Config = {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+      config = <RequestConfig>deepAssign(defaultConfig, config);
+    }
 
     for (const interceptor of this.requestInterceptors) {
       config = await interceptor(config);
     }
-    const response = await fetch((config.baseURL ?? '') + config.url, config);
-    const result: Partial<Result> = {
+    const url = (config.origin ?? '') + config.url;
+    const response = await fetch(url, config);
+    const result: Result = {
+      data: null,
       status: response.status,
       config,
       statusText: response.statusText,
@@ -76,71 +77,62 @@ export class Request {
     };
 
     try {
-      result.data = <Data>await response.json();
+      result.data = await response.json();
     } catch (error) {
       if (!response.ok) {
-        throw error instanceof Error ? error : new RequestError('Request failed.');
+        throw new RequestError(parseError(error));
       }
-      result.data = null;
+      result.data = await response.text();
     }
-
     for (const interceptor of this.responseInterceptors) {
-      deepAssign(result, await interceptor(<Result>result));
+      deepAssign(result, await interceptor(result));
     }
     return <Result<T>>result;
   }
 
-  public get<T = Data>(url: string, params?: AnyObject, config?: Config): Promise<Result<T>> {
+  public get<T>(url: string, params?: object, config?: Config): Promise<Result<T>> {
     if (params) {
       url += (/\?/.test(url) ? '&' : '?') + objectToParams(params);
     }
-    return this.base<T>({
+    return this.basis<T>({
       url,
       method: 'GET',
       ...config,
     });
   }
 
-  public delete<T = Data>(
-    url: string,
-    params?: AnyObject,
-    config: Config = {},
-  ): Promise<Result<T>> {
-    config.body = JSON.stringify(params);
-
-    return this.base<T>({
+  public delete<T>(url: string, params?: object, config: Config = {}): Promise<Result<T>> {
+    return this.basis<T>({
       url,
       method: 'DELETE',
+      body: parseBody(params),
       ...config,
     });
   }
 
-  public post<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
-    config.body = JSON.stringify(params);
-
-    return this.base<T>({
+  public post<T>(url: string, params?: object, config: Config = {}): Promise<Result<T>> {
+    return this.basis<T>({
       url,
       method: 'POST',
+      body: parseBody(params),
       ...config,
     });
   }
 
-  public put<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
-    config.body = JSON.stringify(params);
-
-    return this.base<T>({
+  public put<T>(url: string, params?: object, config: Config = {}): Promise<Result<T>> {
+    return this.basis<T>({
       url,
       method: 'PUT',
+      body: parseBody(params),
       ...config,
     });
   }
 
-  public patch<T = Data>(url: string, params?: AnyObject, config: Config = {}): Promise<Result<T>> {
-    config.body = JSON.stringify(params);
-
-    return this.base<T>({
+  public patch<T>(url: string, params?: object, config: Config = {}): Promise<Result<T>> {
+    return this.basis<T>({
       url,
       method: 'PATCH',
+      body: parseBody(params),
       ...config,
     });
   }

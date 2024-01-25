@@ -1,4 +1,3 @@
-import type { AnyObject } from '@/utils/common';
 import type { ReadyData, ResumedData } from '@/bot/session';
 import type { Guild } from '@/model/guild';
 import type { Channel } from '@/model/channel';
@@ -58,9 +57,9 @@ export type MessageCreate = Message & {
   /** 快捷回复 */
   reply: (params: SendChannelMessageParams) => Promise<Result<Message>>;
 };
-export type MessageDelete = AnyObject & { t: 'MESSAGE_DELETE' };
+export type MessageDelete = { t: 'MESSAGE_DELETE'; [key: string]: unknown };
 
-export type MessageReactionAdd = AnyObject & { t: 'MESSAGE_REACTION_ADD' };
+export type MessageReactionAdd = { t: 'MESSAGE_REACTION_ADD'; [key: string]: unknown };
 export type MessageReactionRemove = MessageReaction & { t: 'MESSAGE_REACTION_REMOVE' };
 
 export type DirectMessageCreate = Message & {
@@ -69,7 +68,7 @@ export type DirectMessageCreate = Message & {
   /** 快捷回复 */
   reply: (params: SendChannelMessageParams) => Promise<Result<Message>>;
 };
-export type DirectMessageDelete = AnyObject & { t: 'DIRECT_MESSAGE_DELETE' };
+export type DirectMessageDelete = { t: 'DIRECT_MESSAGE_DELETE'; [key: string]: unknown };
 
 export interface InteractionCreate {
   /** 事件类型 */
@@ -134,7 +133,7 @@ export type AtMessageCreate = Message & {
   /** 快捷回复 */
   reply: (params: SendChannelMessageParams) => Promise<Result<Message>>;
 };
-export type PublicMessageDelete = AnyObject & { t: 'PUBLIC_MESSAGE_DELETE' };
+export type PublicMessageDelete = { t: 'PUBLIC_MESSAGE_DELETE'; [key: string]: unknown };
 
 export interface GroupAddRobot {
   /** 事件类型 */

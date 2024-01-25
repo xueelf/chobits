@@ -1,5 +1,3 @@
-export type AnyObject = Record<any, any>;
-
 /**
  * 对象深合并，用法与 `Object.assign()` 保持一致。
  *
@@ -7,7 +5,7 @@ export type AnyObject = Record<any, any>;
  * @param sources - 源对象，包含将被合并的属性。
  * @returns 目标对象。
  */
-export function deepAssign(target: AnyObject, ...sources: unknown[]): object {
+export function deepAssign(target: any, ...sources: unknown[]): object {
   for (let i = 0; i < sources.length; i++) {
     const source = sources[i];
 
@@ -15,14 +13,6 @@ export function deepAssign(target: AnyObject, ...sources: unknown[]): object {
       return target;
     }
     Object.entries(source).forEach(([key, value]) => {
-      if (value instanceof Date) {
-        target[key] = new Date(value);
-        return;
-      }
-      if (value instanceof RegExp) {
-        target[key] = new RegExp(value);
-        return;
-      }
       if (!value || typeof value !== `object`) {
         target[key] = value;
         return;
@@ -39,22 +29,51 @@ export function deepAssign(target: AnyObject, ...sources: unknown[]): object {
   return target;
 }
 
-export function objectToParams(object: AnyObject) {
+export function objectToParams(object: object): string {
   const params = new URLSearchParams();
+  const keys = Object.keys(object);
 
-  for (const key in object) {
-    params.append(key, object[key]);
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    const value = Reflect.get(object, key);
+
+    params.append(key, value);
   }
   return params.toString();
 }
 
-export function objectToString(value: unknown) {
+export function parseBody(params?: object): Required<RequestInit['body']> {
+  if (!params) {
+    return;
+  }
+  const has_blob = Object.entries(params).some(([_, value]) => value instanceof Blob);
+
+  if (has_blob) {
+    const formData = new FormData();
+    const keys = Object.keys(params);
+
+    for (let index = 0; index < keys.length; index++) {
+      const key = keys[index];
+      const value = Reflect.get(params, key);
+
+      formData.append(key, value);
+    }
+    return formData;
+  }
+  return JSON.stringify(params);
+}
+
+export function objectToString(value: unknown): string {
   if (typeof value === 'string') {
     return value;
   }
   return JSON.stringify(value, null, 2);
 }
 
-export async function wait(ms: number): Promise<void> {
+export async function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function parseError(error: unknown): string {
+  return error instanceof Error ? error.message : objectToString(error);
 }

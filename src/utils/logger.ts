@@ -1,7 +1,6 @@
 import log4js, { Level } from 'log4js';
 
 export type Logger = log4js.Logger;
-/** 日志等级 */
 export type LogLevel = 'OFF' | 'FATAL' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE' | 'ALL';
 
 const loggerMap: Map<string, Logger> = new Map();

@@ -4,7 +4,7 @@ import { RawData, WebSocket } from 'ws';
 import { EventEmitter } from 'node:events';
 import { ClientConfig } from '@/bot/client';
 import { Logger, getLogger } from '@/utils/logger';
-import { objectToString, wait } from '@/utils/common';
+import { objectToString, sleep } from '@/utils/common';
 
 enum OpCode {
   /** 服务端进行消息推送 */
@@ -347,7 +347,7 @@ export class Session extends EventEmitter {
 
     try {
       this.logger.info(`尝试重连... x${this.retry}`);
-      await wait(this.retry * 3000);
+      await sleep(this.retry * 3000);
       this.connect(this.ws!.url);
     } catch (error) {
       this.reconnect();

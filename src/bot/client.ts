@@ -8,7 +8,7 @@ import { GroupMessage, SendGroupsMessageParams } from '@/api/groups';
 import { SendChannelMessageParams } from '@/api/channels';
 import { Token } from '@/bot/token';
 import { DispatchData, IntentEvent, Session } from '@/bot/session';
-import { deepAssign, objectToString } from '@/utils/common';
+import { deepAssign, objectToString, parseError } from '@/utils/common';
 import { Request, RequestError, Result } from '@/utils/request';
 import { LogLevel, Logger, createLogger } from '@/utils/logger';
 
@@ -22,9 +22,9 @@ export interface ClientConfig {
   secret: string;
   /** 订阅事件 */
   events: IntentEvent[];
-  /** 掉线重连数 */
+  /** 掉线重连数，默认 `3` */
   max_retry?: number;
-  /** 日志等级 */
+  /** 日志等级，默认 `'INFO'` */
   log_level?: LogLevel;
 }
 
@@ -205,7 +205,7 @@ export class Client extends EventEmitter {
       try {
         dispatch = await interceptor(dispatch);
       } catch (error) {
-        const message = error instanceof Error ? error.message : objectToString(error);
+        const message = parseError(error);
 
         this.logger.error(message);
         throw new ClientError(message);
@@ -240,7 +240,7 @@ export class Client extends EventEmitter {
   }
 
   private checkConfig() {
-    if (!this.config.events?.length) {
+    if (!this.config.events.length) {
       const wiki =
         'https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents';
 
@@ -257,7 +257,7 @@ export class Client extends EventEmitter {
       await this.token.renew();
 
       deepAssign(config, {
-        baseURL: 'https://api.sgroup.qq.com',
+        origin: 'https://api.sgroup.qq.com',
         headers: {
           'Authorization': this.token.authorization,
           'X-Union-Appid': this.config.appid,
@@ -268,7 +268,7 @@ export class Client extends EventEmitter {
       return config;
     });
 
-    request.useResponseInterceptor((result: Result) => {
+    request.useResponseInterceptor<undefined | { code: number; message: string }>(result => {
       const { data } = result;
       this.logger.debug(`API Response: ${objectToString(data)}`);
 

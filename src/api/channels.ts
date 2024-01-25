@@ -32,8 +32,8 @@ export interface SendChannelMessageParams {
   event_id?: string;
   /** markdown 消息对象 */
   markdown?: MessageMarkdown;
-  /** form-data 支持直接通过文件上传的方式发送图片。 */
-  file_image?: unknown;
+  /** 通过文件上传的方式发送图片。 */
+  file_image?: Blob;
 }
 
 export interface UpdateChannelMessageParams {
