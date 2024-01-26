@@ -22,6 +22,8 @@ export interface ClientConfig {
   secret: string;
   /** 订阅事件 */
   events: IntentEvent[];
+  /** 是否开启沙盒，默认 `false` */
+  sandbox: boolean;
   /** 掉线重连数，默认 `3` */
   max_retry?: number;
   /** 日志等级，默认 `'INFO'` */
@@ -91,6 +93,7 @@ export class Client extends EventEmitter {
 
   constructor(public config: ClientConfig) {
     super();
+    config.sandbox ??= false;
     config.max_retry ??= 3;
     config.log_level ??= 'INFO';
 
@@ -251,13 +254,16 @@ export class Client extends EventEmitter {
 
   private createApi(): Api {
     const request = new Request();
+    const origin = this.config.sandbox
+      ? 'https://sandbox.api.sgroup.qq.com'
+      : 'https://api.sgroup.qq.com';
 
     request.useRequestInterceptor(async config => {
       this.logger.trace('开始调用接口请求...');
       await this.token.renew();
 
       deepAssign(config, {
-        origin: 'https://api.sgroup.qq.com',
+        origin,
         headers: {
           'Authorization': this.token.authorization,
           'X-Union-Appid': this.config.appid,

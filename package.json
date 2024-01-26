@@ -1,6 +1,6 @@
 {
   "name": "amesu",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "Node.js SDK for QQ Bot.",
   "engines": {
     "node": ">=18.0.0"

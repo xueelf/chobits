@@ -102,9 +102,11 @@ interface ClientConfig {
   secret: string;
   /** 订阅事件 */
   events: IntentEvent[];
-  /** 掉线重连数，默认 3 */
+  /** 是否开启沙盒，默认 `false` */
+  sandbox: boolean;
+  /** 掉线重连数，默认 `3` */
   max_retry?: number;
-  /** 日志等级，默认 'INFO'，仅输出收到的指令信息 */
+  /** 日志等级，默认 `'INFO'`，仅输出收到的指令信息 */
   log_level?: LogLevel;
 }
 
