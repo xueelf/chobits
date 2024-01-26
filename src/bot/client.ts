@@ -23,7 +23,7 @@ export interface ClientConfig {
   /** 订阅事件 */
   events: IntentEvent[];
   /** 是否开启沙盒，默认 `false` */
-  sandbox: boolean;
+  sandbox?: boolean;
   /** 掉线重连数，默认 `3` */
   max_retry?: number;
   /** 日志等级，默认 `'INFO'` */
@@ -93,6 +93,7 @@ export class Client extends EventEmitter {
 
   constructor(public config: ClientConfig) {
     super();
+
     config.sandbox ??= false;
     config.max_retry ??= 3;
     config.log_level ??= 'INFO';
