@@ -82,6 +82,13 @@ export default (request: Request) => {
     },
 
     /**
+     * 用于撤回机器人发送给当前用户的消息
+     */
+    recallUserMessage(openid: string, message_id: string): Promise<Result> {
+      return request.delete(`/v2/users/${openid}/messages/${message_id}`);
+    },
+
+    /**
      * 单独发送富媒体消息给用户。
      */
     sendUserFile(openid: string, params: SendUserMessageFileParams): Promise<Result<UserFile>> {

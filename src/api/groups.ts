@@ -74,6 +74,13 @@ export default (request: Request) => {
     },
 
     /**
+     * 用于撤回机器人发送在当前群的消息
+     */
+    recallGroupMessage(group_openid: string, message_id: string): Promise<Result> {
+      return request.delete(`/v2/groups/${group_openid}/messages/${message_id}`);
+    },
+
+    /**
      * 发送富媒体消息到群。
      */
     sendGroupFile(group_openid: string, params: SendGroupFileParams): Promise<Result<GroupFile>> {

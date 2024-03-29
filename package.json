@@ -27,11 +27,11 @@
   },
   "homepage": "https://github.com/xueelf/amesu#readme",
   "devDependencies": {
-    "@types/node": "^20.11.6",
+    "@types/node": "^20.11.30",
     "@types/ws": "^8.5.10",
     "concurrently": "^8.2.2",
     "tsc-alias": "^1.8.8",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.3"
   },
   "dependencies": {
     "log4js": "^6.9.1",
