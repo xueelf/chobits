@@ -20,6 +20,8 @@ export interface ClientConfig {
   token: string;
   /** 机器人密钥 */
   secret: string;
+  /** 分片，默认 `[0, 1]` */
+  shard?: number[];
   /** 订阅事件 */
   events: IntentEvent[];
   /** 是否开启沙盒，默认 `false` */
@@ -95,6 +97,7 @@ export class Client extends EventEmitter {
     super();
 
     config.sandbox ??= false;
+    config.shard ??= [0, 1];
     config.max_retry ??= 3;
     config.log_level ??= 'INFO';
 
@@ -250,6 +253,16 @@ export class Client extends EventEmitter {
 
       this.logger.error(`检测到 events 为空，请查阅相关文档：${wiki}`);
       throw new ClientError('Events cannot be empty.');
+    } else if (
+      !Array.isArray(this.config.shard) ||
+      this.config.shard.length !== 2 ||
+      this.config.shard[0] >= this.config.shard[1]
+    ) {
+      const wiki =
+        'https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html';
+
+      this.logger.error(`检测到 shard 配置错误，请查阅相关文档：${wiki}`);
+      throw new ClientError('Shard configuration is incorrect.');
     }
   }
 

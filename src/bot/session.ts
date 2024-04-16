@@ -315,9 +315,8 @@ export class Session extends EventEmitter {
       d: {
         token: this.token.authorization,
         intents: this.getIntents(),
-        // TODO: ／人◕ ‿‿ ◕人＼ 分片
-        shard: [0, 1],
-        // TODO: ／人◕ ‿‿ ◕人＼ 暂时没有作用
+        shard: this.config.shard!,
+        // TODO: ／人◕ ‿‿ ◕人＼
         properties: {},
       },
     };

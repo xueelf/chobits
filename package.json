@@ -1,6 +1,6 @@
 {
   "name": "amesu",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "description": "Node.js SDK for QQ Bot.",
   "engines": {
     "node": ">=18.0.0"
@@ -27,11 +27,11 @@
   },
   "homepage": "https://github.com/xueelf/amesu#readme",
   "devDependencies": {
-    "@types/node": "^20.11.30",
+    "@types/node": "^20.12.7",
     "@types/ws": "^8.5.10",
     "concurrently": "^8.2.2",
     "tsc-alias": "^1.8.8",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "log4js": "^6.9.1",
