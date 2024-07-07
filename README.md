@@ -32,7 +32,7 @@ const client = new Client({
   appid: '1145141919',
   token: '38bc73e16208135fb111c0c573a44eaa',
   secret: '6208135fb111c0c5',
-  events: ['GROUP_MESSAGES', 'PUBLIC_GUILD_MESSAGES'],
+  events: ['GROUP_AND_C2C_EVENT', 'PUBLIC_GUILD_MESSAGES'],
 });
 
 // 监听频道消息
