@@ -134,6 +134,16 @@ export class Client extends EventEmitter {
             });
           };
           break;
+        // case 'INTERACTION_CREATE':
+        case 'GROUP_ADD_ROBOT':
+        case 'GROUP_MSG_RECEIVE':
+          d.reply = (params: SendGroupsMessageParams): Promise<Result<GroupMessage>> => {
+            return this.api.sendGroupMessage(d.group_openid, {
+              event_id: d.id,
+              ...params,
+            });
+          };
+          break;
         case 'MESSAGE_CREATE':
         case 'AT_MESSAGE_CREATE':
           d.reply = (params: SendChannelMessageParams): Promise<Result<Message>> => {

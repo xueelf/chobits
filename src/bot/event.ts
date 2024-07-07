@@ -144,6 +144,8 @@ export interface GroupAddRobot {
   group_openid: string;
   /** 操作添加机器人进群的群成员 openid */
   op_member_openid: string;
+  /** 快捷回复 */
+  reply: (params: SendGroupsMessageParams) => Promise<Result<GroupMessage>>;
 }
 
 export interface GroupDelRobot {
@@ -155,6 +157,8 @@ export interface GroupDelRobot {
   group_openid: string;
   /** 操作移除机器人退群的群成员 openid */
   op_member_openid: string;
+  /** 快捷回复 */
+  reply: (params: SendGroupsMessageParams) => Promise<Result<GroupMessage>>;
 }
 
 export interface GroupMessageReject {
@@ -356,7 +360,7 @@ export interface ClientEvent {
   'public.message.delete': (event: PublicMessageDelete) => void;
   //#endregion
 
-  //#region GROUP_MESSAGES
+  //#region GROUP_AND_C2C_EVENT
   /** 机器人被添加到群聊 */
   'group.add.robot': (event: GroupAddRobot) => void;
   /** 机器人被移出群聊 */
