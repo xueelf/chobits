@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "lib": ["esnext"],
-    "module": "commonjs",
+    "module": "esnext",
     "rootDir": "src",
+    "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     },
     "declaration": true,
-    "outDir": "lib",
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
     "noEmitOnError": true,
+    "declarationDir": "dist/types",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
