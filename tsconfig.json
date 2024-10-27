@@ -6,7 +6,8 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "package.json": ["package.json"]
     },
     "declaration": true,
     "emitDeclarationOnly": true,
