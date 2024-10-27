@@ -1,21 +1,18 @@
 import { execSync } from 'node:child_process';
 import { rm } from 'node:fs/promises';
-import chalk from 'chalk';
 import { type Plugin, type PluginBuild } from 'esbuild';
+import { Logger, colorful } from 'nebia';
 
-function log(message: string): void {
-  const time: string = chalk.gray(new Date().toLocaleTimeString('zh-CN'));
-  const prefix: string = chalk.blue.bold('[build]');
-
-  console.log(`${time} ${prefix} ${message}`);
-}
+const logger = new Logger({
+  name: 'build',
+});
 
 export function rmPlugin(): Plugin {
   return {
     name: 'rm',
     async setup(): Promise<void> {
       await rm('dist', { recursive: true, force: true });
-      log('dist directory removed');
+      logger.info('dist directory removed');
     },
   };
 }
@@ -29,7 +26,7 @@ export function tscPlugin(): Plugin {
           return;
         }
         execSync('tsc');
-        log(`typescript ${chalk.bold.green('.d.ts')} files compiled successfully`);
+        logger.info(`typescript ${colorful('.d.ts', 'blue')} files compiled successfully`);
       });
     },
   };
