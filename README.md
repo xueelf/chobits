@@ -9,7 +9,7 @@
 ![engine](https://img.shields.io/node/v/amesu?style=flat-square&logo=Node.js&labelColor=FAFAFA)
 ![downloads](https://img.shields.io/npm/dt/amesu?style=flat-square&logo=tinder&logoColor=FF8C00&labelColor=FAFAFA&color=616DF8)
 
-本项目是一个使用 TypeScript 开发，在 Node.js 环境下运行的 QQ 机器人 SDK。
+本项目是一个使用 [TypeScript](https://www.typescriptlang.org/) 语言开发，在 [Node.js](https://nodejs.org/zh-cn) 环境下运行的 [QQ](https://im.qq.com/) 机器人 SDK。
 
 ## 介绍
 
@@ -28,7 +28,7 @@ npm i amesu
 
 ## 使用
 
-在开始之前，请确保你已经安装好了 **LTS 或以上**版本的 [Node.js](https://nodejs.org/zh-cn)，并在 [QQ 开放平台](https://bot.q.qq.com/wiki/develop/api-v2/) 创建好了机器人。
+在开始之前，请确保你已经安装好了 **LTS 或以上**版本的 Node.js，并在 [QQ 开放平台](https://bot.q.qq.com/wiki/develop/api-v2/) 创建好了机器人。
 
 ### 简单示例
 
@@ -41,16 +41,19 @@ const client = new Client({
   secret: '6208135fb111c0c5',
 });
 
+// 监听私聊事件
+client.on('C2C_MESSAGE_CREATE', event => {
+  event.reply('我是私聊消息');
+});
 // 监听群 @ 事件
 client.on('GROUP_AT_MESSAGE_CREATE', event => {
-  // 快捷回复
-  event.reply('hello world');
+  event.reply('我是群聊消息');
 });
 // 机器人上线
 client.online();
 ```
 
-上述代码，在机器人成功上线后，收到任何**群 @ 消息**，都将会发送 `hello world` 来回复当前用户。
+上述代码，在机器人成功上线后，收到**私聊**或**群 @**的任何消息，都将会发送对应的回复。
 
 ## 配置项
 
@@ -192,6 +195,7 @@ client.useEventInterceptor(payload => {
   - `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
   - `url` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片链接。（需要注意，群聊不支持 302 跳转，但频道支持 😅）
   - `content` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息内容。
+  - `err_msg` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片发送失败后的回复内容，默认回复 API 的 `err_msg`。
 
 发送图片消息，基于 `Client.api.sendGroupFile` 与 `Client.api.sendUserFile` 的二次封装。
 
