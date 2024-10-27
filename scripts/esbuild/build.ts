@@ -15,6 +15,8 @@ const options: BuildOptions = {
   bundle: true,
   format: 'esm',
   outdir: 'dist',
+  platform: 'node',
+  packages: 'external',
   plugins: [rmPlugin(), tscPlugin()],
   entryPoints: ['src/index.ts'],
 };

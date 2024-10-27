@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "files": [
     "dist"
@@ -30,12 +30,11 @@
   },
   "homepage": "https://github.com/xueelf/amesu#readme",
   "dependencies": {
-    "log4js": "^6.9.1",
-    "totte": "^0.0.1"
+    "nebia": "^0.0.5",
+    "totte": "^0.0.9"
   },
   "devDependencies": {
-    "@types/node": "^20.16.5",
-    "chalk": "^5.3.0",
+    "@types/node": "^22.7.9",
     "esbuild": "^0.23.1",
     "tsx": "^4.19.1"
   },
