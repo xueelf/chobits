@@ -15,9 +15,4 @@ body:
   - type: textarea
     attributes:
       label: 功能描述
-      description: 阐述相关功能点，最好能提供伪代码示例。
-  - type: textarea
-    attributes:
-      label: 此功能的开发将会解决什么问题？
-    validations:
-      required: true
+      description: 阐述相关功能点，最好能提供使用场景的伪代码示例。

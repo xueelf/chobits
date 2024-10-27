@@ -29,4 +29,4 @@ body:
   - type: textarea
     attributes:
       label: 控制台日志
-      description: 如果方便的话，你可以将 `log_level` 改为 `DEBUG` 或者 `ALL` 提供完成的日志信息。
+      description: 如果方便的话，你可以将 `logLevel` 改为 `debug` 或者 `trace` 提供完整的日志信息。
