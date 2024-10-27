@@ -7,7 +7,7 @@ import { Token } from './token';
 import { DispatchPayload, Session } from './session';
 import { FileType, MessageResponse, MsgType } from '@/types/message';
 
-export type EventInterceptor = (event: DispatchPayload) => void | Promise<void>;
+export type EventInterceptor = (payload: DispatchPayload) => void | Promise<void>;
 
 /** 客户端配置项 */
 export interface ClientConfig {
@@ -127,8 +127,8 @@ export class Client extends EventEmitter<ClientEventMap> {
     this.logger.trace('Client Config: %O', this.config);
     this.logger.info('Ciallo～(∠·ω< )⌒★');
 
-    this.useEventInterceptor(async event => {
-      const { t, d } = event;
+    this.useEventInterceptor(async payload => {
+      const { t, d } = payload;
 
       switch (t) {
         case 'C2C_MESSAGE_CREATE':
@@ -165,20 +165,20 @@ export class Client extends EventEmitter<ClientEventMap> {
     });
   }
 
-  private emitEvent(data: DispatchPayload): void {
-    const { t, d } = data;
+  private emitEvent(payload: DispatchPayload): void {
+    const { t, d } = payload;
 
     switch (t) {
       case 'GROUP_ADD_ROBOT':
       case 'GROUP_MSG_RECEIVE':
         Reflect.set(d, 'reply', (content: string) => {
-          return this.sendGroupMessage(d.group_openid, content, data.id);
+          return this.sendGroupMessage(d.group_openid, content, payload.id);
         });
         break;
       case 'FRIEND_ADD':
       case 'C2C_MSG_RECEIVE':
         Reflect.set(d, 'reply', (content: string) => {
-          return this.sendUserMessage(d.openid, content, data.id);
+          return this.sendUserMessage(d.openid, content, payload.id);
         });
         break;
       case 'C2C_MESSAGE_CREATE':
@@ -196,12 +196,12 @@ export class Client extends EventEmitter<ClientEventMap> {
     this.emit(t, d);
   }
 
-  private async onDispatch(event: DispatchPayload): Promise<void> {
-    this.emitEvent(event);
+  private async onDispatch(payload: DispatchPayload): Promise<void> {
+    this.emitEvent(payload);
 
     for (let index = 0; index < this.eventInterceptors.length; index++) {
       const interceptor = this.eventInterceptors[index];
-      await interceptor(event);
+      await interceptor(payload);
     }
   }
 

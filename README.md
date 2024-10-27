@@ -9,7 +9,7 @@
 ![engine](https://img.shields.io/node/v/amesu?style=flat-square&logo=Node.js&labelColor=FAFAFA)
 ![downloads](https://img.shields.io/npm/dt/amesu?style=flat-square&logo=tinder&logoColor=FF8C00&labelColor=FAFAFA&color=616DF8)
 
-本项目是一个在 Node.js 环境下运行的 QQ 机器人第三方 SDK。
+本项目是一个使用 TypeScript 开发，在 Node.js 环境下运行的 QQ 机器人 SDK。
 
 ## 介绍
 
@@ -20,7 +20,7 @@
 
 ## 安装
 
-Amesu 从 2.3.0 版本后只提供群聊的支持，未来也不再打算兼容频道，你可以 [在这里](https://github.com/xueelf/amesu/discussions/1) 查看缘由。
+Amesu 自 2.3.0 版本后，将不再提供对 QQ 频道的支持，你可以 [在这里](https://github.com/xueelf/amesu/discussions/1) 查看缘由。
 
 ```shell
 npm i amesu
@@ -76,6 +76,23 @@ type Level = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 关于日志，具体使用可查阅 [nebia](https://github.com/xueelf/nebia#readme) 文档。
 
+## 事件
+
+虽然很不喜欢，但 Amesu 未对消息推送做任何处理，所有事件信息均以 [官方文档](https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents) 为主。
+
+| 事件名                  | 条件                                         |
+| ----------------------- | -------------------------------------------- |
+| C2C_MESSAGE_CREATE      | 用户单聊发消息给机器人时候                   |
+| FRIEND_ADD              | 用户添加使用机器人                           |
+| FRIEND_DEL              | 用户删除机器人                               |
+| C2C_MSG_REJECT          | 用户在机器人资料卡手动关闭"主动消息"推送     |
+| C2C_MSG_RECEIVE         | 用户在机器人资料卡手动开启"主动消息"推送开关 |
+| GROUP_AT_MESSAGE_CREATE | 用户在群里@机器人时收到的消息                |
+| GROUP_ADD_ROBOT         | 机器人被添加到群聊                           |
+| GROUP_DEL_ROBOT         | 机器人被移出群聊                             |
+| GROUP_MSG_REJECT        | 群管理员主动在机器人资料页操作关闭通知       |
+| GROUP_MSG_RECEIVE       | 群管理员主动在机器人资料页操作开启通知       |
+
 ## API
 
 ### Client.api
@@ -85,6 +102,53 @@ type Level = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 ### Client.request
 
 基于 `Fetch` 封装，使用方式可查看 totte 的 [README](https://github.com/xueelf/totte/blob/master/README.zh.md) 自述。
+
+### Client.useEventInterceptor(interceptor)
+
+- `interceptor` [\<Function\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function)
+  - `payload` [\<Object\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object) 事件载荷，数据结构可查阅 [官方文档](https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#payload)。
+
+事件拦截器，客户端的绝大部分行为都是通过事件来驱动的，利用好拦截器，你可以实现各种各样的需求。
+
+例如在收到消息时，向控制台输出日志：
+
+```javascript
+import { Client } from 'amesu';
+
+const client = new Client({ ... });
+
+client.useEventInterceptor(payload => {
+  switch (payload.t) {
+    case 'C2C_MESSAGE_CREATE':
+    case 'GROUP_AT_MESSAGE_CREATE':
+      client.logger.info('机器人收到消息：%s', payload.d.content);
+      break;
+  }
+});
+```
+
+当然，以上代码仅供示例参考，你不用真的在项目中这样做，因为 Amesu 已经做好了相关处理，仅需修改 `logLevel`，你就可以看到任何你想要的数据。
+
+你甚至能自定义客户端事件，以实现 OneBot 的兼容：
+
+```javascript
+import { Client } from 'amesu';
+
+const client = new Client({ ... });
+
+client.useEventInterceptor(payload => {
+  switch (payload.t) {
+    case 'C2C_MESSAGE_CREATE':
+      client.emit('message.private');
+      break;
+    case 'GROUP_AT_MESSAGE_CREATE':
+      client.emit('message.group');
+      break;
+  }
+});
+```
+
+还有更多用法等着你来创造。
 
 ### Client.online()
 
@@ -96,15 +160,66 @@ type Level = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 ### Client.sendMessage([options])
 
-- options
-  - `type` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 发送类型，可选值：`'group'` | `'user'`。
-  - `to_id` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 发送的目标 id，事件的 `group_openid` 或 `user_openid`。
-  - `from_id` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
-  - `content` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 消息内容。
+- `options` [\<Object\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `type` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 发送类型，可选值：`'group'` | `'user'`。
+  - `to_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 发送的目标 id，事件的 `group_openid` 或 `user_openid`。
+  - `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+  - `content` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息内容。
 
 发送文本消息，基于 `Client.api.sendGroupMessage` 与 `Client.api.sendUserMessage` 的二次封装。
 
-~~回的四种写法~~：
+### Client.sendGroupMessage(group_openid, content[, from_id])
+
+- `group_openid` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 群 openid。
+- `content` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息内容。
+- `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+
+发送群消息，基于 `Client.sendMessage` 的二次封装。
+
+### Client.sendUserMessage(openid, content[, from_id])
+
+- `openid` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 用户 openid。
+- `content` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息内容。
+- `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+
+发送私聊消息，基于 `Client.sendMessage` 的二次封装。
+
+### Client.sendImage([options])
+
+- `options` [\<Object\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object)
+  - `type` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 发送类型，可选值：`'group'` | `'user'`。
+  - `to_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 发送的目标 id，事件的 `group_openid` 或 `user_openid`。
+  - `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+  - `url` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片链接。（需要注意，群聊不支持 302 跳转，但频道支持 😅）
+  - `content` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息内容。
+
+发送图片消息，基于 `Client.api.sendGroupFile` 与 `Client.api.sendUserFile` 的二次封装。
+
+### Client.sendGroupImage(group_openid, url[, from_id])
+
+- `group_openid` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 群 openid。
+- `url` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片链接。
+- `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+
+发送群图片，基于 `Client.sendImage` 的二次封装。
+
+### Client.sendUserImage(openid, url[, from_id])
+
+- `openid` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 用户 openid。
+- `url` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片链接。
+- `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+
+发送私聊图片，基于 `Client.sendImage` 的二次封装。
+
+## FAQ
+
+### 为什么要做这个项目？
+
+因为官方 [Node SDK](https://github.com/tencent-connect/bot-node-sdk) 已经有 3 年没更新了，不支持群聊而且使用体验非常糟糕。
+
+### 已经有了 `Client.api`，为什么还要二次封装？
+
+因为 ~~回有四种写法~~ 使用起来更加简洁，你可以简单理解为语法糖：
 
 ```javascript
 import { Client } from 'amesu';
@@ -114,7 +229,7 @@ const client = new Client({ ... });
 client.on('GROUP_AT_MESSAGE_CREATE', event => {
   const content = 'hello world';
 
-  // 原生 API 调用，需要传入完整的数据结构。
+  // 原生 API 调用，需要传入完整的数据结构。如果是发送图片，会更加复杂。
   client.api.sendGroupMessage(event.group_openid, {
     msg_id: event.id,
     msg_seq: 1,
@@ -133,23 +248,7 @@ client.on('GROUP_AT_MESSAGE_CREATE', event => {
     content,
   });
   client.sendGroupMessage(event.group_openid, content, event.id);
-  // 只有在特定的事件里，才会有 reply 方法，它能直接调用并发送消息。
+  // 在特定的事件里，会有 reply 方法，它能直接调用并发送消息。
   event.reply(content);
 });
 ```
-
-### Client.sendGroupMessage(group_openid, content[, from_id])
-
-- `group_openid` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 群 openid。
-- `content` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 消息内容。
-- `from_id` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
-
-发送群消息，基于 `Client.sendMessage` 的二次封装。
-
-### Client.sendUserMessage(openid, content[, from_id])
-
-- `openid` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 用户 openid。
-- `content` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 消息内容。
-- `from_id` [\<string\>](https://web.nodejs.cn/en-us/docs/web/javascript/reference/global_objects/string/) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
-
-发送私聊消息，基于 `Client.sendMessage` 的二次封装。
