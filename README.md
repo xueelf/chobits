@@ -20,7 +20,7 @@
 
 ## 安装
 
-Amesu 自 2.3.0 版本后，将不再提供对 QQ 频道的支持，你可以 [在这里](https://github.com/xueelf/amesu/discussions/1) 查看缘由。
+Amesu 自 `v2.3.0` 版本后，将不再提供对 QQ 频道的支持，你可以 [在这里](https://github.com/xueelf/amesu/discussions/1) 查看缘由。
 
 ```shell
 npm i amesu
@@ -81,7 +81,7 @@ type Level = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 ## 事件
 
-虽然很不喜欢，但 Amesu 未对消息推送做任何处理，所有事件信息均以 [官方文档](https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents) 为主。
+对于消息推送，Amesu 未做任何处理，所有事件及信息均以 [官方文档](https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/interface-framework/event-emit.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85Intents) 为主。
 
 | 事件名                  | 条件                                         |
 | ----------------------- | -------------------------------------------- |
@@ -193,7 +193,7 @@ client.useEventInterceptor(payload => {
   - `type` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 发送类型，可选值：`'group'` | `'user'`。
   - `to_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 发送的目标 id，事件的 `group_openid` 或 `user_openid`。
   - `from_id` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
-  - `url` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片链接。（需要注意，群聊不支持 302 跳转，但频道支持 😅）
+  - `url` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片链接。
   - `content` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 消息内容。
   - `err_msg` [\<String\>](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String) 图片发送失败后的回复内容，默认回复 API 的 `err_msg`。
 
@@ -219,7 +219,7 @@ client.useEventInterceptor(payload => {
 
 ### 为什么要做这个项目？
 
-因为官方 [Node SDK](https://github.com/tencent-connect/bot-node-sdk) 已经有 3 年没更新了，不支持群聊而且使用体验非常糟糕。
+因为官方 [Node SDK](https://github.com/tencent-connect/bot-node-sdk) 已经有两年半 ~~🏀~~ 没更新了，不支持群聊，而且使用体验也非常糟糕。
 
 ### 已经有了 `Client.api`，为什么还要二次封装？
 

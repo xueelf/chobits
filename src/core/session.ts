@@ -380,11 +380,12 @@ export class Session extends EventEmitter<SessionEventMap> {
 
         this.session_id = session_id;
         this.client.username = user.username;
-        this.client.logger.info('Hello, %s', user.username);
+        this.client.logger.info('Welcome, %s', user.username);
         this.sendHeartbeatPayload();
         break;
       case DispatchType.Resumed:
         this.client.logger.debug('Session Resumed');
+        this.client.logger.info('Welcome back, %s', this.client.username);
         this.sendHeartbeatPayload();
         break;
     }

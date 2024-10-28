@@ -113,12 +113,22 @@ export class Client extends EventEmitter<ClientEventMap> {
       this.logger.debug('API Status: %s %d', response.config.url, response.status);
       this.logger.trace('API Response: %O', response);
 
-      const { data } = response;
+      const { data, config } = response;
       const { err_code, message } = data;
 
       if (err_code) {
         this.logger.error('API Error: %s', message);
         throw new Error(message);
+      }
+      const { url, payload } = config;
+      const isMessageApi = url.endsWith('/messages');
+
+      if (isMessageApi) {
+        const { content } = <{ content: string }>payload;
+        const isGroupMessage = url.startsWith('/v2/groups');
+        const prefix = isGroupMessage ? 'Group' : 'User';
+
+        this.logger.info('To %s: %s', prefix, content);
       }
     });
     this.api = useApi(apiRequest);
@@ -205,21 +215,33 @@ export class Client extends EventEmitter<ClientEventMap> {
     }
   }
 
+  /**
+   * 事件拦截器
+   */
   public useEventInterceptor(interceptor: EventInterceptor): void {
     this.eventInterceptors.push(interceptor);
   }
 
+  /**
+   * 机器人上线。
+   */
   public async online(): Promise<void> {
     await this.session.connect();
     this.session.on('dispatch', this.onDispatch.bind(this));
   }
 
+  /**
+   * 机器人下线。
+   */
   public offline(): void {
     this.session.disconnect();
     this.session.removeAllListeners();
     this.logger.info('Goodbye');
   }
 
+  /**
+   * 发送文本消息，基于 `Client.api.sendGroupMessage` 与 `Client.api.sendUserMessage` 的二次封装。
+   */
   public async sendMessage(options: {
     type: 'group' | 'user';
     to_id: string;
@@ -238,6 +260,13 @@ export class Client extends EventEmitter<ClientEventMap> {
     return method(to_id, payload);
   }
 
+  /**
+   * 发送群消息，基于 `Client.sendMessage` 的二次封装。
+   *
+   * @param group_openid - 群 openid。
+   * @param content - 消息内容。
+   * @param from_id - 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+   */
   public sendGroupMessage(
     group_openid: string,
     content: string,
@@ -251,6 +280,13 @@ export class Client extends EventEmitter<ClientEventMap> {
     });
   }
 
+  /**
+   * 发送私聊消息，基于 `Client.sendMessage` 的二次封装。
+   *
+   * @param openid - 用户 openid。
+   * @param content - 消息内容。
+   * @param from_id - 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+   */
   public sendUserMessage(
     openid: string,
     content: string,
@@ -264,6 +300,9 @@ export class Client extends EventEmitter<ClientEventMap> {
     });
   }
 
+  /**
+   * 发送图片消息，基于 `Client.api.sendGroupFile` 与 `Client.api.sendUserFile` 的二次封装。
+   */
   public async sendImage(options: {
     type: 'group' | 'user';
     to_id: string;
@@ -306,6 +345,13 @@ export class Client extends EventEmitter<ClientEventMap> {
     }
   }
 
+  /**
+   * 发送群图片，基于 `Client.sendImage` 的二次封装。
+   *
+   * @param group_openid - 群 openid。
+   * @param url - 图片链接。
+   * @param from_id - 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+   */
   public sendGroupImage(group_openid: string, url: string, from_id: string): Promise<void> {
     return this.sendImage({
       type: 'group',
@@ -315,6 +361,13 @@ export class Client extends EventEmitter<ClientEventMap> {
     });
   }
 
+  /**
+   * 发送私聊图片，基于 `Client.sendImage` 的二次封装。
+   *
+   * @param openid - 用户 openid。
+   * @param url - 图片链接。
+   * @param from_id - 消息的来源 id，`msg_id` 或 `event_id`，不传入则视为**主动消息**。
+   */
   public sendUserImage(openid: string, url: string, from_id: string): Promise<void> {
     return this.sendImage({
       type: 'user',
