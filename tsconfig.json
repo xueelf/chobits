@@ -1,23 +1,34 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "rootDir": "src",
+    // Environment setup & latest features
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "types": ["bun"],
+
+    // Bundler mode
     "moduleResolution": "bundler",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "package.json": ["package.json"]
-    },
-    "declaration": true,
-    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
     "outDir": "dist",
-    "noEmitOnError": true,
-    "declarationDir": "dist/types",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "~/*": ["./*"],
+      "#/*": ["./src/*"]
+    },
+
+    // Best practices
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["src"]
+  "include": ["*.config.ts", "src", "scripts", "tests"]
 }
