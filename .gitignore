@@ -1,2 +1,8 @@
+.cache/
+.DS_Store
+.eslintcache
+.idea/
 dist/
+examples/
+logs/
 node_modules/
