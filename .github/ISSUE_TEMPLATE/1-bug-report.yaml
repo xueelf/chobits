@@ -11,14 +11,14 @@ body:
       value: |
         感谢你的问题反馈，为了方便更快的定位问题，建议尽可能多地填写以下表格。(\*^▽^\*)
 
-        该 issue 将被用于查找程序中发现的错误和问题，在这之前，请先确认是 amesu 本身的行为导致而非 API 的问题哦。若你想要获取更多 API 使用帮助，可以先查阅 [官方文档](https://bot.q.qq.com/wiki/) 排错。
+        该 issue 将被用于查找程序中发现的错误和问题，在这之前，请先确认是 chobits 本身的行为导致而非 API 的问题哦。若你想要获取更多 API 使用帮助，可以先查阅 [官方文档](https://bot.q.qq.com/wiki/) 排错。
   - type: input
     attributes:
-      label: Node.js 版本
-      description: 你可以输入 `node -v` 查询。
+      label: 运行环境与版本
+      description: 例如 Node.js、Deno 或 Bun 的版本。
   - type: input
     attributes:
-      label: Amesu 版本
+      label: Chobits 版本
       description: 若不是最新版本，可以尝试升级依赖库后确认问题是否还存在。
   - type: textarea
     attributes:
@@ -29,4 +29,4 @@ body:
   - type: textarea
     attributes:
       label: 控制台日志
-      description: 如果方便的话，你可以将 `logLevel` 改为 `debug` 或者 `trace` 提供完整的日志信息。
+      description: 如果方便的话，请通过 `logger` 回调提供完整的日志信息。
