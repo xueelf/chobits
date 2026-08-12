@@ -236,9 +236,6 @@ export class Client<
       getGateway: async () => {
         const { data } = await getGateway();
 
-        if (!data) {
-          throw new Error('QQ OpenAPI returned an empty Gateway response');
-        }
         return data;
       },
       maxRetry,
