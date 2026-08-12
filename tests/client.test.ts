@@ -284,7 +284,7 @@ test('文件、群信息、互动、撤回与分享', async () => {
       return Response.json(api.getAccessToken());
     }
     if (request.url === 'https://api.bot.qq.com/v2/generate_url_link') {
-      return Response.json(api.generateUrlLink());
+      return Response.json(api.generateShareLink());
     }
     if (request.url === 'https://api.bot.qq.com/v2/users/user/files') {
       return Response.json(userFileData);
@@ -345,8 +345,8 @@ test('文件、群信息、互动、撤回与分享', async () => {
   });
   const groupInfo = await client.getGroupInfo('group');
   const state = await client.getGroupBotState('group');
-  const interaction = await client.respondInteraction('interaction', { code: 0 });
-  const link = await client.generateUrlLink({ callback_data: 'source' });
+  const interaction = await client.respondToInteraction('interaction', { code: 0 });
+  const link = await client.generateShareLink({ callback_data: 'source' });
 
   expect(recalled.data).toEqual({});
   expect(userFile.data).toEqual(userFileData);
