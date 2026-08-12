@@ -17,7 +17,7 @@ test('OpenAPI 响应数据', () => {
     username: 'bot',
     welcome_msg: '',
   });
-  expect(api.generateUrlLink()).toEqual({
+  expect(api.generateShareLink()).toEqual({
     retcode: 0,
     msg: 'success',
     data: { url: 'https://example.com/share' },
@@ -112,5 +112,5 @@ test('OpenAPI 响应数据', () => {
   expect(api.finishGroupFileUploadPart()).toEqual({});
   expect(api.executeGroupJoinApprovalStrategy()).toEqual({});
   expect(api.deleteGroupJoinApprovalStrategy()).toEqual({});
-  expect(api.respondInteraction()).toEqual({});
+  expect(api.respondToInteraction()).toEqual({});
 });

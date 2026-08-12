@@ -1,7 +1,7 @@
 export { Client } from '#/core/client';
 export { InteractionType } from '#/core/payload';
 export type { Logger, LogKind } from '#/core/logger';
-export type { BotInfo, GenerateUrlLink, GenerateUrlLinkPayload } from '#/api/bot';
+export type { BotInfo, GenerateShareLink, GenerateShareLinkPayload } from '#/api/bot';
 export type {
   Action,
   Ark,

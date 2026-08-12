@@ -1,7 +1,7 @@
 import { type TotteInstance } from 'totte';
 
 /** 互动事件的回调结果。 */
-export interface RespondInteractionPayload {
+export interface RespondToInteractionPayload {
   /**
    * 回调结果：
    *
@@ -42,7 +42,7 @@ export default (request: TotteInstance) => {
      * @throws 630007 data too large
      * @throws 630008 interaction preprocess failed
      */
-    respondInteraction(interaction_id: string, payload: RespondInteractionPayload) {
+    respondToInteraction(interaction_id: string, payload: RespondToInteractionPayload) {
       return request.put(`/interactions/${interaction_id}`, payload);
     },
   };

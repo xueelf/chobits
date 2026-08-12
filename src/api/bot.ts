@@ -95,7 +95,7 @@ export interface BotInfo {
 }
 
 /** 生成机器人分享链接时使用的参数。 */
-export interface GenerateUrlLinkPayload {
+export interface GenerateShareLinkPayload {
   /**
    * 用户通过该链接添加机器人时，callback_data 参数会透传给开发者。
    *
@@ -112,7 +112,7 @@ export interface GenerateUrlLinkPayload {
 }
 
 /** 分享链接生成结果。 */
-export interface GenerateUrlLink {
+export interface GenerateShareLink {
   /**
    * 生成的分享链接。
    *
@@ -240,8 +240,8 @@ export default (request: TotteInstance) => {
      * @throws 10044 从协议头获取uin失败
      * @throws 11004 生成分享ARK失败
      */
-    generateUrlLink(payload: GenerateUrlLinkPayload) {
-      return request.post<GenerateUrlLink>('/v2/generate_url_link', payload);
+    generateShareLink(payload: GenerateShareLinkPayload) {
+      return request.post<GenerateShareLink>('/v2/generate_url_link', payload);
     },
   };
 };

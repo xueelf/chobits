@@ -1,4 +1,4 @@
-import { type AccessToken, type AccessTokenError, type BotInfo, type Gateway, type GenerateUrlLink } from '#/api/bot';
+import { type AccessToken, type AccessTokenError, type BotInfo, type Gateway, type GenerateShareLink } from '#/api/bot';
 import {
   type CreateGroupJoinApprovalStrategy,
   type GroupBotState,
@@ -70,7 +70,7 @@ export class MockOpenApi {
     };
   }
 
-  public generateUrlLink(data: Partial<GenerateUrlLink> = {}): GenerateUrlLink {
+  public generateShareLink(data: Partial<GenerateShareLink> = {}): GenerateShareLink {
     return {
       retcode: 0,
       msg: 'success',
@@ -272,7 +272,7 @@ export class MockOpenApi {
     return {};
   }
 
-  public respondInteraction(): Record<string, never> {
+  public respondToInteraction(): Record<string, never> {
     return {};
   }
 }
