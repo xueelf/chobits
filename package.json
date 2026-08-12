@@ -4,7 +4,10 @@
   "description": "JavaScript SDK for QQ Bot",
   "keywords": [
     "bot",
-    "qq"
+    "qq",
+    "qqbot",
+    "sdk",
+    "tencent"
   ],
   "homepage": "https://github.com/xueelf/chobits#readme",
   "bugs": {
