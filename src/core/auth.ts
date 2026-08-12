@@ -1,4 +1,4 @@
-import { type AccessToken, type AccessTokenError, getAccessToken } from '#/api/bot';
+import { type AccessTokenError, getAccessToken } from '#/api/bot';
 import { type Logger } from '#/core/logger';
 import { isNumber, isRecord } from '#/utils/type';
 
@@ -55,7 +55,7 @@ export class Auth {
         if (isAccessTokenError(data)) {
           throw new Error(data.message);
         }
-        const { access_token: accessToken, expires_in: expiresInValue } = <AccessToken>data;
+        const { access_token: accessToken, expires_in: expiresInValue } = data;
         const expiresIn = Number(expiresInValue);
 
         this.accessToken = accessToken;
