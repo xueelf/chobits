@@ -262,6 +262,7 @@ test('Access Token 错误响应', async () => {
       throw error;
     }
     expect(error.message).toBe(response.message);
+    expect(error.cause).toBe(response.code);
   }
   expect(requests).toBe(1);
 });
