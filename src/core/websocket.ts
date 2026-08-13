@@ -1,12 +1,12 @@
 import { type Logger } from '#/core/logger';
 import { type Dispatch, DispatchType, OpCode } from '#/core/payload';
-import { isNumber, isString } from '#/utils/type';
+import { isError, isNumber, isString } from '#/utils/type';
 
 /*
  * 下列 QQ 关闭码在官方错误码表中同时标记为不可重试 Resume 和 Identify，连接无法自动恢复。
  * https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html
  */
-const FATAL_CLOSE_CODES = new Set([4001, 4002, 4010, 4011, 4012, 4013, 4014, 4914, 4915]);
+const FATAL_CLOSE_CODES = [4001, 4002, 4010, 4011, 4012, 4013, 4014, 4914, 4915];
 
 /**
  * 可尝试恢复会话的 WebSocket 关闭码。
@@ -17,7 +17,7 @@ const FATAL_CLOSE_CODES = new Set([4001, 4002, 4010, 4011, 4012, 4013, 4014, 491
  * {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
  * {@link https://www.rfc-editor.org/rfc/rfc6455.html#section-7.4.1}
  */
-const RESUMABLE_CLOSE_CODES = new Set([1006, 4008, 4009]);
+const RESUMABLE_CLOSE_CODES = [1006, 4008, 4009];
 
 const MAX_RETRY_DELAY = 30000;
 
@@ -26,6 +26,7 @@ const MAX_RETRY_DELAY = 30000;
  * https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html
  */
 const INVALID_CREDENTIAL_CODES = [100007, 100016];
+const NON_RETRYABLE_CODES = [...FATAL_CLOSE_CODES, ...INVALID_CREDENTIAL_CODES];
 
 /** QQ Gateway 事件订阅类型。 */
 enum Intent {
@@ -114,24 +115,8 @@ type ReceivePayload = Exclude<Payload, IdentifyPayload | ResumePayload>;
 /** 客户端可能发送给 QQ Gateway 的 Payload。 */
 type SendPayload = HeartbeatPayload | IdentifyPayload | ResumePayload;
 
-class WebSocketConnectionError extends Error {
-  /**
-   * 初始化 WebSocket 连接错误。
-   *
-   * @param message 错误信息。
-   * @param retryable 是否可以重试连接。
-   */
-  public constructor(
-    message: string,
-    public readonly retryable: boolean,
-  ) {
-    super(message);
-  }
-}
-
 const isRetryable = (error: unknown): boolean =>
-  !(error instanceof Error && isNumber(error.cause) && INVALID_CREDENTIAL_CODES.includes(error.cause)) &&
-  !(error instanceof WebSocketConnectionError && !error.retryable);
+  !(isError(error) && isNumber(error.cause) && NON_RETRYABLE_CODES.includes(error.cause));
 
 export class WebSocketSession {
   /** WebSocket 连接。 */
@@ -246,12 +231,12 @@ export class WebSocketSession {
     const authorization = await this.options.getAuthorization();
 
     if (this.connectionStopped) {
-      throw new WebSocketConnectionError('WebSocket connection stopped', false);
+      throw new Error('WebSocket connection stopped');
     }
     const { url } = await this.options.getGateway();
 
     if (this.connectionStopped) {
-      throw new WebSocketConnectionError('WebSocket connection stopped', false);
+      throw new Error('WebSocket connection stopped');
     }
     await new Promise<void>((resolve, reject) => {
       let sessionReady = false;
@@ -359,7 +344,7 @@ export class WebSocketSession {
 
       socket.addEventListener('error', () => {
         if (!sessionReady && this.socket === socket) {
-          reject(new WebSocketConnectionError('WebSocket connection failed', true));
+          reject(new Error('WebSocket connection failed'));
           socket.close();
         }
       });
@@ -373,9 +358,9 @@ export class WebSocketSession {
 
         const resumeRequested = this.resumeRequested;
         const canResume = this.sessionId !== null && this.processedSeq !== null;
-        const shouldResume = canResume && (resumeRequested || RESUMABLE_CLOSE_CODES.has(event.code));
-        const retryable = !FATAL_CLOSE_CODES.has(event.code);
-        const error = new WebSocketConnectionError(`WebSocket closed with code ${event.code}`, retryable);
+        const shouldResume = canResume && (resumeRequested || RESUMABLE_CLOSE_CODES.includes(event.code));
+        const retryable = !FATAL_CLOSE_CODES.includes(event.code);
+        const error = new Error(`WebSocket closed with code ${event.code}`, { cause: event.code });
 
         this.options.logger?.('websocket', 'WebSocket 连接已关闭', {
           code: event.code,
@@ -431,10 +416,9 @@ export class WebSocketSession {
     this.reconnecting = false;
 
     if (result.status === 'rejected' && !this.connectionStopped) {
-      const reconnectError =
-        result.reason instanceof Error
-          ? result.reason
-          : new Error('WebSocket reconnect failed', { cause: result.reason });
+      const reconnectError = isError(result.reason)
+        ? result.reason
+        : new Error('WebSocket reconnect failed', { cause: result.reason });
 
       await this.options.error(reconnectError);
     }
@@ -470,7 +454,7 @@ export class WebSocketSession {
       this.retryDelay = null;
 
       if (this.connectionStopped) {
-        throw new WebSocketConnectionError('WebSocket connection stopped', false);
+        throw new Error('WebSocket connection stopped');
       }
 
       try {
