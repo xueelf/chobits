@@ -21,6 +21,12 @@ const RESUMABLE_CLOSE_CODES = new Set([1006, 4008, 4009]);
 
 const MAX_RETRY_DELAY = 30000;
 
+/*
+ * 100007 表示 AppID 无效或机器人状态异常，100016 表示 AppID 或 ClientSecret 不正确，与致命关闭码一样无法通过重试恢复。
+ * https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html
+ */
+const INVALID_CREDENTIAL_CODES = [100007, 100016];
+
 /** QQ Gateway 事件订阅类型。 */
 enum Intent {
   /**
@@ -122,6 +128,10 @@ class WebSocketConnectionError extends Error {
     super(message);
   }
 }
+
+const isRetryable = (error: unknown): boolean =>
+  !(error instanceof Error && isNumber(error.cause) && INVALID_CREDENTIAL_CODES.includes(error.cause)) &&
+  !(error instanceof WebSocketConnectionError && !error.retryable);
 
 export class WebSocketSession {
   /** WebSocket 连接。 */
@@ -438,7 +448,7 @@ export class WebSocketSession {
    * @throws 遇到不可重试的错误或达到最大重试次数时抛出最后一次错误。
    */
   private async retryConnection(resumeSession: boolean, cause?: unknown): Promise<void> {
-    if (cause instanceof WebSocketConnectionError && !cause.retryable) {
+    if (!isRetryable(cause)) {
       throw cause;
     }
     let error: unknown = cause;
@@ -470,7 +480,7 @@ export class WebSocketSession {
         error = nextError;
         this.options.logger?.('websocket', 'WebSocket 连接失败', { mode, error: nextError });
 
-        if (nextError instanceof WebSocketConnectionError && !nextError.retryable) {
+        if (!isRetryable(nextError)) {
           throw nextError;
         }
       }

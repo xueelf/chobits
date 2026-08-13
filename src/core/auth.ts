@@ -53,7 +53,7 @@ export class Auth {
         const { data } = await getAccessToken({ appId: this.appId, clientSecret: this.clientSecret });
 
         if (isAccessTokenError(data)) {
-          throw new Error(data.message);
+          throw new Error(data.message, { cause: data.code });
         }
         const { access_token: accessToken, expires_in: expiresInValue } = data;
         const expiresIn = Number(expiresInValue);
