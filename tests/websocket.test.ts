@@ -541,6 +541,22 @@ test('重连失败', async () => {
   await client.offline();
 });
 
+test('无效凭证', async () => {
+  let requests = 0;
+
+  globalThis.WebSocket = mockWebSocket(MockGateway);
+  globalThis.fetch = mockFetch(async () => {
+    requests++;
+    return Response.json({ code: 100016, message: 'invalid appid or secret' });
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'invalid-secret', maxRetry: 3 });
+
+  await expect(client.online()).rejects.toThrow('invalid appid or secret');
+  expect(requests).toBe(1);
+  expect(MockGateway.instances).toHaveLength(0);
+});
+
 test('可恢复序列号', async () => {
   const { client, gateway: first } = await openReadySession();
   const processing = Promise.withResolvers<void>();
