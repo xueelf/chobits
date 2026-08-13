@@ -1,7 +1,7 @@
 {
   "name": "chobits",
-  "version": "1.0.0",
-  "description": "JavaScript SDK for QQ Bot",
+  "version": "1.0.1",
+  "description": "A JavaScript SDK for QQ Bot.",
   "keywords": [
     "bot",
     "qq",
