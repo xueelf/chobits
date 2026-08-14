@@ -305,34 +305,42 @@ QQ 实际推送的部分事件与开发文档中的说明并不一致。以下�
 
 以下 API 可以用于发送消息、上传文件、管理群聊、查询机器人信息和处理交互事件：
 
-| 方法                                       | 功能                       | 官方接口                                                                  |
-| ------------------------------------------ | -------------------------- | ------------------------------------------------------------------------- |
-| `sendUserMessage`                          | 发送私聊消息               | `POST    /v2/users/{user_openid}/messages`                                |
-| `sendUserStreamMessage`                    | 发送私聊流式消息           | `POST    /v2/users/{user_openid}/stream_messages`                         |
-| `recallUserMessage`                        | 撤回私聊消息               | `DELETE  /v2/users/{user_openid}/messages/{message_id}`                   |
-| `uploadUserFile`                           | 上传私聊文件               | `POST    /v2/users/{user_openid}/files`                                   |
-| `prepareUserFileUpload`                    | 准备私聊文件分片上传       | `POST    /v2/users/{user_id}/upload_prepare`                              |
-| `finishUserFileUploadPart`                 | 完成私聊文件分片上传       | `POST    /v2/users/{user_id}/upload_part_finish`                          |
-| `sendGroupMessage`                         | 发送群聊消息               | `POST    /v2/groups/{group_openid}/messages`                              |
-| `recallGroupMessage`                       | 撤回群聊消息               | `DELETE  /v2/groups/{group_openid}/messages/{message_id}`                 |
-| `uploadGroupFile`                          | 上传群聊文件               | `POST    /v2/groups/{group_openid}/files`                                 |
-| `prepareGroupFileUpload`                   | 准备群聊文件分片上传       | `POST    /v2/groups/{group_id}/upload_prepare`                            |
-| `finishGroupFileUploadPart`                | 完成群聊文件分片上传       | `POST    /v2/groups/{group_id}/upload_part_finish`                        |
-| `getGroupInfo`                             | 获取群资料                 | `GET     /v2/groups/{group_openid}/info`                                  |
-| `getGroupBotState`                         | 获取机器人在群内的状态     | `GET     /v2/groups/{group_openid}/bot_state`                             |
-| `reviewGroupJoinRequest`                   | 审批入群申请               | `POST    /v2/groups/{group_openid}/approval_join_request/{member_openid}` |
-| `getGroupJoinRequestList`                  | 拉取入群申请列表           | `GET     /v2/groups/{group_openid}/join_request_list`                     |
-| `getGroupMuteState`                        | 查询群禁言状态             | `GET     /v2/groups/{group_openid}/restrict_chat_setting`                 |
-| `setGroupMemberMute`                       | 设置群成员禁言             | `POST    /v2/groups/{group_openid}/restrict_chat_setting`                 |
-| `getGroupJoinApprovalStrategyList`         | 查询入群自动审批策略列表   | `GET     /v2/groups/join_approval_strategy`                               |
-| `createGroupJoinApprovalStrategy`          | 创建入群自动审批策略       | `POST    /v2/groups/join_approval_strategy`                               |
-| `deleteGroupJoinApprovalStrategy`          | 删除入群自动审批策略       | `DELETE  /v2/groups/join_approval_strategy/{strategy_id}`                 |
-| `updateGroupJoinApprovalStrategy`          | 修改入群自动审批策略       | `PATCH   /v2/groups/join_approval_strategy/{strategy_id}`                 |
-| `executeGroupJoinApprovalStrategy`         | 执行入群自动审批策略       | `POST    /v2/groups/join_approval_strategy/{strategy_id}/execute`         |
-| `updateGroupJoinApprovalStrategyWhitelist` | 修改入群自动审批策略白名单 | `POST    /v2/groups/join_approval_strategy/{strategy_id}/whitelist_users` |
-| `getBotInfo`                               | 获取机器人资料             | `GET     /users/@me`                                                      |
-| `generateShareLink`                        | 生成机器人分享链接         | `POST    /v2/generate_url_link`                                           |
-| `respondToInteraction`                     | 响应互动事件               | `PUT     /interactions/{interaction_id}`                                  |
+| 方法                                       | 功能                       | 官方接口                                                               |
+| ------------------------------------------ | -------------------------- | ---------------------------------------------------------------------- |
+| `sendUserMessage`                          | 发送私聊消息               | `POST /v2/users/{user_openid}/messages`                                |
+| `sendUserStreamMessage`                    | 发送私聊流式消息           | `POST /v2/users/{user_openid}/stream_messages`                         |
+| `recallUserMessage`                        | 撤回私聊消息               | `DELETE /v2/users/{user_openid}/messages/{message_id}`                 |
+| `uploadUserFile`                           | 上传私聊文件               | `POST /v2/users/{user_openid}/files`                                   |
+| `prepareUserFileUpload`                    | 准备私聊文件分片上传       | `POST /v2/users/{user_id}/upload_prepare`                              |
+| `finishUserFileUploadPart`                 | 完成私聊文件分片上传       | `POST /v2/users/{user_id}/upload_part_finish`                          |
+| `sendGroupMessage`                         | 发送群聊消息               | `POST /v2/groups/{group_openid}/messages`                              |
+| `recallGroupMessage`                       | 撤回群聊消息               | `DELETE /v2/groups/{group_openid}/messages/{message_id}`               |
+| `uploadGroupFile`                          | 上传群聊文件               | `POST /v2/groups/{group_openid}/files`                                 |
+| `prepareGroupFileUpload`                   | 准备群聊文件分片上传       | `POST /v2/groups/{group_id}/upload_prepare`                            |
+| `finishGroupFileUploadPart`                | 完成群聊文件分片上传       | `POST /v2/groups/{group_id}/upload_part_finish`                        |
+| `getGroupInfo`                             | 获取群资料                 | `GET /v2/groups/{group_openid}/info`                                   |
+| `getGroupBotState`                         | 获取机器人在群内的状态     | `GET /v2/groups/{group_openid}/bot_state`                              |
+| `reviewGroupJoinRequest`                   | 审批入群申请               | `POST /v2/groups/{group_openid}/approval_join_request/{member_openid}` |
+| `getGroupJoinRequestList`                  | 拉取入群申请列表           | `GET /v2/groups/{group_openid}/join_request_list`                      |
+| `getGroupMuteState`                        | 查询群禁言状态             | `GET /v2/groups/{group_openid}/restrict_chat_setting`                  |
+| `setGroupMemberMute`                       | 设置群成员禁言             | `POST /v2/groups/{group_openid}/restrict_chat_setting`                 |
+| `getGroupJoinApprovalStrategyList`         | 查询入群自动审批策略列表   | `GET /v2/groups/join_approval_strategy`                                |
+| `createGroupJoinApprovalStrategy`          | 创建入群自动审批策略       | `POST /v2/groups/join_approval_strategy`                               |
+| `deleteGroupJoinApprovalStrategy`          | 删除入群自动审批策略       | `DELETE /v2/groups/join_approval_strategy/{strategy_id}`               |
+| `updateGroupJoinApprovalStrategy`          | 修改入群自动审批策略       | `PATCH /v2/groups/join_approval_strategy/{strategy_id}`                |
+| `executeGroupJoinApprovalStrategy`         | 执行入群自动审批策略       | `POST /v2/groups/join_approval_strategy/{strategy_id}/execute`         |
+| `updateGroupJoinApprovalStrategyWhitelist` | 修改入群自动审批策略白名单 | `POST /v2/groups/join_approval_strategy/{strategy_id}/whitelist_users` |
+| `getBotInfo`                               | 获取机器人资料             | `GET /users/@me`                                                       |
+| `generateShareLink`                        | 生成机器人分享链接         | `POST /v2/generate_url_link`                                           |
+| `getMenu`                                  | 查询全局自定义菜单         | `GET /v2/menu`                                                         |
+| `updateMenu`                               | 修改全局自定义菜单         | `PUT /v2/menu`                                                         |
+| `getPanelList`                             | 查询指令面板列表           | `GET /v2/panels`                                                       |
+| `createPanel`                              | 创建指令面板               | `POST /v2/panels`                                                      |
+| `getPanel`                                 | 查询指令面板详情           | `GET /v2/panels/{panel_id}`                                            |
+| `updatePanel`                              | 修改指令面板               | `PUT /v2/panels/{panel_id}`                                            |
+| `deletePanel`                              | 删除指令面板               | `DELETE /v2/panels/{panel_id}`                                         |
+| `updatePanelTarget`                        | 修改指令面板关联对象       | `PUT /v2/panels/{panel_id}/target`                                     |
+| `respondToInteraction`                     | 响应互动事件               | `PUT /interactions/{interaction_id}`                                   |
 
 接口参数和返回值可以通过 TypeScript 类型查看，接口规则以 [QQ 机器人开发文档](https://bot.q.qq.com/wiki/develop/api-v2/) 为准。
 
