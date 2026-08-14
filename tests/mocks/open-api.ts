@@ -1,4 +1,16 @@
-import { type AccessToken, type AccessTokenError, type BotInfo, type Gateway, type GenerateShareLink } from '#/api/bot';
+import {
+  type AccessToken,
+  type AccessTokenError,
+  type BotInfo,
+  type CreatePanel,
+  type Gateway,
+  type GenerateShareLink,
+  type GetMenu,
+  type GetPanelList,
+  type PanelRecord,
+  type UpdateMenu,
+  type UpdatePanel,
+} from '#/api/bot';
 import {
   type CreateGroupJoinApprovalStrategy,
   type GroupBotState,
@@ -75,6 +87,77 @@ export class MockOpenApi {
       retcode: 0,
       msg: 'success',
       data: { url: 'https://example.com/share' },
+      ...data,
+    };
+  }
+
+  public getMenu(data: Partial<GetMenu> = {}): GetMenu {
+    return {
+      version: 1,
+      menu: {},
+      ...data,
+    };
+  }
+
+  public updateMenu(data: Partial<UpdateMenu> = {}): UpdateMenu {
+    return {
+      version: 2,
+      ...data,
+    };
+  }
+
+  public getPanelList(data: Partial<GetPanelList> = {}): GetPanelList {
+    const timestamp = new Date().toISOString();
+
+    return {
+      records: [
+        {
+          panel_id: 'panel-id',
+          scope: 'group',
+          target_type: 'specific',
+          panel: {
+            items: [{ name: '测试指令', desc: 'Chobits OpenAPI 测试', type: 'command' }],
+            remark: 'Chobits OpenAPI 测试',
+          },
+          created_at: timestamp,
+          updated_at: timestamp,
+          version: 1,
+        },
+      ],
+      is_end: true,
+      ...data,
+    };
+  }
+
+  public createPanel(data: Partial<CreatePanel> = {}): CreatePanel {
+    return {
+      panel_id: 'panel-id',
+      ...data,
+    };
+  }
+
+  public getPanel(data: Partial<PanelRecord> = {}): PanelRecord {
+    const timestamp = new Date().toISOString();
+
+    return {
+      panel_id: 'panel-id',
+      scope: 'group',
+      target_type: 'specific',
+      panel: {
+        items: [{ name: '测试指令', desc: 'Chobits OpenAPI 测试', type: 'command' }],
+        remark: 'Chobits OpenAPI 测试',
+      },
+      created_at: timestamp,
+      updated_at: timestamp,
+      version: 1,
+      group_openids: ['group-openid'],
+      ...data,
+    };
+  }
+
+  public updatePanel(data: Partial<UpdatePanel> = {}): UpdatePanel {
+    return {
+      version: 2,
       ...data,
     };
   }
@@ -269,6 +352,14 @@ export class MockOpenApi {
   }
 
   public deleteGroupJoinApprovalStrategy(): Record<string, never> {
+    return {};
+  }
+
+  public deletePanel(): Record<string, never> {
+    return {};
+  }
+
+  public updatePanelTarget(): Record<string, never> {
     return {};
   }
 

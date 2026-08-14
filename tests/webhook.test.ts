@@ -480,6 +480,7 @@ test('Webhook 事件数据', async () => {
   expect(payloads[10]?.d).not.toHaveProperty('chat_type');
   expect(payloads[10]?.d).not.toHaveProperty('group_member_openid');
   expect(payloads[11]?.d).not.toHaveProperty('chat_type');
+  expect(payloads[2]?.d).not.toHaveProperty('short_code');
   expect(payloads[6]?.d).not.toHaveProperty('user_openid');
   expect(payloads[7]?.d).not.toHaveProperty('user_openid');
   expect(events.sort()).toEqual(
