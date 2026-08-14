@@ -181,6 +181,7 @@ test('WebSocket 事件数据', () => {
   });
   expect(payloads[1]?.d).not.toHaveProperty('scene');
   expect(payloads[1]?.d).not.toHaveProperty('scene_param');
+  expect(payloads[1]?.d).not.toHaveProperty('short_code');
   expect(payloads[7]?.d).not.toHaveProperty('user_openid');
   expect(payloads[8]?.d).not.toHaveProperty('user_openid');
   expect(payloads[9]?.d).not.toHaveProperty('union_openid');

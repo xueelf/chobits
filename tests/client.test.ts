@@ -400,6 +400,65 @@ test('文件、群信息、互动、撤回与分享', async () => {
   expect(link.data).toEqual({ retcode: 0, msg: 'success', data: { url: 'https://example.com/share' } });
 });
 
+test('自定义菜单与指令面板', async () => {
+  const api = new MockOpenApi();
+  const requests: Request[] = [];
+
+  globalThis.fetch = mockFetch(async (input, init) => {
+    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+    requests.push(request);
+
+    if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    return Response.json({});
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
+
+  await client.getMenu();
+  await client.updateMenu({
+    menu: { items: [{ name: '帮助', type: 'send_message', send_message: '/help' }] },
+  });
+  await client.getPanelList({ scope: 'c2c', cursor: 'cursor', limit: 10 });
+  await client.createPanel({
+    scope: 'group',
+    target_type: 'specific',
+    group_openids: ['group'],
+    panel: { items: [{ name: '签到', desc: '每日签到', type: 'command' }] },
+  });
+  await client.getPanel('panel');
+  await client.updatePanel('panel', {
+    panel: { items: [{ name: '帮助', type: 'link', link: 'https://example.com' }], remark: '帮助面板' },
+  });
+  await client.deletePanel('panel');
+  await client.updatePanelTarget('panel', { op: 'add', group_openids: ['group'] });
+
+  expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
+    ['GET', 'https://api.bot.qq.com/v2/menu'],
+    ['PUT', 'https://api.bot.qq.com/v2/menu'],
+    ['GET', 'https://api.bot.qq.com/v2/panels?scope=c2c&cursor=cursor&limit=10'],
+    ['POST', 'https://api.bot.qq.com/v2/panels'],
+    ['GET', 'https://api.bot.qq.com/v2/panels/panel'],
+    ['PUT', 'https://api.bot.qq.com/v2/panels/panel'],
+    ['DELETE', 'https://api.bot.qq.com/v2/panels/panel'],
+    ['PUT', 'https://api.bot.qq.com/v2/panels/panel/target'],
+  ]);
+  expect(await requests[2]!.json()).toEqual({
+    menu: { items: [{ name: '帮助', type: 'send_message', send_message: '/help' }] },
+  });
+  expect(await requests[4]!.json()).toEqual({
+    scope: 'group',
+    target_type: 'specific',
+    group_openids: ['group'],
+    panel: { items: [{ name: '签到', desc: '每日签到', type: 'command' }] },
+  });
+  expect(await requests[6]!.json()).toEqual({
+    panel: { items: [{ name: '帮助', type: 'link', link: 'https://example.com' }], remark: '帮助面板' },
+  });
+  expect(await requests[8]!.json()).toEqual({ op: 'add', group_openids: ['group'] });
+});
+
 test('群管理员接口错误', async () => {
   const api = new MockOpenApi();
   const requests: Request[] = [];

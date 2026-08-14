@@ -22,6 +22,27 @@ test('OpenAPI 响应数据', () => {
     msg: 'success',
     data: { url: 'https://example.com/share' },
   });
+  expect(api.getMenu()).toEqual({ version: 1, menu: {} });
+  expect(api.updateMenu()).toEqual({ version: 2 });
+  expect(api.getPanelList()).toMatchObject({
+    records: [
+      {
+        panel_id: 'panel-id',
+        scope: 'group',
+        target_type: 'specific',
+        panel: {
+          items: [{ name: '测试指令', desc: 'Chobits OpenAPI 测试', type: 'command' }],
+          remark: 'Chobits OpenAPI 测试',
+        },
+        version: 1,
+      },
+    ],
+    is_end: true,
+  });
+  expect(api.getPanelList()).not.toHaveProperty('next_cursor');
+  expect(api.createPanel()).toEqual({ panel_id: 'panel-id' });
+  expect(api.getPanel()).toMatchObject({ panel_id: 'panel-id', group_openids: ['group-openid'] });
+  expect(api.updatePanel()).toEqual({ version: 2 });
   expect(api.notGroupAdmin()).toEqual({
     message: 'not group admin',
     code: 11703,
@@ -112,5 +133,7 @@ test('OpenAPI 响应数据', () => {
   expect(api.finishGroupFileUploadPart()).toEqual({});
   expect(api.executeGroupJoinApprovalStrategy()).toEqual({});
   expect(api.deleteGroupJoinApprovalStrategy()).toEqual({});
+  expect(api.deletePanel()).toEqual({});
+  expect(api.updatePanelTarget()).toEqual({});
   expect(api.respondToInteraction()).toEqual({});
 });
