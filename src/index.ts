@@ -1,7 +1,28 @@
 export { Client } from '#/core/client';
 export { InteractionType } from '#/core/payload';
 export type { Logger, LogKind } from '#/core/logger';
-export type { BotInfo, GenerateShareLink, GenerateShareLinkPayload } from '#/api/bot';
+export type {
+  BotInfo,
+  CreatePanel,
+  CreatePanelPayload,
+  GenerateShareLink,
+  GenerateShareLinkPayload,
+  GetMenu,
+  GetPanelList,
+  GetPanelListPayload,
+  Menu,
+  MenuItem,
+  Panel,
+  PanelItem,
+  PanelRecord,
+  SubMenuItem,
+  Switch,
+  UpdateMenu,
+  UpdateMenuPayload,
+  UpdatePanel,
+  UpdatePanelPayload,
+  UpdatePanelTargetPayload,
+} from '#/api/bot';
 export type {
   Action,
   Ark,
