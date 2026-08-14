@@ -162,7 +162,12 @@ export interface MediaInfo {
 
 /** 引用消息的信息。 */
 export interface MessageReference {
-  /** 被引用消息 ID。 */
+  /**
+   * 被引用消息 ID，例如REFIDX_xxxxxx
+   *
+   * - 非机器人发的消息，从消息事件的MessageScene的ext数组，msg_idx字段中获取
+   * - 机器人自己发的消息，从发消息请求响应ext_info.ref_idx获取
+   */
   message_id?: string;
   /**
    * 是否忽略获取引用消息详情错误，默认否。

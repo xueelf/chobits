@@ -508,6 +508,15 @@ export type DispatchData = {
      * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
      */
     scene_param?: string;
+    /**
+     * 机器人分享链接的短链code。
+     *
+     * @remarks
+     * WebSocket 与 Webhook 实测重新添加机器人好友时未返回该字段。
+     *
+     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
+     */
+    short_code?: string;
   };
   FRIEND_DEL: {
     /** 事件发生时间。 */

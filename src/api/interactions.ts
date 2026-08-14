@@ -32,7 +32,7 @@ export default (request: TotteInstance) => {
      *
      * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/interactions_interaction_id.put.html}
      *
-     * @param interaction_id 互动事件 ID，从 INTERACTION_CREATE 事件的 id 字段获取
+     * @param interaction_id 互动事件 ID，从 INTERACTION_CREATE 事件的 d.id 字段获取，注意该 ID 不带“INTERACTION_CREATE:”前缀
      * @throws 630001 param invalid
      * @throws 630002 get appid failed
      * @throws 630003 appid invalid
