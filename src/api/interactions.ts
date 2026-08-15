@@ -1,4 +1,4 @@
-import { type TotteInstance } from 'totte';
+import { type EmbusInstance } from 'embus';
 
 /** 互动事件的回调结果。 */
 export interface RespondToInteractionPayload {
@@ -10,7 +10,7 @@ export interface RespondToInteractionPayload {
   code?: 0 | 1 | 2 | 3 | 4 | 5;
 }
 
-export default (request: TotteInstance) => {
+export default (request: EmbusInstance) => {
   return {
     /**
      * 互动事件响应

@@ -1,4 +1,4 @@
-import { type TotteInstance } from 'totte';
+import { type EmbusInstance } from 'embus';
 
 import {
   type ArkMessage,
@@ -234,7 +234,7 @@ export interface PrepareUserFileUpload {
   upload_config: UploadConfig;
 }
 
-export default (request: TotteInstance) => {
+export default (request: EmbusInstance) => {
   return {
     /**
      * 发送单聊消息

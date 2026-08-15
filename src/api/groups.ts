@@ -1,4 +1,4 @@
-import { type TotteInstance } from 'totte';
+import { type EmbusInstance } from 'embus';
 
 import {
   type ArkMessage,
@@ -471,7 +471,7 @@ export interface UpdateGroupJoinApprovalStrategyWhitelist {
   updated_at: string;
 }
 
-export default (request: TotteInstance) => {
+export default (request: EmbusInstance) => {
   return {
     /**
      * 发送群聊消息

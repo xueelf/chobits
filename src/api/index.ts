@@ -1,4 +1,4 @@
-import { type TotteInstance } from 'totte';
+import { type EmbusInstance } from 'embus';
 
 import bot from '#/api/bot';
 import groups from '#/api/groups';
@@ -357,7 +357,7 @@ export type Operations = ReturnType<typeof users> &
   ReturnType<typeof bot> &
   ReturnType<typeof interactions>;
 
-export default (request: TotteInstance) => ({
+export default (request: EmbusInstance) => ({
   ...bot(request),
   ...users(request),
   ...groups(request),
