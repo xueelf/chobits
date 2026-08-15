@@ -43,7 +43,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "totte": "^1.0.1"
+    "embus": "^1.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",

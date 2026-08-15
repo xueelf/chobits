@@ -1,4 +1,4 @@
-import { type TotteInstance, createInstance } from 'totte';
+import { type EmbusInstance, createInstance } from 'embus';
 
 import { OPEN_API_ORIGIN } from '#/api/index';
 import { Auth } from '#/core/auth';
@@ -6,7 +6,7 @@ import { type Logger } from '#/core/logger';
 import { isRecord, isString } from '#/utils/type';
 
 /** 创建已鉴权并处理 QQ 业务错误的网络请求实例。 */
-export const createRequest = (auth: Auth, logger?: Logger): TotteInstance => {
+export const createRequest = (auth: Auth, logger?: Logger): EmbusInstance => {
   const request = createInstance({ origin: OPEN_API_ORIGIN });
 
   request.useRequestInterceptor(async config => {

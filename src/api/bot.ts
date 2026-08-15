@@ -1,4 +1,4 @@
-import totte, { type TotteInstance } from 'totte';
+import embus, { type EmbusInstance } from 'embus';
 
 import { OPEN_API_ORIGIN } from '#/api/index';
 
@@ -355,14 +355,14 @@ export interface UpdatePanelTargetPayload {
  * @throws 10004 机器人不存在
  */
 export const getAccessToken = (payload: GetAccessTokenPayload) =>
-  totte<AccessToken | AccessTokenError>({
+  embus<AccessToken | AccessTokenError>({
     method: 'POST',
     origin: OPEN_API_ORIGIN,
     url: '/app/getAppAccessToken',
     payload,
   });
 
-export default (request: TotteInstance) => {
+export default (request: EmbusInstance) => {
   return {
     /**
      * 获取通用 WSS 接入点

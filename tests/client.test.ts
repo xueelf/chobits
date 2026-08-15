@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'bun:test';
 
-import { TotteError } from 'totte';
+import { EmbusError } from 'embus';
 
 import { MockOpenApi } from './mocks/open-api';
 import { mockFetch, readMessageBody } from './mocks/request';
@@ -234,7 +234,7 @@ test('OpenAPI 错误响应', async () => {
     await client.recallGroupMessage('group', 'message');
     throw new Error('预期请求失败');
   } catch (error) {
-    if (!(error instanceof TotteError) || !(error.cause instanceof Response)) {
+    if (!(error instanceof EmbusError) || !(error.cause instanceof Response)) {
       throw error;
     }
     expect(error.cause.status).toBe(400);
@@ -495,7 +495,7 @@ test('群管理员接口错误', async () => {
     }
     const error = result.reason;
 
-    if (!(error instanceof TotteError) || !(error.cause instanceof Response)) {
+    if (!(error instanceof EmbusError) || !(error.cause instanceof Response)) {
       throw error;
     }
     expect(error.cause.status).toBe(500);
