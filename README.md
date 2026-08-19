@@ -492,6 +492,24 @@ const bot = new Client({
 
 机器人的身份凭证不会被写入日志，但部分日志可能包含用户发送的消息内容。将日志保存到文件或发送到第三方服务前，请根据实际业务过滤不应记录的信息。
 
+## 示例
+
+仓库中的 [WebSocket](./examples/websocket.ts) 和 [Webhook](./examples/webhook.ts) 示例可以直接使用 [Bun](https://bun.com/) 运行。运行前，请在根目录的 `.env` 中填写机器人 AppID 与 AppSecret：
+
+```
+APP_ID=机器人 AppID
+CLIENT_SECRET=机器人 AppSecret
+```
+
+安装依赖后，选择一种事件接入方式运行：
+
+```shell
+bun run examples/websocket.ts
+bun run examples/webhook.ts
+```
+
+运行后，向机器人发送「测试文本」「测试图片」「测试排版」或「测试按钮」即可查看对应的回复效果。
+
 ## FAQ
 
 ### 为什么不兼容 QQ 频道？

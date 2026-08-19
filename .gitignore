@@ -4,6 +4,5 @@
 .eslintcache
 .idea/
 dist/
-examples/
 logs/
 node_modules/

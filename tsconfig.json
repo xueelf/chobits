@@ -30,5 +30,5 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["*.config.ts", "src", "scripts", "tests"]
+  "include": ["*.config.ts", "src", "scripts", "examples", "tests"]
 }
