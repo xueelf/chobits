@@ -1,5 +1,6 @@
 export { Client } from '#/core/client';
 export { InteractionType } from '#/core/payload';
+export type { ClientEvent, ClientEventType, ClientOptions } from '#/core/client';
 export type { Logger, LogKind } from '#/core/logger';
 export type {
   BotInfo,

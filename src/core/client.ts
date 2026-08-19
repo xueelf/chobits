@@ -155,11 +155,17 @@ type Events = {
   INTERACTION_CREATE: [event: InteractionEvent];
 };
 
+/** Chobits 原生事件类型。 */
+export type ClientEventType = keyof Events;
+
+/** 指定 Chobits 原生事件的数据。 */
+export type ClientEvent<Type extends ClientEventType = ClientEventType> = Events[Type][0];
+
 type ClientEvents<CustomEvents extends Record<keyof CustomEvents, unknown[]>> = {
-  [Event in keyof Events | Exclude<keyof CustomEvents, keyof Events>]: Event extends keyof Events
-    ? Events[Event]
-    : Event extends keyof CustomEvents
-      ? CustomEvents[Event]
+  [Type in keyof Events | Exclude<keyof CustomEvents, keyof Events>]: Type extends keyof Events
+    ? Events[Type]
+    : Type extends keyof CustomEvents
+      ? CustomEvents[Type]
       : never;
 };
 
@@ -177,6 +183,18 @@ type ClientWithState<CustomEvents extends Record<keyof CustomEvents, unknown[]>,
 export interface Client<
   CustomEvents extends Record<keyof CustomEvents, unknown[]> = Record<never, never>,
 > extends ClientOperations {}
+
+/** QQ 机器人客户端配置。 */
+export interface ClientOptions {
+  /** 机器人 AppID。 */
+  appId: string;
+  /** 机器人 AppSecret。 */
+  clientSecret: string;
+  /** WebSocket 建立或恢复连接时允许的最大重试次数，默认为 `3`，`Infinity` 表示持续重试。 */
+  maxRetry?: number;
+  /** SDK 日志回调。 */
+  logger?: Logger;
+}
 
 export class Client<
   CustomEvents extends Record<keyof CustomEvents, unknown[]> = Record<never, never>,
@@ -202,7 +220,7 @@ export class Client<
    * @param options.logger SDK 日志回调。
    * @throws `appId` 或 `clientSecret` 为空，或者 `maxRetry` 不是非负整数或 `Infinity` 时抛出。
    */
-  public constructor(options: { appId: string; clientSecret: string; maxRetry?: number; logger?: Logger }) {
+  public constructor(options: ClientOptions) {
     super();
     const { appId, clientSecret, maxRetry = 3, logger } = options;
 
