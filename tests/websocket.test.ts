@@ -1,11 +1,11 @@
 import { afterEach, expect, mock, spyOn, test } from 'bun:test';
 
+import { OpCode } from '#/core/payload';
+import { type Logger, type SendGroupMessagePayload, Client } from '#/index';
+
 import { MockOpenApi } from './mocks/open-api';
 import { mockFetch, readMessageBody } from './mocks/request';
 import { MockGateway, mockWebSocket } from './mocks/websocket';
-
-import { OpCode } from '#/core/payload';
-import { type Logger, type SendGroupMessagePayload, Client } from '#/index';
 
 const originalFetch = globalThis.fetch;
 const OriginalWebSocket = globalThis.WebSocket;

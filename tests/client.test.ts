@@ -2,10 +2,10 @@ import { afterEach, expect, test } from 'bun:test';
 
 import { EmbusError } from 'embus';
 
+import { type Logger, type SendGroupMessagePayload, type SendUserMessagePayload, Client } from '#/index';
+
 import { MockOpenApi } from './mocks/open-api';
 import { mockFetch, readMessageBody } from './mocks/request';
-
-import { type Logger, type SendGroupMessagePayload, type SendUserMessagePayload, Client } from '#/index';
 
 const originalFetch = globalThis.fetch;
 afterEach(() => {
