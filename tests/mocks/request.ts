@@ -1,7 +1,7 @@
-import { isRecord } from '#/utils/type';
+import { isNumber, isRecord } from '#/utils/type';
 
 function hasMsgSeq(value: unknown): value is Record<string, unknown> & { msg_seq: number } {
-  return isRecord(value) && typeof value.msg_seq === 'number';
+  return isRecord(value) && isNumber(value.msg_seq);
 }
 
 export function mockFetch(handler: (...args: Parameters<typeof fetch>) => ReturnType<typeof fetch>): typeof fetch {
