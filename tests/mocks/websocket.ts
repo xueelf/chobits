@@ -1,3 +1,6 @@
+import { type DispatchData, type DispatchPayload, InteractionType, OpCode } from '#/core/payload';
+import { isNumber, isRecord } from '#/utils/type';
+
 import {
   type GroupInteractionData,
   type UserInteractionData,
@@ -6,9 +9,6 @@ import {
   createGroupMessage,
   createUserMessage,
 } from './payload';
-
-import { type DispatchData, type DispatchPayload, InteractionType, OpCode } from '#/core/payload';
-import { isNumber, isRecord } from '#/utils/type';
 
 export class MockGateway extends EventTarget {
   public static readonly OPEN = 1;

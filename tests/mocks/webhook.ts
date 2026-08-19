@@ -1,3 +1,6 @@
+import { type DispatchData, type DispatchPayload, InteractionType, OpCode } from '#/core/payload';
+import { createSigningKey, sign } from '#/utils/signature';
+
 import {
   type GroupInteractionData,
   type UserInteractionData,
@@ -6,9 +9,6 @@ import {
   createGroupMessage,
   createUserMessage,
 } from './payload';
-
-import { type DispatchData, type DispatchPayload, InteractionType, OpCode } from '#/core/payload';
-import { createSigningKey, sign } from '#/utils/signature';
 
 export class MockWebhook {
   public constructor(private readonly secret: string) {}

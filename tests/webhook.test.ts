@@ -1,11 +1,11 @@
 import { expect, spyOn, test } from 'bun:test';
 
-import { MockWebhook } from './mocks/webhook';
-
 import { type Dispatch, type DispatchData } from '#/core/payload';
 import { type Logger, Client } from '#/index';
 import { type ReadonlyDeep } from '#/utils/object';
 import { createSigningKey, sign } from '#/utils/signature';
+
+import { MockWebhook } from './mocks/webhook';
 
 const secret = 'naOC0ocQE3shWLAfffVLB1rhYPG7';
 
