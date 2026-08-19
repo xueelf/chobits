@@ -8,7 +8,7 @@ import {
 } from './payload';
 
 import { type DispatchData, type DispatchPayload, InteractionType, OpCode } from '#/core/payload';
-import { isRecord } from '#/utils/type';
+import { isNumber, isRecord } from '#/utils/type';
 
 export class MockGateway extends EventTarget {
   public static readonly OPEN = 1;
@@ -25,6 +25,13 @@ export class MockGateway extends EventTarget {
     MockGateway.instances.push(this);
   }
 
+  public static async waitForConnection(index = 0): Promise<MockGateway> {
+    while (!MockGateway.instances[index]) {
+      await new Promise(resolve => setTimeout(resolve));
+    }
+    return MockGateway.instances[index];
+  }
+
   public send(data: string): void {
     this.sent.push(data);
   }
@@ -35,7 +42,7 @@ export class MockGateway extends EventTarget {
   }
 
   public sendPayload(payload: unknown): void {
-    if (isRecord(payload) && typeof payload.s === 'number') {
+    if (isRecord(payload) && isNumber(payload.s)) {
       this.sequence = payload.s;
     }
     this.dispatchEvent(new MessageEvent('message', { data: JSON.stringify(payload) }));

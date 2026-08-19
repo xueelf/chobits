@@ -38,11 +38,7 @@ const openReadySession = async (
     ...(logger === undefined ? {} : { logger }),
   });
   const online = client.online();
-
-  while (!MockGateway.instances.length) {
-    await new Promise(resolve => setTimeout(resolve));
-  }
-  const gateway = MockGateway.instances[0]!;
+  const gateway = await MockGateway.waitForConnection();
   gateway.hello();
   gateway.ready();
   await online;
@@ -230,11 +226,7 @@ test('回复消息', async () => {
 
   const client = new Client({ appId: 'app-id', clientSecret: 'secret', maxRetry: 0 });
   const online = client.online();
-
-  while (!MockGateway.instances.length) {
-    await new Promise(resolve => setTimeout(resolve));
-  }
-  const gateway = MockGateway.instances[0]!;
+  const gateway = await MockGateway.waitForConnection();
   gateway.hello();
 
   gateway.ready();
@@ -506,11 +498,7 @@ test('会话恢复', async () => {
   first.sendFriendDelete();
   await new Promise(resolve => setTimeout(resolve));
   first.close(4009);
-
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
   second.hello();
 
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -571,11 +559,7 @@ test('可恢复序列号', async () => {
   first.sendFriendDelete();
   await started.promise;
   first.close(4009);
-
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
 
   second.hello();
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -620,11 +604,7 @@ test('重复 Dispatch', async () => {
     await Promise.resolve();
   }
   first.close(4009);
-
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
   second.hello();
 
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -658,11 +638,7 @@ test('Reconnect', async () => {
   first.sendFriendDelete();
   await new Promise(resolve => setTimeout(resolve));
   first.reconnect();
-
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
   second.hello();
 
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -684,11 +660,7 @@ test('可恢复的 Invalid Session', async () => {
   first.sendFriendDelete();
   await new Promise(resolve => setTimeout(resolve));
   first.invalidateSession(true);
-
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
   second.hello();
 
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -708,11 +680,7 @@ test('不可恢复的 Invalid Session', async () => {
   const { client, gateway: first } = await openReadySession();
 
   first.invalidateSession();
-
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
   second.hello();
 
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -745,11 +713,7 @@ test('心跳序列号', async () => {
     await processing.promise;
   });
   const online = client.online();
-
-  while (!MockGateway.instances.length) {
-    await new Promise(resolve => setTimeout(resolve));
-  }
-  const gateway = MockGateway.instances[0]!;
+  const gateway = await MockGateway.waitForConnection();
   gateway.hello(20);
   gateway.ready({}, 7);
   await online;
@@ -779,11 +743,7 @@ test('首次心跳与心跳超时', async () => {
 
   const client = new Client({ appId: 'app-id', clientSecret: 'secret', maxRetry: 1 });
   const online = client.online();
-
-  while (!MockGateway.instances.length) {
-    await Promise.resolve();
-  }
-  const first = MockGateway.instances[0]!;
+  const first = await MockGateway.waitForConnection();
 
   first.hello(20);
   while (!first.sent.some(value => JSON.parse(value).op === OpCode.Heartbeat)) {
@@ -796,11 +756,7 @@ test('首次心跳与心跳超时', async () => {
   first.heartbeatAck();
   first.ready();
   await online;
-
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
 
   second.hello();
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -820,10 +776,7 @@ test('无效会话序列号', async () => {
   const { client, gateway: first } = await openReadySession();
 
   first.close(4007);
-  while (MockGateway.instances.length < 2) {
-    await new Promise(resolve => setTimeout(resolve, 10));
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
 
   second.hello();
   expect(JSON.parse(second.sent[0]!)).toEqual({
@@ -849,11 +802,7 @@ test('不可恢复关闭与主动下线', async () => {
 
   const connect = async (client: Client): Promise<MockGateway> => {
     const online = client.online();
-
-    while (!MockGateway.instances.length) {
-      await new Promise(resolve => setTimeout(resolve));
-    }
-    const gateway = MockGateway.instances.at(-1)!;
+    const gateway = await MockGateway.waitForConnection();
     gateway.hello();
     gateway.ready();
     await online;
@@ -889,11 +838,7 @@ test('重新上线', async () => {
 
   await client.offline();
   const online = client.online();
-
-  while (MockGateway.instances.length < 2) {
-    await Promise.resolve();
-  }
-  const gateway = MockGateway.instances[1]!;
+  const gateway = await MockGateway.waitForConnection(1);
 
   gateway.hello();
   gateway.ready();
@@ -908,11 +853,7 @@ test('下线等待重连', async () => {
   await Promise.resolve();
   await client.offline();
   const online = client.online();
-
-  while (MockGateway.instances.length < 2) {
-    await Promise.resolve();
-  }
-  const second = MockGateway.instances[1]!;
+  const second = await MockGateway.waitForConnection(1);
 
   second.hello();
   second.ready();
