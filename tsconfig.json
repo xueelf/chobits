@@ -1,34 +1,27 @@
 {
   "compilerOptions": {
-    // Environment setup & latest features
-    "lib": ["ESNext"],
     "target": "ESNext",
-    "module": "Preserve",
+    "lib": ["ESNext"],
     "moduleDetection": "force",
-    "types": ["bun"],
 
-    // Bundler mode
+    "module": "Preserve",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "outDir": "dist",
     "paths": {
       "~/*": ["./*"],
       "#/*": ["./src/*"]
     },
+    "types": ["bun"],
 
-    // Best practices
+    "noEmit": true,
+    "outDir": "dist",
+
+    "verbatimModuleSyntax": true,
+
     "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
 
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "skipLibCheck": true
   },
   "include": ["*.config.ts", "src", "scripts", "examples", "tests"]
 }
