@@ -27,22 +27,22 @@ npm install chobits
 ```typescript
 import { Client } from 'chobits';
 
-const bot = new Client({
-  appId: '1145141919',
-  clientSecret: '38bc73e16208135fb111c0c573a44eaa',
+const client = new Client({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
 });
 
-bot.on('C2C_MESSAGE_CREATE', async event => {
+client.on('C2C_MESSAGE_CREATE', async event => {
   // 机器人会在收到私聊消息后立即回复
   await event.reply('收到私聊消息');
 });
 
-bot.on('GROUP_AT_MESSAGE_CREATE', async event => {
+client.on('GROUP_AT_MESSAGE_CREATE', async event => {
   // 机器人会在收到群聊 @ 消息后立即回复
   await event.reply('收到群 @ 消息');
 });
 
-bot.on('GROUP_MESSAGE_CREATE', async event => {
+client.on('GROUP_MESSAGE_CREATE', async event => {
   // 机器人会在收到群聊消息后立即回复（需要群主授权）
   await event.reply('收到群聊消息');
 });
@@ -53,13 +53,16 @@ bot.on('GROUP_MESSAGE_CREATE', async event => {
 ```typescript
 import { Client } from 'chobits';
 
-const bot = new Client(options);
+const client = new Client({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
+});
 
-bot.on('READY', async event => {
+client.on('READY', async event => {
   console.log('服务连接成功');
 });
 
-await bot.online();
+await client.online();
 ```
 
 调用 `online()` 便会建立 WebSocket 连接，可以使用 `await` 等待连接成功。
@@ -67,13 +70,13 @@ await bot.online();
 除此之外 `offline()` 会主动断开 WebSocket 连接，并清理当前会话状态：
 
 ```typescript
-await bot.offline();
+await client.offline();
 ```
 
 首次连接失败时，`online()` 会抛出错误。WebSocket 连接建立后，Chobits 会自动处理心跳和断线重连。后续发生的内部连接错误会触发 `error` 事件，例如自动重连失败：
 
 ```typescript
-bot.on('error', error => {
+client.on('error', error => {
   console.error(error);
 });
 ```
@@ -81,7 +84,7 @@ bot.on('error', error => {
 事件监听器中的错误不会触发 `error`，需要开发者自行捕获：
 
 ```typescript
-bot.on('C2C_MESSAGE_CREATE', async event => {
+client.on('C2C_MESSAGE_CREATE', async event => {
   try {
     await event.reply('hello world');
   } catch (error) {
@@ -107,10 +110,13 @@ import { Client } from 'chobits';
 import { Hono } from 'hono';
 
 const app = new Hono();
-const bot = new Client(options);
+const client = new Client({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
+});
 
 app.post('/qq/callback', async context => {
-  return await bot.callback(context.req.raw);
+  return await client.callback(context.req.raw);
 });
 
 export default app;
@@ -123,12 +129,15 @@ import { serve } from 'bun';
 
 import { Client } from 'chobits';
 
-const bot = new Client(options);
+const client = new Client({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
+});
 
 serve({
   routes: {
     '/qq/callback': {
-      POST: async request => await bot.callback(request),
+      POST: async request => await client.callback(request),
     },
   },
 });
@@ -152,7 +161,7 @@ const trackTask = async (task: Promise<void>): Promise<void> => {
 };
 
 app.post('/qq/callback', async context => {
-  return await bot.callback(context.req.raw, trackTask);
+  return await client.callback(context.req.raw, trackTask);
 });
 ```
 
@@ -167,7 +176,7 @@ import { waitUntil } from 'cloudflare:workers';
 
 export default {
   async fetch(request: Request): Promise<Response> {
-    return await bot.callback(request, waitUntil);
+    return await client.callback(request, waitUntil);
   },
 };
 ```
@@ -178,7 +187,7 @@ export default {
 import { waitUntil } from '@vercel/functions';
 
 export async function POST(request: Request): Promise<Response> {
-  return await bot.callback(request, waitUntil);
+  return await client.callback(request, waitUntil);
 }
 ```
 
@@ -188,7 +197,7 @@ export async function POST(request: Request): Promise<Response> {
 import { type Context } from '@netlify/functions';
 
 export default async (request: Request, context: Context): Promise<Response> => {
-  return await bot.callback(request, context.waitUntil);
+  return await client.callback(request, context.waitUntil);
 };
 ```
 
@@ -208,9 +217,9 @@ export default async (request: Request, context: Context): Promise<Response> => 
 `maxRetry` 设置为 `0` 时不会重试，设置为 `Infinity` 时会持续重试。重试间隔按照重试次数逐秒增加，最长不超过 30 秒：
 
 ```typescript
-const bot = new Client({
-  appId: '1145141919',
-  clientSecret: '38bc73e16208135fb111c0c573a44eaa',
+const client = new Client({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
   maxRetry: Infinity,
 });
 ```
@@ -222,8 +231,8 @@ const bot = new Client({
 QQ 的发送消息接口使用 `msg_seq` 与 `msg_id` 共同区分针对同一条消息的多次回复。直接调用 `sendGroupMessage()` 时，可以自行传入目标群、消息 ID 和序号：
 
 ```typescript
-bot.on('GROUP_MESSAGE_CREATE', async event => {
-  await bot.sendGroupMessage(event.group_openid, {
+client.on('GROUP_MESSAGE_CREATE', async event => {
+  await client.sendGroupMessage(event.group_openid, {
     msg_id: event.id,
     msg_seq: 1,
     msg_type: 0,
@@ -239,7 +248,7 @@ bot.on('GROUP_MESSAGE_CREATE', async event => {
 `event.reply()` 在此基础上进一步简化了回复过程，它会自动从当前事件中取得 `msg_id` 或 `event_id`，并为每次回复生成新的 `msg_seq`。这些字段由 Chobits 内部进行管理，不能通过 `reply()` 覆盖。刚刚使用 `sendGroupMessage` 的函数调用可以简化为：
 
 ```typescript
-bot.on('GROUP_MESSAGE_CREATE', async event => {
+client.on('GROUP_MESSAGE_CREATE', async event => {
   await event.reply('hello world');
 });
 ```
@@ -247,7 +256,7 @@ bot.on('GROUP_MESSAGE_CREATE', async event => {
 传入字符串时，Chobits 会将其转换为 `msg_type: 0` 的文本消息。发送 Markdown、富媒体或键盘时，需要传入对应场景的官方消息结构：
 
 ```typescript
-bot.on('GROUP_AT_MESSAGE_CREATE', async event => {
+client.on('GROUP_AT_MESSAGE_CREATE', async event => {
   await event.reply({
     msg_type: 2,
     markdown: {
@@ -349,9 +358,12 @@ QQ 实际推送的部分事件与开发文档中的说明并不一致。以下�
 `use()` 的用法与 Koa、Hono 的中间件基本一致。每个中间件都会收到当前事件的 `context` 和用于继续执行的 `next`，适合记录事件、计算耗时或为后续处理整理数据。
 
 ```typescript
-const bot = new Client(options);
+const client = new Client({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
+});
 
-bot.use(async (context, next) => {
+client.use(async (context, next) => {
   const startedAt = performance.now();
 
   console.log('收到事件', context.payload.t);
@@ -410,14 +422,17 @@ interface OneBotState {
   };
 }
 
-const bot = new Client<OneBotEvents>(options);
-const { data: botInfo } = await bot.getBotInfo();
+const client = new Client<OneBotEvents>({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
+});
+const botInfo = await client.getBotInfo();
 
 const sendPrivateMessage = (userId: string, content: string) => {
-  return bot.sendUserMessage(userId, { msg_type: 0, content });
+  return client.sendUserMessage(userId, { msg_type: 0, content });
 };
 
-bot
+client
   .use<OneBotState>(async (context, next) => {
     if (context.payload.t === 'C2C_MESSAGE_CREATE' && context.payload.id) {
       const { d, id } = context.payload;
@@ -444,12 +459,12 @@ bot
     const { event } = context.state;
 
     if (event) {
-      await bot.emit(event.name, event.data);
+      await client.emit(event.name, event.data);
     }
     await next();
   });
 
-bot.on('message.private', async event => {
+client.on('message.private', async event => {
   console.log(event.alt_message);
 
   await sendPrivateMessage(event.user_id, 'hello world');
@@ -471,9 +486,9 @@ const logger: Logger = (kind, message, data) => {
   console.debug(`[chobits:${kind}] ${message}`, data);
 };
 
-const bot = new Client({
-  appId: '1145141919',
-  clientSecret: '38bc73e16208135fb111c0c573a44eaa',
+const client = new Client({
+  appId: import.meta.env.APP_ID,
+  clientSecret: import.meta.env.CLIENT_SECRET,
   logger,
 });
 ```
@@ -486,11 +501,11 @@ const bot = new Client({
 | `webhook`   | Webhook 地址验证、签名校验、请求拒绝与事件确认  |
 | `dispatch`  | WebSocket 与 Webhook 共用的中间件和事件分发过程 |
 
-`logger` 会依次接收 `kind`、`message` 和 `data`，分别表示日志类别、说明文本和相关数据。部分日志没有相关数据，此时 Chobits 不会传入第三个参数，`data` 的值为 `undefined`。
+`logger` 会依次接收 `kind`、`message` 和 `data`，分别表示日志类别、说明文本和相关数据。`data` 是独立副本，修改后不会影响 Chobits 的后续处理。部分日志没有相关数据，此时 Chobits 不会传入第三个参数，`data` 的值为 `undefined`。
 
 调用 `logger` 后，Chobits 会立即继续执行，不会等待回调中的异步操作。需要将日志写入文件或发送到日志服务时，应由开发者自行处理相应任务。
 
-机器人的身份凭证不会被写入日志，但部分日志可能包含用户发送的消息内容。将日志保存到文件或发送到第三方服务前，请根据实际业务过滤不应记录的信息。
+OpenAPI 请求日志包含完整请求参数与 `Authorization`，部分日志也可能包含用户发送的消息内容。将日志保存到文件或发送到第三方服务前，请根据实际业务过滤不应记录的信息。
 
 ## 示例
 
