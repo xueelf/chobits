@@ -535,8 +535,8 @@ export default (request: EmbusInstance) => {
      * @throws 50055001 消息发送异常，请稍后重试
      * @throws 50055006 ARK消息发送异常，请稍后重试
      */
-    sendGroupMessage(group_openid: string, message: SendGroupMessagePayload): Promise<SendGroupMessage> {
-      return request.post(`/v2/groups/${group_openid}/messages`, message);
+    sendGroupMessage(group_openid: string, payload: SendGroupMessagePayload): Promise<SendGroupMessage> {
+      return request.post(`/v2/groups/${group_openid}/messages`, payload);
     },
 
     /**
@@ -619,8 +619,8 @@ export default (request: EmbusInstance) => {
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
      */
-    uploadGroupFile(group_openid: string, file: UploadGroupFilePayload): Promise<UploadGroupFile> {
-      return request.post(`/v2/groups/${group_openid}/files`, file);
+    uploadGroupFile(group_openid: string, payload: UploadGroupFilePayload): Promise<UploadGroupFile> {
+      return request.post(`/v2/groups/${group_openid}/files`, payload);
     },
 
     /**
@@ -651,8 +651,8 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      */
-    prepareGroupFileUpload(group_id: string, file: PrepareGroupFileUploadPayload): Promise<PrepareGroupFileUpload> {
-      return request.post(`/v2/groups/${group_id}/upload_prepare`, file);
+    prepareGroupFileUpload(group_id: string, payload: PrepareGroupFileUploadPayload): Promise<PrepareGroupFileUpload> {
+      return request.post(`/v2/groups/${group_id}/upload_prepare`, payload);
     },
 
     /**
@@ -689,9 +689,9 @@ export default (request: EmbusInstance) => {
      */
     finishGroupFileUploadPart(
       group_id: string,
-      part: FinishGroupFileUploadPartPayload,
+      payload: FinishGroupFileUploadPartPayload,
     ): Promise<Record<string, never>> {
-      return request.post(`/v2/groups/${group_id}/upload_part_finish`, part);
+      return request.post(`/v2/groups/${group_id}/upload_part_finish`, payload);
     },
 
     /**

@@ -167,6 +167,14 @@ export interface Menu {
   items?: MenuItem[];
 }
 
+/** 当前生效的自定义菜单。 */
+export interface MenuInfo {
+  /** 当前菜单的版本号。 */
+  version: number;
+  /** 当前生效的菜单配置。未设置过菜单时该字段为空。 */
+  menu: Menu;
+}
+
 /** 自定义菜单项。 */
 export interface MenuItem {
   /** 按钮名称，最多 10 个字符，一个中文汉字算2个字符。 */
@@ -205,14 +213,6 @@ export interface Switch {
   switch_id?: string;
   /** 开关的初始状态。true 表示默认打开，false 表示默认关闭。 */
   default?: boolean;
-}
-
-/** 当前生效的自定义菜单。 */
-export interface GetMenu {
-  /** 当前菜单的版本号。 */
-  version: number;
-  /** 当前生效的菜单配置。未设置过菜单时该字段为空。 */
-  menu: Menu;
 }
 
 /** 修改自定义菜单时使用的参数。 */
@@ -284,7 +284,7 @@ export interface GetPanelListPayload {
 }
 
 /** 指令面板列表。 */
-export interface GetPanelList {
+export interface PanelList {
   /** 面板记录列表，按设置时间倒序排列。 */
   records: PanelRecord[];
   /**
@@ -440,7 +440,7 @@ export default (request: EmbusInstance) => {
      * - version：当前菜单的版本号
      * - menu：当前生效的菜单配置。未设置过菜单时该字段为空
      */
-    getMenu(): Promise<GetMenu> {
+    getMenu(): Promise<MenuInfo> {
       return request.get('/v2/menu');
     },
 
@@ -480,7 +480,7 @@ export default (request: EmbusInstance) => {
      * @throws 40030001 参数错误
      * @throws 40030011 生效场景不合法
      */
-    getPanelList(payload: GetPanelListPayload): Promise<GetPanelList> {
+    getPanelList(payload: GetPanelListPayload): Promise<PanelList> {
       return request.get('/v2/panels', payload);
     },
 
