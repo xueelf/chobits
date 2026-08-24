@@ -28,7 +28,7 @@ const MAX_RETRY_DELAY = 30000;
 const INVALID_CREDENTIAL_CODES = [100007, 100016];
 const NON_RETRYABLE_CODES = [...FATAL_CLOSE_CODES, ...INVALID_CREDENTIAL_CODES];
 
-/** QQ Gateway 事件订阅类型。 */
+/** QQ Gateway Intents。 */
 enum Intent {
   /**
    * 群成员变更事件。
@@ -49,13 +49,13 @@ enum Intent {
 
 const INTENTS = Object.values(Intent).reduce((intents, intent) => (isNumber(intent) ? intents | intent : intents), 0);
 
-/** 客户端或服务端发送的心跳。 */
+/** 客户端或服务端发送的心跳 Payload。 */
 interface HeartbeatPayload {
   op: OpCode.Heartbeat;
   d: number | null;
 }
 
-/** 客户端发送的鉴权信息。 */
+/** 客户端发送的 Identify Payload。 */
 interface IdentifyPayload {
   op: OpCode.Identify;
   d: {
@@ -64,7 +64,7 @@ interface IdentifyPayload {
   };
 }
 
-/** 客户端发送的会话恢复信息。 */
+/** 客户端发送的 Resume Payload。 */
 interface ResumePayload {
   op: OpCode.Resume;
   d: {
@@ -74,18 +74,18 @@ interface ResumePayload {
   };
 }
 
-/** 服务端发送的重新连接通知。 */
+/** 服务端发送的 Reconnect Payload。 */
 interface ReconnectPayload {
   op: OpCode.Reconnect;
 }
 
-/** 服务端发送的无效会话通知。 */
+/** 服务端发送的 Invalid Session Payload。 */
 interface InvalidSessionPayload {
   op: OpCode.InvalidSession;
   d?: boolean;
 }
 
-/** 服务端建立连接后发送的首条消息。 */
+/** 服务端建立连接后发送的 Hello Payload。 */
 interface HelloPayload {
   op: OpCode.Hello;
   d: {
@@ -93,7 +93,7 @@ interface HelloPayload {
   };
 }
 
-/** 服务端发送的心跳回包。 */
+/** 服务端发送的心跳 ACK Payload。 */
 interface HeartbeatAckPayload {
   op: OpCode.HeartbeatAck;
 }
@@ -135,7 +135,7 @@ export class WebSocketSession {
   private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
   /** 重连等待。 */
   private retryDelay: { resolve: () => void; timer: ReturnType<typeof setTimeout> } | null = null;
-  /** 心跳回包状态。 */
+  /** 心跳 ACK 状态。 */
   private heartbeatAck = true;
   /** 连接 Promise。 */
   private connectionPromise: Promise<void> | null = null;
@@ -506,7 +506,7 @@ export class WebSocketSession {
     }
     this.heartbeatTimer = setTimeout(() => {
       if (!this.heartbeatAck) {
-        this.options.logger?.('websocket', 'WebSocket 心跳响应超时', { seq: this.receivedSeq });
+        this.options.logger?.('websocket', 'WebSocket 心跳 ACK 超时', { seq: this.receivedSeq });
         this.restartConnection(true);
         return;
       }

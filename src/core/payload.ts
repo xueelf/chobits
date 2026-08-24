@@ -2,23 +2,23 @@ import { type VerifyInfo } from '#/api/index';
 
 /** QQ Gateway Payload 的操作码。 */
 export enum OpCode {
-  /** 服务端推送事件。 */
+  /** 服务端推送 Dispatch。 */
   Dispatch = 0,
   /** 客户端或服务端发送心跳。 */
   Heartbeat = 1,
-  /** 客户端发送鉴权信息。 */
+  /** 客户端发送 Identify。 */
   Identify = 2,
-  /** 客户端恢复会话。 */
+  /** 客户端发送 Resume。 */
   Resume = 6,
-  /** 服务端通知客户端重新连接。 */
+  /** 服务端发送 Reconnect。 */
   Reconnect = 7,
-  /** 服务端通知客户端会话无效。 */
+  /** 服务端发送 Invalid Session。 */
   InvalidSession = 9,
-  /** 服务端建立连接后发送首条消息。 */
+  /** 服务端建立连接后发送 Hello。 */
   Hello = 10,
-  /** 服务端发送心跳回包。 */
+  /** 服务端发送心跳 ACK。 */
   HeartbeatAck = 11,
-  /** 客户端确认收到 Webhook 事件。 */
+  /** 客户端发送 HTTP Callback ACK。 */
   HttpCallbackAck = 12,
   /** 开放平台验证 Webhook 回调地址。 */
   CallbackValidation = 13,
@@ -26,9 +26,9 @@ export enum OpCode {
 
 /** WebSocket 会话维护事件类型。 */
 export enum DispatchType {
-  /** 会话鉴权完成。 */
+  /** READY 事件。 */
   Ready = 'READY',
-  /** 会话恢复完成。 */
+  /** RESUMED 事件。 */
   Resumed = 'RESUMED',
 }
 
