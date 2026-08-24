@@ -2,7 +2,7 @@ import { type SendGroupMessagePayload } from '#/api/groups';
 import createOperations, { type Operations, type TextMessage } from '#/api/index';
 import { type SendUserMessagePayload } from '#/api/users';
 import { Auth } from '#/core/auth';
-import { type Logger } from '#/core/logger';
+import { type Logger, wrapLogger } from '#/core/logger';
 import { type Context, type Middleware, compose } from '#/core/middleware';
 import { type Dispatch, type DispatchData } from '#/core/payload';
 import { Webhook } from '#/core/webhook';
@@ -203,7 +203,7 @@ export class Client<
   private readonly middlewares: Middleware[] = [];
   /** 中间件执行函数。 */
   private readonly composedMiddleware = compose(this.middlewares);
-  /** 自定义日志回调。 */
+  /** 日志回调。 */
   private readonly logger?: Logger;
   /** Webhook 回调处理器。 */
   private readonly webhook: Webhook;
@@ -222,7 +222,7 @@ export class Client<
    */
   public constructor(options: ClientOptions) {
     super();
-    const { appId, clientSecret, maxRetry = 3, logger } = options;
+    const { appId, clientSecret, maxRetry = 3 } = options;
 
     if (!appId || !clientSecret) {
       throw new TypeError('appId and clientSecret are required');
@@ -231,17 +231,18 @@ export class Client<
     if (maxRetry !== Infinity && (!Number.isInteger(maxRetry) || maxRetry < 0)) {
       throw new TypeError('maxRetry must be a non-negative integer or Infinity');
     }
-    const auth = new Auth(appId, clientSecret, logger);
-    const request = createRequest(auth, logger);
+    this.logger = wrapLogger(options.logger);
+
+    const auth = new Auth(appId, clientSecret, this.logger);
+    const request = createRequest(auth, this.logger);
     const { getGateway, ...operations } = createOperations(request);
 
-    this.logger = logger;
     this.webhook = new Webhook(
       clientSecret,
       async payload => {
         await this.dispatch(payload);
       },
-      logger,
+      this.logger,
     );
     this.websocket = new WebSocketSession({
       dispatch: async payload => {
@@ -251,13 +252,9 @@ export class Client<
         await this.emit('error', error);
       },
       getAuthorization: () => auth.getAuthorization(),
-      getGateway: async () => {
-        const { data } = await getGateway();
-
-        return data;
-      },
+      getGateway,
       maxRetry,
-      logger,
+      logger: this.logger,
     });
 
     Object.assign(this, operations, {
@@ -338,7 +335,7 @@ export class Client<
       ...(payload.id === undefined ? {} : { id: payload.id }),
     };
 
-    this.logger?.('dispatch', '开始处理 Dispatch', { payload: context.payload });
+    this.logger?.('dispatch', '开始处理 Dispatch', context.payload);
 
     try {
       await this.composedMiddleware(context, () => this.emitDispatch(payload));

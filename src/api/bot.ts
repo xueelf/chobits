@@ -354,13 +354,16 @@ export interface UpdatePanelTargetPayload {
  * @throws 100016 invalid appid or secret
  * @throws 10004 机器人不存在
  */
-export const getAccessToken = (payload: GetAccessTokenPayload) =>
-  embus<AccessToken | AccessTokenError>({
+export const getAccessToken = async (payload: GetAccessTokenPayload): Promise<AccessToken | AccessTokenError> => {
+  const response = await embus<AccessToken | AccessTokenError>({
     method: 'POST',
     origin: OPEN_API_ORIGIN,
     url: '/app/getAppAccessToken',
     payload,
   });
+
+  return response.data;
+};
 
 export default (request: EmbusInstance) => {
   return {
@@ -373,8 +376,8 @@ export default (request: EmbusInstance) => {
      *
      * @returns WebSocket 连接地址
      */
-    getGateway() {
-      return request.get<Gateway>('/gateway');
+    getGateway(): Promise<Gateway> {
+      return request.get('/gateway');
     },
 
     /**
@@ -397,8 +400,8 @@ export default (request: EmbusInstance) => {
      * - union_openid：跨应用统一用户 OpenID（需特殊申请）
      * - union_user_account：跨应用统一用户账号（需特殊申请）
      */
-    getBotInfo() {
-      return request.get<BotInfo>('/users/@me');
+    getBotInfo(): Promise<BotInfo> {
+      return request.get('/users/@me');
     },
 
     /**
@@ -421,8 +424,8 @@ export default (request: EmbusInstance) => {
      * @throws 10044 从协议头获取uin失败
      * @throws 11004 生成分享ARK失败
      */
-    generateShareLink(payload: GenerateShareLinkPayload) {
-      return request.post<GenerateShareLink>('/v2/generate_url_link', payload);
+    generateShareLink(payload: GenerateShareLinkPayload): Promise<GenerateShareLink> {
+      return request.post('/v2/generate_url_link', payload);
     },
 
     /**
@@ -437,8 +440,8 @@ export default (request: EmbusInstance) => {
      * - version：当前菜单的版本号
      * - menu：当前生效的菜单配置。未设置过菜单时该字段为空
      */
-    getMenu() {
-      return request.get<GetMenu>('/v2/menu');
+    getMenu(): Promise<GetMenu> {
+      return request.get('/v2/menu');
     },
 
     /**
@@ -455,8 +458,8 @@ export default (request: EmbusInstance) => {
      * @throws 40030016 必填字段缺失
      * @throws 40030020 内容存在安全风险，请修改后重试
      */
-    updateMenu(payload: UpdateMenuPayload) {
-      return request.put<UpdateMenu>('/v2/menu', payload);
+    updateMenu(payload: UpdateMenuPayload): Promise<UpdateMenu> {
+      return request.put('/v2/menu', payload);
     },
 
     /**
@@ -477,8 +480,8 @@ export default (request: EmbusInstance) => {
      * @throws 40030001 参数错误
      * @throws 40030011 生效场景不合法
      */
-    getPanelList(payload: GetPanelListPayload) {
-      return request.get<GetPanelList>('/v2/panels', payload);
+    getPanelList(payload: GetPanelListPayload): Promise<GetPanelList> {
+      return request.get('/v2/panels', payload);
     },
 
     /**
@@ -505,8 +508,8 @@ export default (request: EmbusInstance) => {
      * @throws 40030020 内容存在安全风险，请修改后重试
      * @throws 40030021 全局面板不支持添加指定关联对象
      */
-    createPanel(payload: CreatePanelPayload) {
-      return request.post<CreatePanel>('/v2/panels', payload);
+    createPanel(payload: CreatePanelPayload): Promise<CreatePanel> {
+      return request.post('/v2/panels', payload);
     },
 
     /**
@@ -519,8 +522,8 @@ export default (request: EmbusInstance) => {
      * @param panel_id 面板 ID
      * @throws 40030006 指令面板不存在
      */
-    getPanel(panel_id: string) {
-      return request.get<PanelRecord>(`/v2/panels/${panel_id}`);
+    getPanel(panel_id: string): Promise<PanelRecord> {
+      return request.get(`/v2/panels/${panel_id}`);
     },
 
     /**
@@ -542,8 +545,8 @@ export default (request: EmbusInstance) => {
      * @throws 40030020 内容存在安全风险，请修改后重试
      * @throws 40030021 全局面板不支持添加指定关联对象
      */
-    updatePanel(panel_id: string, payload: UpdatePanelPayload) {
-      return request.put<UpdatePanel>(`/v2/panels/${panel_id}`, payload);
+    updatePanel(panel_id: string, payload: UpdatePanelPayload): Promise<UpdatePanel> {
+      return request.put(`/v2/panels/${panel_id}`, payload);
     },
 
     /**
@@ -561,7 +564,7 @@ export default (request: EmbusInstance) => {
      * @param panel_id 面板 ID
      * @throws 40030006 指令面板不存在
      */
-    deletePanel(panel_id: string) {
+    deletePanel(panel_id: string): Promise<Record<string, never>> {
       return request.delete(`/v2/panels/${panel_id}`);
     },
 
@@ -585,7 +588,7 @@ export default (request: EmbusInstance) => {
      * @throws 40030018 当前场景不支持此操作
      * @throws 40030021 全局面板不支持添加指定关联对象
      */
-    updatePanelTarget(panel_id: string, payload: UpdatePanelTargetPayload) {
+    updatePanelTarget(panel_id: string, payload: UpdatePanelTargetPayload): Promise<Record<string, never>> {
       return request.put(`/v2/panels/${panel_id}/target`, payload);
     },
   };

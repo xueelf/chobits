@@ -42,7 +42,7 @@ export default (request: EmbusInstance) => {
      * @throws 630007 data too large
      * @throws 630008 interaction preprocess failed
      */
-    respondToInteraction(interaction_id: string, payload: RespondToInteractionPayload) {
+    respondToInteraction(interaction_id: string, payload: RespondToInteractionPayload): Promise<Record<string, never>> {
       return request.put(`/interactions/${interaction_id}`, payload);
     },
   };

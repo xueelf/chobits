@@ -50,7 +50,7 @@ export class Auth {
     this.refreshPromise ??= (async () => {
       try {
         this.logger?.('auth', '开始获取 Access Token');
-        const { data } = await getAccessToken({ appId: this.appId, clientSecret: this.clientSecret });
+        const data = await getAccessToken({ appId: this.appId, clientSecret: this.clientSecret });
 
         if (isAccessTokenError(data)) {
           throw new Error(data.message, { cause: data.code });

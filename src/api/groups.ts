@@ -535,8 +535,8 @@ export default (request: EmbusInstance) => {
      * @throws 50055001 消息发送异常，请稍后重试
      * @throws 50055006 ARK消息发送异常，请稍后重试
      */
-    sendGroupMessage(group_openid: string, message: SendGroupMessagePayload) {
-      return request.post<SendGroupMessage>(`/v2/groups/${group_openid}/messages`, message);
+    sendGroupMessage(group_openid: string, message: SendGroupMessagePayload): Promise<SendGroupMessage> {
+      return request.post(`/v2/groups/${group_openid}/messages`, message);
     },
 
     /**
@@ -566,7 +566,7 @@ export default (request: EmbusInstance) => {
      * @throws 40064004 已超出消息撤回时限
      * @throws 50065001 消息撤回失败，请稍后重试
      */
-    recallGroupMessage(group_openid: string, message_id: string) {
+    recallGroupMessage(group_openid: string, message_id: string): Promise<Record<string, never>> {
       return request.delete(`/v2/groups/${group_openid}/messages/${message_id}`);
     },
 
@@ -619,8 +619,8 @@ export default (request: EmbusInstance) => {
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
      */
-    uploadGroupFile(group_openid: string, file: UploadGroupFilePayload) {
-      return request.post<UploadGroupFile>(`/v2/groups/${group_openid}/files`, file);
+    uploadGroupFile(group_openid: string, file: UploadGroupFilePayload): Promise<UploadGroupFile> {
+      return request.post(`/v2/groups/${group_openid}/files`, file);
     },
 
     /**
@@ -651,8 +651,8 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      */
-    prepareGroupFileUpload(group_id: string, file: PrepareGroupFileUploadPayload) {
-      return request.post<PrepareGroupFileUpload>(`/v2/groups/${group_id}/upload_prepare`, file);
+    prepareGroupFileUpload(group_id: string, file: PrepareGroupFileUploadPayload): Promise<PrepareGroupFileUpload> {
+      return request.post(`/v2/groups/${group_id}/upload_prepare`, file);
     },
 
     /**
@@ -687,7 +687,10 @@ export default (request: EmbusInstance) => {
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
      */
-    finishGroupFileUploadPart(group_id: string, part: FinishGroupFileUploadPartPayload) {
+    finishGroupFileUploadPart(
+      group_id: string,
+      part: FinishGroupFileUploadPartPayload,
+    ): Promise<Record<string, never>> {
       return request.post(`/v2/groups/${group_id}/upload_part_finish`, part);
     },
 
@@ -709,8 +712,8 @@ export default (request: EmbusInstance) => {
      * - group_member_num：群成员人数
      * @throws 11253 应用无接口访问权限
      */
-    getGroupInfo(group_openid: string) {
-      return request.get<GroupInfo>(`/v2/groups/${group_openid}/info`);
+    getGroupInfo(group_openid: string): Promise<GroupInfo> {
+      return request.get(`/v2/groups/${group_openid}/info`);
     },
 
     /**
@@ -730,8 +733,8 @@ export default (request: EmbusInstance) => {
      * - member_role：群成员角色 member-普通成员，owner-群主，admin-管理员
      * @throws 11253 应用无接口访问权限
      */
-    getGroupBotState(group_openid: string) {
-      return request.get<GroupBotState>(`/v2/groups/${group_openid}/bot_state`);
+    getGroupBotState(group_openid: string): Promise<GroupBotState> {
+      return request.get(`/v2/groups/${group_openid}/bot_state`);
     },
 
     /**
@@ -750,7 +753,11 @@ export default (request: EmbusInstance) => {
      *
      * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_approval_join_request_member_openid.post.html}
      */
-    reviewGroupJoinRequest(group_openid: string, member_openid: string, payload: ReviewGroupJoinRequestPayload) {
+    reviewGroupJoinRequest(
+      group_openid: string,
+      member_openid: string,
+      payload: ReviewGroupJoinRequestPayload,
+    ): Promise<Record<string, never>> {
       return request.post(`/v2/groups/${group_openid}/approval_join_request/${member_openid}`, payload);
     },
 
@@ -773,8 +780,11 @@ export default (request: EmbusInstance) => {
      *
      * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_join_request_list.get.html}
      */
-    getGroupJoinRequestList(group_openid: string, payload: GetGroupJoinRequestListPayload = {}) {
-      return request.get<GroupJoinRequestList>(`/v2/groups/${group_openid}/join_request_list`, payload);
+    getGroupJoinRequestList(
+      group_openid: string,
+      payload: GetGroupJoinRequestListPayload = {},
+    ): Promise<GroupJoinRequestList> {
+      return request.get(`/v2/groups/${group_openid}/join_request_list`, payload);
     },
 
     /**
@@ -796,8 +806,8 @@ export default (request: EmbusInstance) => {
      *
      * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.get.html}
      */
-    getGroupMuteState(group_openid: string) {
-      return request.get<GroupMuteState>(`/v2/groups/${group_openid}/restrict_chat_setting`);
+    getGroupMuteState(group_openid: string): Promise<GroupMuteState> {
+      return request.get(`/v2/groups/${group_openid}/restrict_chat_setting`);
     },
 
     /**
@@ -815,7 +825,7 @@ export default (request: EmbusInstance) => {
      *
      * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html}
      */
-    setGroupMemberMute(group_openid: string, payload: SetGroupMemberMutePayload) {
+    setGroupMemberMute(group_openid: string, payload: SetGroupMemberMutePayload): Promise<Record<string, never>> {
       return request.post(`/v2/groups/${group_openid}/restrict_chat_setting`, payload);
     },
 
@@ -831,8 +841,10 @@ export default (request: EmbusInstance) => {
      * - strategies：生效中的策略列表
      * - next_cursor：下一页游标，空串表示已到末页
      */
-    getGroupJoinApprovalStrategyList(payload: GetGroupJoinApprovalStrategyListPayload = {}) {
-      return request.get<GroupJoinApprovalStrategyList>('/v2/groups/join_approval_strategy', payload);
+    getGroupJoinApprovalStrategyList(
+      payload: GetGroupJoinApprovalStrategyListPayload = {},
+    ): Promise<GroupJoinApprovalStrategyList> {
+      return request.get('/v2/groups/join_approval_strategy', payload);
     },
 
     /**
@@ -850,8 +862,10 @@ export default (request: EmbusInstance) => {
      * - is_enable：是否启用，on-启用 off-关闭
      * - expire_at：过期时间（RFC3339 格式）
      */
-    createGroupJoinApprovalStrategy(payload: CreateGroupJoinApprovalStrategyPayload) {
-      return request.post<CreateGroupJoinApprovalStrategy>('/v2/groups/join_approval_strategy', payload);
+    createGroupJoinApprovalStrategy(
+      payload: CreateGroupJoinApprovalStrategyPayload,
+    ): Promise<CreateGroupJoinApprovalStrategy> {
+      return request.post('/v2/groups/join_approval_strategy', payload);
     },
 
     /**
@@ -868,7 +882,7 @@ export default (request: EmbusInstance) => {
      *
      * @param strategy_id 策略 ID
      */
-    deleteGroupJoinApprovalStrategy(strategy_id: string) {
+    deleteGroupJoinApprovalStrategy(strategy_id: string): Promise<Record<string, never>> {
       return request.delete(`/v2/groups/join_approval_strategy/${strategy_id}`);
     },
 
@@ -885,11 +899,11 @@ export default (request: EmbusInstance) => {
      * - is_enable：是否启用，on-启用 off-关闭
      * - expire_at：过期时间（RFC3339 格式）
      */
-    updateGroupJoinApprovalStrategy(strategy_id: string, payload: UpdateGroupJoinApprovalStrategyPayload) {
-      return request.patch<UpdateGroupJoinApprovalStrategy>(
-        `/v2/groups/join_approval_strategy/${strategy_id}`,
-        payload,
-      );
+    updateGroupJoinApprovalStrategy(
+      strategy_id: string,
+      payload: UpdateGroupJoinApprovalStrategyPayload,
+    ): Promise<UpdateGroupJoinApprovalStrategy> {
+      return request.patch(`/v2/groups/join_approval_strategy/${strategy_id}`, payload);
     },
 
     /**
@@ -906,7 +920,7 @@ export default (request: EmbusInstance) => {
      *
      * @param strategy_id 策略 ID
      */
-    executeGroupJoinApprovalStrategy(strategy_id: string) {
+    executeGroupJoinApprovalStrategy(strategy_id: string): Promise<Record<string, never>> {
       return request.post(`/v2/groups/join_approval_strategy/${strategy_id}/execute`);
     },
 
@@ -927,11 +941,8 @@ export default (request: EmbusInstance) => {
     updateGroupJoinApprovalStrategyWhitelist(
       strategy_id: string,
       payload: UpdateGroupJoinApprovalStrategyWhitelistPayload,
-    ) {
-      return request.post<UpdateGroupJoinApprovalStrategyWhitelist>(
-        `/v2/groups/join_approval_strategy/${strategy_id}/whitelist_users`,
-        payload,
-      );
+    ): Promise<UpdateGroupJoinApprovalStrategyWhitelist> {
+      return request.post(`/v2/groups/join_approval_strategy/${strategy_id}/whitelist_users`, payload);
     },
   };
 };

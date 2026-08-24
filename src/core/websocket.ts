@@ -254,7 +254,7 @@ export class WebSocketSession {
         } catch {
           return;
         }
-        this.options.logger?.('websocket', '收到 Gateway Payload', { payload });
+        this.options.logger?.('websocket', '收到 Gateway Payload', payload);
 
         switch (payload.op) {
           case OpCode.Dispatch: {
@@ -540,20 +540,7 @@ export class WebSocketSession {
    */
   private sendPayload(socket: WebSocket | null, payload: SendPayload): void {
     if (socket?.readyState === WebSocket.OPEN) {
-      const loggedPayload =
-        payload.op === OpCode.Identify
-          ? { op: payload.op, d: { intents: payload.d.intents } }
-          : payload.op === OpCode.Resume
-            ? {
-                op: payload.op,
-                d: {
-                  session_id: payload.d.session_id,
-                  seq: payload.d.seq,
-                },
-              }
-            : payload;
-
-      this.options.logger?.('websocket', '发送 Gateway Payload', { payload: loggedPayload });
+      this.options.logger?.('websocket', '发送 Gateway Payload', payload);
       socket.send(JSON.stringify(payload));
     }
   }
