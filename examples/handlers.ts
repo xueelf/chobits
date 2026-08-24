@@ -30,13 +30,13 @@ const getPixivImageUrl = async (): Promise<string> => {
 
 const uploadImage = async (client: Client, event: MessageEvent, url: string): Promise<string> => {
   if (isGroupMessage(event)) {
-    const { data } = await client.uploadGroupFile(event.group_openid, { file_type: 1, url, srv_send_msg: false });
+    const file = await client.uploadGroupFile(event.group_openid, { file_type: 1, url, srv_send_msg: false });
 
-    return data.file_info;
+    return file.file_info;
   }
-  const { data } = await client.uploadUserFile(event.author.user_openid, { file_type: 1, url, srv_send_msg: false });
+  const file = await client.uploadUserFile(event.author.user_openid, { file_type: 1, url, srv_send_msg: false });
 
-  return data.file_info;
+  return file.file_info;
 };
 
 const handleMessage = async (client: Client, event: MessageEvent): Promise<void> => {
