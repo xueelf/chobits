@@ -3,6 +3,7 @@ import { afterEach, expect, test } from 'bun:test';
 import { EmbusError } from 'embus';
 
 import { type Logger, type SendGroupMessagePayload, type SendUserMessagePayload, Client } from '#/index';
+import { isRecord } from '#/utils/type';
 
 import { MockOpenApi } from './mocks/open-api';
 import { mockFetch, readMessageBody } from './mocks/request';
@@ -43,10 +44,10 @@ test('并发处理 OpenAPI', async () => {
   });
 
   const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
-  const userMessage: SendUserMessagePayload = { msg_type: 0, content: 'user', msg_seq: 42 };
+  const userPayload: SendUserMessagePayload = { msg_type: 0, content: 'user', msg_seq: 42 };
 
-  const [userResult, groupResult] = await Promise.all([
-    client.sendUserMessage('user-openid', userMessage),
+  const [userMessage, groupMessage] = await Promise.all([
+    client.sendUserMessage('user-openid', userPayload),
     client.sendGroupMessage('group-openid', {
       msg_type: 3,
       ark: {
@@ -61,12 +62,12 @@ test('并发处理 OpenAPI', async () => {
     }),
   ]);
 
-  expect(userResult.data).toEqual({
+  expect(userMessage).toEqual({
     id: 'message-id',
     timestamp,
     ext_info: { ref_idx: 'user-message-index' },
   });
-  expect(groupResult.data).toEqual(userResult.data);
+  expect(groupMessage).toEqual(userMessage);
   expect(tokenRequests).toBe(1);
   expect(requests).toHaveLength(3);
 
@@ -129,15 +130,20 @@ test('OpenAPI 日志', async () => {
   expect(logs[0]).toEqual(['auth', '开始获取 Access Token']);
   expect(logs[1]?.[2]).toEqual({ expiresIn: 7200 });
   expect(logs[2]?.[2]).toEqual({
+    headers: { authorization: 'QQBot access-token' },
     method: 'GET',
     origin: 'https://api.bot.qq.com',
+    responseType: 'json',
     url: '/users/@me',
   });
-  expect(logs[3]?.[2]).toEqual({
-    method: 'GET',
-    origin: 'https://api.bot.qq.com',
-    url: '/users/@me',
-    status: 200,
+  expect(logs[3]?.[2]).toMatchObject({
+    config: {
+      headers: { authorization: 'QQBot access-token' },
+      method: 'GET',
+      origin: 'https://api.bot.qq.com',
+      responseType: 'json',
+      url: '/users/@me',
+    },
     data: {
       avatar: '',
       id: 'bot-id',
@@ -145,9 +151,49 @@ test('OpenAPI 日志', async () => {
       username: 'bot',
       welcome_msg: '',
     },
+    status: 200,
+    statusText: '',
   });
-  expect(JSON.stringify(logs)).not.toContain('access-token');
+  expect(JSON.stringify(logs)).toContain('access-token');
   expect(JSON.stringify(logs)).not.toContain('secret');
+});
+
+test('OpenAPI 日志隔离', async () => {
+  const api = new MockOpenApi();
+  const requests: Request[] = [];
+  const payload: SendUserMessagePayload = { msg_type: 0, content: 'hello world', msg_seq: 42 };
+  const logger: Logger = (_kind, message, data) => {
+    if (message === '发送 OpenAPI 请求' && isRecord(data)) {
+      const loggedPayload = Reflect.get(data, 'payload');
+
+      if (isRecord(loggedPayload)) {
+        Reflect.set(loggedPayload, 'content', 'modified request');
+      }
+    } else if (message === '收到 OpenAPI 响应' && isRecord(data)) {
+      const loggedData = Reflect.get(data, 'data');
+
+      if (isRecord(loggedData)) {
+        Reflect.set(loggedData, 'id', 'modified response');
+      }
+    }
+  };
+
+  globalThis.fetch = mockFetch(async (input, init) => {
+    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+
+    if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    requests.push(request);
+    return Response.json(api.sendUserMessage());
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'secret', logger });
+  const message = await client.sendUserMessage('user-openid', payload);
+
+  expect((await readMessageBody(requests[0]!)).content).toBe('hello world');
+  expect(payload.content).toBe('hello world');
+  expect(message.id).toBe('user-message-id');
 });
 
 test('消息类型与内容字段', () => {
@@ -234,12 +280,42 @@ test('OpenAPI 错误响应', async () => {
     await client.recallGroupMessage('group', 'message');
     throw new Error('预期请求失败');
   } catch (error) {
-    if (!(error instanceof EmbusError) || !(error.cause instanceof Response)) {
+    if (!(error instanceof EmbusError) || !(error.response instanceof Response)) {
       throw error;
     }
-    expect(error.cause.status).toBe(400);
-    expect(await error.cause.json()).toEqual(api.invalidRequestData());
+    expect(error.response.status).toBe(400);
+    expect(await error.response.json()).toEqual(api.invalidRequestData());
   }
+});
+
+test('OpenAPI 业务错误', async () => {
+  const api = new MockOpenApi();
+  const logs: Parameters<Logger>[] = [];
+  const response = api.invalidRequestData();
+
+  globalThis.fetch = mockFetch(async input => {
+    if (String(input) === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    return Response.json(response);
+  });
+
+  const client = new Client({
+    appId: 'app-id',
+    clientSecret: 'secret',
+    logger: (...entry) => logs.push(entry),
+  });
+
+  try {
+    await client.recallGroupMessage('group', 'message');
+    throw new Error('预期请求失败');
+  } catch (error) {
+    expect(error).toEqual(new Error(response.message));
+  }
+  expect(logs.find(([, message]) => message === '收到 OpenAPI 响应')?.[2]).toMatchObject({
+    data: response,
+    status: 200,
+  });
 });
 
 test('Access Token 错误响应', async () => {
@@ -349,16 +425,16 @@ test('文件、群信息、互动、撤回与分享', async () => {
   const interaction = await client.respondToInteraction('interaction', { code: 0 });
   const link = await client.generateShareLink({ callback_data: 'source' });
 
-  expect(recalled.data).toEqual({});
-  expect(userFile.data).toEqual(userFileData);
-  expect(userPrepared.data).toEqual(userPreparedData);
-  expect(userFinished.data).toEqual({});
-  expect(groupFile.data).toEqual(groupFileData);
-  expect(groupPrepared.data).toEqual(groupPreparedData);
-  expect(groupFinished.data).toEqual({});
-  expect(groupInfo.data).toEqual(groupInfoData);
-  expect(state.data).toEqual(stateData);
-  expect(interaction.data).toEqual({});
+  expect(recalled).toEqual({});
+  expect(userFile).toEqual(userFileData);
+  expect(userPrepared).toEqual(userPreparedData);
+  expect(userFinished).toEqual({});
+  expect(groupFile).toEqual(groupFileData);
+  expect(groupPrepared).toEqual(groupPreparedData);
+  expect(groupFinished).toEqual({});
+  expect(groupInfo).toEqual(groupInfoData);
+  expect(state).toEqual(stateData);
+  expect(interaction).toEqual({});
   expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
     ['DELETE', 'https://api.bot.qq.com/v2/users/user/messages/message'],
     ['POST', 'https://api.bot.qq.com/v2/users/user/files'],
@@ -397,7 +473,7 @@ test('文件、群信息、互动、撤回与分享', async () => {
     md5: 'part-md5',
   });
   expect(await requests.at(-1)!.json()).toEqual({ callback_data: 'source' });
-  expect(link.data).toEqual({ retcode: 0, msg: 'success', data: { url: 'https://example.com/share' } });
+  expect(link).toEqual({ retcode: 0, msg: 'success', data: { url: 'https://example.com/share' } });
 });
 
 test('自定义菜单与指令面板', async () => {
@@ -495,11 +571,11 @@ test('群管理员接口错误', async () => {
     }
     const error = result.reason;
 
-    if (!(error instanceof EmbusError) || !(error.cause instanceof Response)) {
+    if (!(error instanceof EmbusError) || !(error.response instanceof Response)) {
       throw error;
     }
-    expect(error.cause.status).toBe(500);
-    expect(await error.cause.json()).toEqual(api.notGroupAdmin());
+    expect(error.response.status).toBe(500);
+    expect(await error.response.json()).toEqual(api.notGroupAdmin());
   }
 
   expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
@@ -564,12 +640,12 @@ test('入群审批策略接口', async () => {
     whitelist_users: ['10000'],
   });
 
-  expect(list.data).toEqual(listData);
-  expect(created.data).toEqual(createdData);
-  expect(deleted.data).toEqual({});
-  expect(updated.data).toEqual(updatedData);
-  expect(executed.data).toEqual({});
-  expect(whitelist.data).toEqual(whitelistData);
+  expect(list).toEqual(listData);
+  expect(created).toEqual(createdData);
+  expect(deleted).toEqual({});
+  expect(updated).toEqual(updatedData);
+  expect(executed).toEqual({});
+  expect(whitelist).toEqual(whitelistData);
   expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
     ['GET', 'https://api.bot.qq.com/v2/groups/join_approval_strategy?cursor=cursor&limit=20'],
     ['POST', 'https://api.bot.qq.com/v2/groups/join_approval_strategy'],

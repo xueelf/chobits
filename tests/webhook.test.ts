@@ -4,6 +4,7 @@ import { type Dispatch, type DispatchData } from '#/core/payload';
 import { type Logger, Client } from '#/index';
 import { type ReadonlyDeep } from '#/utils/object';
 import { createSigningKey, sign } from '#/utils/signature';
+import { isRecord } from '#/utils/type';
 
 import { MockWebhook } from './mocks/webhook';
 
@@ -182,7 +183,7 @@ test('事件错误日志', async () => {
     clientSecret: secret,
     logger: (kind, message, data) => {
       if (kind === 'dispatch' && message === 'Dispatch 处理失败') {
-        failed.resolve(data?.error);
+        failed.resolve(isRecord(data) ? Reflect.get(data, 'error') : undefined);
       }
     },
   });
@@ -194,7 +195,7 @@ test('事件错误日志', async () => {
 
   expect(response.status).toBe(200);
   expect(await response.json()).toEqual({ op: 12 });
-  expect(await failed.promise).toBe(error);
+  expect(await failed.promise).toEqual(error);
 });
 
 test('群消息原始字段', async () => {
@@ -643,7 +644,7 @@ test('中间件终止与重复 next', async () => {
     clientSecret: secret,
     logger: (kind, message, data) => {
       if (kind === 'dispatch' && message === 'Dispatch 处理失败') {
-        failed.resolve(data?.error);
+        failed.resolve(isRecord(data) ? Reflect.get(data, 'error') : undefined);
       }
     },
   }).use(async (_context, next) => {

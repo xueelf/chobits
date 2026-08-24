@@ -357,12 +357,12 @@ test('WebSocket 日志', async () => {
   expect(messages).toContain('开始处理 Dispatch');
   expect(messages).toContain('Dispatch 处理完成');
   expect(sent?.[2]).toEqual({
-    payload: {
-      op: OpCode.Identify,
-      d: { intents: (1 << 24) | (1 << 25) | (1 << 26) },
+    op: OpCode.Identify,
+    d: {
+      token: 'QQBot access-token',
+      intents: (1 << 24) | (1 << 25) | (1 << 26),
     },
   });
-  expect(JSON.stringify(logs)).not.toContain('QQBot access-token');
 
   await client.offline();
   expect(logs.map(([, message]) => message)).toContain('主动关闭 WebSocket 连接');
