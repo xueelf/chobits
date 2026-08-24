@@ -4,11 +4,20 @@ import { OpCode } from '#/core/payload';
 import { type Logger, type SendGroupMessagePayload, Client } from '#/index';
 
 import { MockOpenApi } from './mocks/open-api';
-import { mockFetch, readMessageBody } from './mocks/request';
+import { mockFetch, readMessageBody, toRequest } from './mocks/request';
 import { MockGateway, mockWebSocket } from './mocks/websocket';
 
 const originalFetch = globalThis.fetch;
 const OriginalWebSocket = globalThis.WebSocket;
+
+const readFirstSentPayload = (gateway: MockGateway): unknown => {
+  const [payload] = gateway.sent;
+
+  if (!payload) {
+    throw new TypeError('Gateway 未发送 Payload');
+  }
+  return JSON.parse(payload);
+};
 
 const openReadySession = async (
   maxRetry = 1,
@@ -19,7 +28,7 @@ const openReadySession = async (
 
   globalThis.WebSocket = mockWebSocket(MockGateway);
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
@@ -53,7 +62,7 @@ afterEach(() => {
   MockGateway.instances.length = 0;
 });
 
-test('WebSocket 事件数据', () => {
+test('WebSocket 消息字段', () => {
   const gateway = new MockGateway('wss://gateway.example.com');
   const ready = gateway.ready();
   const userImage = gateway.sendUserMessage({
@@ -104,35 +113,9 @@ test('WebSocket 事件数据', () => {
     message_type: 103,
     msg_elements: [{ content: '语音消息', message_type: 103, msg_idx: 'referenced-message-index' }],
   });
-  const payloads = [
-    gateway.sendGroupAtMessage(),
-    gateway.sendFriendAdd(),
-    gateway.sendFriendDelete(),
-    gateway.sendGroupAddRobot(),
-    gateway.sendGroupDeleteRobot(),
-    gateway.sendGroupMessageReceive(),
-    gateway.sendGroupMessageReject(),
-    gateway.sendGroupMemberAdd(),
-    gateway.sendGroupMemberRemove(),
-    gateway.sendUserButtonInteraction(),
-    gateway.sendGroupButtonInteraction(),
-    gateway.sendUserAuthorizeInteraction(),
-    gateway.sendGroupAuthorizeStatusInteraction(),
-    gateway.sendUserAuthorizeInteraction({
-      data: {
-        resolved: {
-          authorize_data: { opt_scene: 'setting', scope: 'c2c_push' },
-        },
-      },
-    }),
-    gateway.sendUserAuthorizeInteraction({
-      data: {
-        resolved: {
-          authorize_data: { opt_scene: 'friend_del', scope: 'c2c_push' },
-        },
-      },
-    }),
-  ];
+  const [imageAttachment] = userImage.d.attachments ?? [];
+  const [voiceAttachment] = groupVoice.d.attachments ?? [];
+  const [mention] = groupMention.d.mentions ?? [];
 
   expect(ready.d).toEqual({
     version: 1,
@@ -140,8 +123,60 @@ test('WebSocket 事件数据', () => {
     user: { id: 'bot-id', username: 'bot', bot: true, status: 1 },
     shard: [0, 0],
   });
-  expect(payloads.every(payload => typeof payload.s === 'number')).toBeTrue();
-  expect(payloads.map(payload => payload.t)).toEqual([
+  expect(imageAttachment).toMatchObject({
+    content: '',
+    content_type: 'image/png',
+    height: 5000,
+    size: 19815867,
+    width: 7500,
+  });
+  expect(voiceAttachment).toMatchObject({
+    content_type: 'voice',
+    size: 4012,
+    voice_wav_url: 'https://example.com/voice.wav',
+  });
+  expect(mention).toMatchObject({ is_you: true, scope: 'single' });
+  expect(groupQuote.d).toMatchObject({
+    message_type: 103,
+    msg_elements: [{ content: '语音消息', message_type: 103, msg_idx: 'referenced-message-index' }],
+  });
+});
+
+test('WebSocket 事件字段', () => {
+  const gateway = new MockGateway('wss://gateway.example.com');
+  const payloads = {
+    groupAtMessage: gateway.sendGroupAtMessage(),
+    friendAdd: gateway.sendFriendAdd(),
+    friendDelete: gateway.sendFriendDelete(),
+    groupAddRobot: gateway.sendGroupAddRobot(),
+    groupDeleteRobot: gateway.sendGroupDeleteRobot(),
+    groupMessageReceive: gateway.sendGroupMessageReceive(),
+    groupMessageReject: gateway.sendGroupMessageReject(),
+    groupMemberAdd: gateway.sendGroupMemberAdd(),
+    groupMemberRemove: gateway.sendGroupMemberRemove(),
+    userButton: gateway.sendUserButtonInteraction(),
+    groupButton: gateway.sendGroupButtonInteraction(),
+    userAuthorize: gateway.sendUserAuthorizeInteraction(),
+    groupAuthorize: gateway.sendGroupAuthorizeStatusInteraction(),
+    userAuthorizeDisabled: gateway.sendUserAuthorizeInteraction({
+      data: {
+        resolved: {
+          authorize_data: { opt_scene: 'setting', scope: 'c2c_push' },
+        },
+      },
+    }),
+    friendDeleteAuthorize: gateway.sendUserAuthorizeInteraction({
+      data: {
+        resolved: {
+          authorize_data: { opt_scene: 'friend_del', scope: 'c2c_push' },
+        },
+      },
+    }),
+  };
+  const events = Object.values(payloads);
+
+  expect(events.every(payload => typeof payload.s === 'number')).toBeTrue();
+  expect(events.map(payload => payload.t)).toEqual([
     'GROUP_AT_MESSAGE_CREATE',
     'FRIEND_ADD',
     'FRIEND_DEL',
@@ -158,33 +193,16 @@ test('WebSocket 事件数据', () => {
     'INTERACTION_CREATE',
     'INTERACTION_CREATE',
   ]);
-  expect(userImage.d.attachments?.[0]).toMatchObject({
-    content: '',
-    content_type: 'image/png',
-    height: 5000,
-    size: 19815867,
-    width: 7500,
-  });
-  expect(groupVoice.d.attachments?.[0]).toMatchObject({
-    content_type: 'voice',
-    size: 4012,
-    voice_wav_url: 'https://example.com/voice.wav',
-  });
-  expect(groupMention.d.mentions?.[0]).toMatchObject({ is_you: true, scope: 'single' });
-  expect(groupQuote.d).toMatchObject({
-    message_type: 103,
-    msg_elements: [{ content: '语音消息', message_type: 103, msg_idx: 'referenced-message-index' }],
-  });
-  expect(payloads[1]?.d).not.toHaveProperty('scene');
-  expect(payloads[1]?.d).not.toHaveProperty('scene_param');
-  expect(payloads[1]?.d).not.toHaveProperty('short_code');
-  expect(payloads[7]?.d).not.toHaveProperty('user_openid');
-  expect(payloads[8]?.d).not.toHaveProperty('user_openid');
-  expect(payloads[9]?.d).not.toHaveProperty('union_openid');
-  expect(payloads[11]?.d).not.toHaveProperty('chat_type');
-  expect(payloads[11]?.d).not.toHaveProperty('union_openid');
-  expect(payloads[12]?.d).not.toHaveProperty('application_id');
-  expect(payloads[14]?.d).toMatchObject({
+  expect(payloads.friendAdd.d).not.toHaveProperty('scene');
+  expect(payloads.friendAdd.d).not.toHaveProperty('scene_param');
+  expect(payloads.friendAdd.d).not.toHaveProperty('short_code');
+  expect(payloads.groupMemberAdd.d).not.toHaveProperty('user_openid');
+  expect(payloads.groupMemberRemove.d).not.toHaveProperty('user_openid');
+  expect(payloads.userButton.d).not.toHaveProperty('union_openid');
+  expect(payloads.userAuthorize.d).not.toHaveProperty('chat_type');
+  expect(payloads.userAuthorize.d).not.toHaveProperty('union_openid');
+  expect(payloads.groupAuthorize.d).not.toHaveProperty('application_id');
+  expect(payloads.friendDeleteAuthorize.d).toMatchObject({
     data: { resolved: { authorize_data: { opt_scene: 'friend_del', scope: 'c2c_push' } } },
   });
 });
@@ -192,8 +210,8 @@ test('WebSocket 事件数据', () => {
 test('Intents 订阅', async () => {
   const { client, gateway } = await openReadySession(0);
 
-  expect(JSON.parse(gateway.sent[0]!)).toEqual({
-    op: 2,
+  expect(readFirstSentPayload(gateway)).toEqual({
+    op: OpCode.Identify,
     d: {
       token: 'QQBot access-token',
       intents: (1 << 24) | (1 << 25) | (1 << 26),
@@ -212,7 +230,7 @@ test('回复消息', async () => {
 
   globalThis.WebSocket = mockWebSocket(MockGateway);
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
@@ -350,13 +368,14 @@ test('WebSocket 日志', async () => {
   const { client } = await openReadySession(0, logger);
   const messages = logs.map(([, message]) => message);
   const sent = logs.find(([, message]) => message === '发送 Gateway Payload');
+  const [, , sentPayload] = sent ?? [];
 
   expect(messages).toContain('开始建立 WebSocket 连接');
   expect(messages).toContain('WebSocket 连接已建立');
   expect(messages).toContain('收到 Gateway Payload');
   expect(messages).toContain('开始处理 Dispatch');
   expect(messages).toContain('Dispatch 处理完成');
-  expect(sent?.[2]).toEqual({
+  expect(sentPayload).toEqual({
     op: OpCode.Identify,
     d: {
       token: 'QQBot access-token',
@@ -476,7 +495,7 @@ test('互动事件回复', async () => {
   }
   await replied;
 
-  const request = requests[0];
+  const [request] = requests;
 
   if (!request) {
     throw new TypeError('缺少互动事件回复请求');
@@ -489,7 +508,7 @@ test('互动事件回复', async () => {
   await client.offline();
 });
 
-test('会话恢复', async () => {
+test('Resume', async () => {
   const { client, gateway: first } = await openReadySession();
   const errors: Error[] = [];
 
@@ -501,8 +520,8 @@ test('会话恢复', async () => {
   const second = await MockGateway.waitForConnection(1);
   second.hello();
 
-  expect(JSON.parse(second.sent[0]!)).toEqual({
-    op: 6,
+  expect(readFirstSentPayload(second)).toEqual({
+    op: OpCode.Resume,
     d: {
       token: 'QQBot access-token',
       session_id: 'session-id',
@@ -546,7 +565,7 @@ test('无效凭证', async () => {
   expect(MockGateway.instances).toHaveLength(0);
 });
 
-test('可恢复序列号', async () => {
+test('Resume 序列号', async () => {
   const { client, gateway: first } = await openReadySession();
   const processing = Promise.withResolvers<void>();
   const started = Promise.withResolvers<void>();
@@ -562,7 +581,7 @@ test('可恢复序列号', async () => {
   const second = await MockGateway.waitForConnection(1);
 
   second.hello();
-  expect(JSON.parse(second.sent[0]!)).toEqual({
+  expect(readFirstSentPayload(second)).toEqual({
     op: OpCode.Resume,
     d: {
       token: 'QQBot access-token',
@@ -607,7 +626,7 @@ test('重复 Dispatch', async () => {
   const second = await MockGateway.waitForConnection(1);
   second.hello();
 
-  expect(JSON.parse(second.sent[0]!)).toEqual({
+  expect(readFirstSentPayload(second)).toEqual({
     op: OpCode.Resume,
     d: {
       token: 'QQBot access-token',
@@ -641,7 +660,7 @@ test('Reconnect', async () => {
   const second = await MockGateway.waitForConnection(1);
   second.hello();
 
-  expect(JSON.parse(second.sent[0]!)).toEqual({
+  expect(readFirstSentPayload(second)).toEqual({
     op: OpCode.Resume,
     d: {
       token: 'QQBot access-token',
@@ -663,7 +682,7 @@ test('可恢复的 Invalid Session', async () => {
   const second = await MockGateway.waitForConnection(1);
   second.hello();
 
-  expect(JSON.parse(second.sent[0]!)).toEqual({
+  expect(readFirstSentPayload(second)).toEqual({
     op: OpCode.Resume,
     d: {
       token: 'QQBot access-token',
@@ -683,7 +702,7 @@ test('不可恢复的 Invalid Session', async () => {
   const second = await MockGateway.waitForConnection(1);
   second.hello();
 
-  expect(JSON.parse(second.sent[0]!)).toEqual({
+  expect(readFirstSentPayload(second)).toEqual({
     op: OpCode.Identify,
     d: {
       token: 'QQBot access-token',
@@ -732,7 +751,7 @@ test('心跳序列号', async () => {
   await client.offline();
 });
 
-test('首次心跳与心跳超时', async () => {
+test('首次心跳与心跳 ACK 超时', async () => {
   globalThis.WebSocket = mockWebSocket(MockGateway);
   globalThis.fetch = mockFetch(async input => {
     if (String(input) === 'https://api.bot.qq.com/app/getAppAccessToken') {
@@ -759,7 +778,7 @@ test('首次心跳与心跳超时', async () => {
   const second = await MockGateway.waitForConnection(1);
 
   second.hello();
-  expect(JSON.parse(second.sent[0]!)).toEqual({
+  expect(readFirstSentPayload(second)).toEqual({
     op: OpCode.Resume,
     d: {
       token: 'QQBot access-token',
@@ -772,14 +791,14 @@ test('首次心跳与心跳超时', async () => {
   await client.offline();
 });
 
-test('无效会话序列号', async () => {
+test('seq 错误', async () => {
   const { client, gateway: first } = await openReadySession();
 
   first.close(4007);
   const second = await MockGateway.waitForConnection(1);
 
   second.hello();
-  expect(JSON.parse(second.sent[0]!)).toEqual({
+  expect(readFirstSentPayload(second)).toEqual({
     op: OpCode.Identify,
     d: {
       token: 'QQBot access-token',

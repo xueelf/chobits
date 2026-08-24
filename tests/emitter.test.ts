@@ -50,7 +50,7 @@ test('异步监听器错误', async () => {
   expect(calls).toEqual(['监听器执行完成']);
 });
 
-test('Object 原型属性事件名', async () => {
+test('对象原型属性事件名', async () => {
   type Events = {
     constructor: [value: string];
     toString: [value: string];

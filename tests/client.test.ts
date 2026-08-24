@@ -6,7 +6,7 @@ import { type Logger, type SendGroupMessagePayload, type SendUserMessagePayload,
 import { isRecord } from '#/utils/type';
 
 import { MockOpenApi } from './mocks/open-api';
-import { mockFetch, readMessageBody } from './mocks/request';
+import { mockFetch, readMessageBody, readRequestBody, toRequest } from './mocks/request';
 
 const originalFetch = globalThis.fetch;
 afterEach(() => {
@@ -33,7 +33,7 @@ test('并发处理 OpenAPI', async () => {
   const timestamp = new Date().toISOString();
 
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+    const request = toRequest(input, init);
     requests.push(request);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
@@ -71,13 +71,16 @@ test('并发处理 OpenAPI', async () => {
   expect(tokenRequests).toBe(1);
   expect(requests).toHaveLength(3);
 
-  const accessToken = requests[0]!;
+  const [accessToken, user, group] = requests;
+
+  if (!accessToken || !user || !group) {
+    throw new TypeError('OpenAPI 请求数量无效');
+  }
   expect(accessToken.method).toBe('POST');
   expect(accessToken.headers.get('Authorization')).toBeNull();
   expect(accessToken.headers.get('Content-Type')).toBe('application/json');
   expect(await accessToken.json()).toEqual({ appId: 'app-id', clientSecret: 'secret' });
 
-  const user = requests[1]!;
   expect(user.url).toBe('https://api.bot.qq.com/v2/users/user-openid/messages');
   expect(user.method).toBe('POST');
   expect(user.headers.get('Authorization')).toBe('QQBot access-token');
@@ -86,7 +89,6 @@ test('并发处理 OpenAPI', async () => {
   expect(userBody).toMatchObject({ msg_type: 0, content: 'user' });
   expect(userBody.msg_seq).toBe(42);
 
-  const group = requests[2]!;
   expect(group.url).toBe('https://api.bot.qq.com/v2/groups/group-openid/messages');
   const groupBody = await readMessageBody(group);
   expect(groupBody).toMatchObject({
@@ -127,16 +129,24 @@ test('OpenAPI 日志', async () => {
     '发送 OpenAPI 请求',
     '收到 OpenAPI 响应',
   ]);
-  expect(logs[0]).toEqual(['auth', '开始获取 Access Token']);
-  expect(logs[1]?.[2]).toEqual({ expiresIn: 7200 });
-  expect(logs[2]?.[2]).toEqual({
+  const authStart = logs.find(([, message]) => message === '开始获取 Access Token');
+  const authSuccess = logs.find(([, message]) => message === 'Access Token 获取成功');
+  const openApiRequest = logs.find(([, message]) => message === '发送 OpenAPI 请求');
+  const openApiResponse = logs.find(([, message]) => message === '收到 OpenAPI 响应');
+  const [, , authData] = authSuccess ?? [];
+  const [, , requestData] = openApiRequest ?? [];
+  const [, , responseData] = openApiResponse ?? [];
+
+  expect(authStart).toEqual(['auth', '开始获取 Access Token']);
+  expect(authData).toEqual({ expiresIn: 7200 });
+  expect(requestData).toEqual({
     headers: { authorization: 'QQBot access-token' },
     method: 'GET',
     origin: 'https://api.bot.qq.com',
     responseType: 'json',
     url: '/users/@me',
   });
-  expect(logs[3]?.[2]).toMatchObject({
+  expect(responseData).toMatchObject({
     config: {
       headers: { authorization: 'QQBot access-token' },
       method: 'GET',
@@ -158,7 +168,7 @@ test('OpenAPI 日志', async () => {
   expect(JSON.stringify(logs)).not.toContain('secret');
 });
 
-test('OpenAPI 日志隔离', async () => {
+test('修改日志数据', async () => {
   const api = new MockOpenApi();
   const requests: Request[] = [];
   const payload: SendUserMessagePayload = { msg_type: 0, content: 'hello world', msg_seq: 42 };
@@ -179,7 +189,7 @@ test('OpenAPI 日志隔离', async () => {
   };
 
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
@@ -191,7 +201,12 @@ test('OpenAPI 日志隔离', async () => {
   const client = new Client({ appId: 'app-id', clientSecret: 'secret', logger });
   const message = await client.sendUserMessage('user-openid', payload);
 
-  expect((await readMessageBody(requests[0]!)).content).toBe('hello world');
+  const [request] = requests;
+
+  if (!request) {
+    throw new TypeError('缺少消息请求');
+  }
+  expect((await readMessageBody(request)).content).toBe('hello world');
   expect(payload.content).toBe('hello world');
   expect(message.id).toBe('user-message-id');
 });
@@ -222,7 +237,7 @@ test('流式消息', async () => {
   const requests: Request[] = [];
 
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
@@ -248,14 +263,16 @@ test('流式消息', async () => {
   });
 
   expect(requests).toHaveLength(2);
-  expect(await requests[0]!.json()).toEqual({
+  const [firstRequest, secondRequest] = requests;
+
+  expect(await readRequestBody(firstRequest)).toEqual({
     input_state: 1,
     index: 0,
     content_raw: '第一段',
     msg_id: 'message-id',
     msg_seq: 42,
   });
-  expect(await requests[1]!.json()).toEqual({
+  expect(await readRequestBody(secondRequest)).toEqual({
     input_state: 1,
     index: 1,
     content_raw: '第二段',
@@ -312,7 +329,10 @@ test('OpenAPI 业务错误', async () => {
   } catch (error) {
     expect(error).toEqual(new Error(response.message));
   }
-  expect(logs.find(([, message]) => message === '收到 OpenAPI 响应')?.[2]).toMatchObject({
+  const responseLog = logs.find(([, message]) => message === '收到 OpenAPI 响应');
+  const [, , responseData] = responseLog ?? [];
+
+  expect(responseData).toMatchObject({
     data: response,
     status: 200,
   });
@@ -343,26 +363,21 @@ test('Access Token 错误响应', async () => {
   expect(requests).toBe(1);
 });
 
-test('文件、群信息、互动、撤回与分享', async () => {
+test('文件与分片上传', async () => {
   const api = new MockOpenApi();
   const requests: Request[] = [];
   const userFileData = api.uploadUserFile();
   const userPreparedData = api.prepareUserFileUpload();
   const groupFileData = api.uploadGroupFile();
   const groupPreparedData = api.prepareGroupFileUpload();
-  const groupInfoData = api.getGroupInfo();
-  const stateData = api.getGroupBotState();
 
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
-    requests.push(request);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
     }
-    if (request.url === 'https://api.bot.qq.com/v2/generate_url_link') {
-      return Response.json(api.generateShareLink());
-    }
+    requests.push(request);
     if (request.url === 'https://api.bot.qq.com/v2/users/user/files') {
       return Response.json(userFileData);
     }
@@ -375,18 +390,11 @@ test('文件、群信息、互动、撤回与分享', async () => {
     if (request.url === 'https://api.bot.qq.com/v2/groups/group/upload_prepare') {
       return Response.json(groupPreparedData);
     }
-    if (request.url === 'https://api.bot.qq.com/v2/groups/group/info') {
-      return Response.json(groupInfoData);
-    }
-    if (request.url.endsWith('/bot_state')) {
-      return Response.json(stateData);
-    }
     return Response.json({});
   });
 
   const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
 
-  const recalled = await client.recallUserMessage('user', 'message');
   const userFile = await client.uploadUserFile('user', {
     file_type: 1,
     url: 'https://example.com/user.png',
@@ -420,40 +428,36 @@ test('文件、群信息、互动、撤回与分享', async () => {
     block_size: '10',
     md5: 'part-md5',
   });
-  const groupInfo = await client.getGroupInfo('group');
-  const state = await client.getGroupBotState('group');
-  const interaction = await client.respondToInteraction('interaction', { code: 0 });
-  const link = await client.generateShareLink({ callback_data: 'source' });
 
-  expect(recalled).toEqual({});
   expect(userFile).toEqual(userFileData);
   expect(userPrepared).toEqual(userPreparedData);
   expect(userFinished).toEqual({});
   expect(groupFile).toEqual(groupFileData);
   expect(groupPrepared).toEqual(groupPreparedData);
   expect(groupFinished).toEqual({});
-  expect(groupInfo).toEqual(groupInfoData);
-  expect(state).toEqual(stateData);
-  expect(interaction).toEqual({});
-  expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
-    ['DELETE', 'https://api.bot.qq.com/v2/users/user/messages/message'],
+  expect(requests.map(request => [request.method, request.url])).toEqual([
     ['POST', 'https://api.bot.qq.com/v2/users/user/files'],
     ['POST', 'https://api.bot.qq.com/v2/users/user/upload_prepare'],
     ['POST', 'https://api.bot.qq.com/v2/users/user/upload_part_finish'],
     ['POST', 'https://api.bot.qq.com/v2/groups/group/files'],
     ['POST', 'https://api.bot.qq.com/v2/groups/group/upload_prepare'],
     ['POST', 'https://api.bot.qq.com/v2/groups/group/upload_part_finish'],
-    ['GET', 'https://api.bot.qq.com/v2/groups/group/info'],
-    ['GET', 'https://api.bot.qq.com/v2/groups/group/bot_state'],
-    ['PUT', 'https://api.bot.qq.com/interactions/interaction'],
-    ['POST', 'https://api.bot.qq.com/v2/generate_url_link'],
   ]);
-  expect(await requests[2]!.json()).toEqual({
+  const [
+    uploadUserFileRequest,
+    prepareUserFileUploadRequest,
+    ,
+    uploadGroupFileRequest,
+    ,
+    finishGroupFileUploadPartRequest,
+  ] = requests;
+
+  expect(await readRequestBody(uploadUserFileRequest)).toEqual({
     file_type: 1,
     url: 'https://example.com/user.png',
     srv_send_msg: false,
   });
-  expect(await requests[3]!.json()).toEqual({
+  expect(await readRequestBody(prepareUserFileUploadRequest)).toEqual({
     file_type: 4,
     file_size: '10',
     file_name: 'user.txt',
@@ -461,19 +465,76 @@ test('文件、群信息、互动、撤回与分享', async () => {
     sha1: 'sha1',
     md5_10m: 'md5-10m',
   });
-  expect(await requests[5]!.json()).toEqual({
+  expect(await readRequestBody(uploadGroupFileRequest)).toEqual({
     file_type: 2,
     url: 'https://example.com/group.mp4',
     srv_send_msg: false,
   });
-  expect(await requests[7]!.json()).toEqual({
+  expect(await readRequestBody(finishGroupFileUploadPartRequest)).toEqual({
     upload_id: 'upload',
     part_index: 1,
     block_size: '10',
     md5: 'part-md5',
   });
-  expect(await requests.at(-1)!.json()).toEqual({ callback_data: 'source' });
+});
+
+test('群信息', async () => {
+  const api = new MockOpenApi();
+  const requests: Request[] = [];
+  const groupInfoData = api.getGroupInfo();
+  const stateData = api.getGroupBotState();
+
+  globalThis.fetch = mockFetch(async (input, init) => {
+    const request = toRequest(input, init);
+
+    if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    requests.push(request);
+    return Response.json(request.url.endsWith('/bot_state') ? stateData : groupInfoData);
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
+  const groupInfo = await client.getGroupInfo('group');
+  const state = await client.getGroupBotState('group');
+
+  expect(groupInfo).toEqual(groupInfoData);
+  expect(state).toEqual(stateData);
+  expect(requests.map(request => [request.method, request.url])).toEqual([
+    ['GET', 'https://api.bot.qq.com/v2/groups/group/info'],
+    ['GET', 'https://api.bot.qq.com/v2/groups/group/bot_state'],
+  ]);
+});
+
+test('撤回、互动与分享', async () => {
+  const api = new MockOpenApi();
+  const requests: Request[] = [];
+
+  globalThis.fetch = mockFetch(async (input, init) => {
+    const request = toRequest(input, init);
+
+    if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    requests.push(request);
+    return Response.json(request.url.endsWith('/generate_url_link') ? api.generateShareLink() : {});
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
+  const recalled = await client.recallUserMessage('user', 'message');
+  const interaction = await client.respondToInteraction('interaction', { code: 0 });
+  const link = await client.generateShareLink({ callback_data: 'source' });
+  const [, , shareLinkRequest] = requests;
+
+  expect(recalled).toEqual({});
+  expect(interaction).toEqual({});
   expect(link).toEqual({ retcode: 0, msg: 'success', data: { url: 'https://example.com/share' } });
+  expect(requests.map(request => [request.method, request.url])).toEqual([
+    ['DELETE', 'https://api.bot.qq.com/v2/users/user/messages/message'],
+    ['PUT', 'https://api.bot.qq.com/interactions/interaction'],
+    ['POST', 'https://api.bot.qq.com/v2/generate_url_link'],
+  ]);
+  expect(await readRequestBody(shareLinkRequest)).toEqual({ callback_data: 'source' });
 });
 
 test('自定义菜单与指令面板', async () => {
@@ -481,12 +542,12 @@ test('自定义菜单与指令面板', async () => {
   const requests: Request[] = [];
 
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
-    requests.push(request);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
     }
+    requests.push(request);
     return Response.json({});
   });
 
@@ -510,7 +571,7 @@ test('自定义菜单与指令面板', async () => {
   await client.deletePanel('panel');
   await client.updatePanelTarget('panel', { op: 'add', group_openids: ['group'] });
 
-  expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
+  expect(requests.map(request => [request.method, request.url])).toEqual([
     ['GET', 'https://api.bot.qq.com/v2/menu'],
     ['PUT', 'https://api.bot.qq.com/v2/menu'],
     ['GET', 'https://api.bot.qq.com/v2/panels?scope=c2c&cursor=cursor&limit=10'],
@@ -520,19 +581,21 @@ test('自定义菜单与指令面板', async () => {
     ['DELETE', 'https://api.bot.qq.com/v2/panels/panel'],
     ['PUT', 'https://api.bot.qq.com/v2/panels/panel/target'],
   ]);
-  expect(await requests[2]!.json()).toEqual({
+  const [, updateMenuRequest, , createPanelRequest, , updatePanelRequest, , updatePanelTargetRequest] = requests;
+
+  expect(await readRequestBody(updateMenuRequest)).toEqual({
     menu: { items: [{ name: '帮助', type: 'send_message', send_message: '/help' }] },
   });
-  expect(await requests[4]!.json()).toEqual({
+  expect(await readRequestBody(createPanelRequest)).toEqual({
     scope: 'group',
     target_type: 'specific',
     group_openids: ['group'],
     panel: { items: [{ name: '签到', desc: '每日签到', type: 'command' }] },
   });
-  expect(await requests[6]!.json()).toEqual({
+  expect(await readRequestBody(updatePanelRequest)).toEqual({
     panel: { items: [{ name: '帮助', type: 'link', link: 'https://example.com' }], remark: '帮助面板' },
   });
-  expect(await requests[8]!.json()).toEqual({ op: 'add', group_openids: ['group'] });
+  expect(await readRequestBody(updatePanelTargetRequest)).toEqual({ op: 'add', group_openids: ['group'] });
 });
 
 test('群管理员接口错误', async () => {
@@ -540,12 +603,12 @@ test('群管理员接口错误', async () => {
   const requests: Request[] = [];
 
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
-    requests.push(request);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
     }
+    requests.push(request);
     return Response.json(api.notGroupAdmin(), { status: 500 });
   });
 
@@ -578,19 +641,21 @@ test('群管理员接口错误', async () => {
     expect(await error.response.json()).toEqual(api.notGroupAdmin());
   }
 
-  expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
+  expect(requests.map(request => [request.method, request.url])).toEqual([
     ['POST', 'https://api.bot.qq.com/v2/groups/group/approval_join_request/member'],
     ['GET', 'https://api.bot.qq.com/v2/groups/group/join_request_list?cursor=cursor&limit=20'],
     ['GET', 'https://api.bot.qq.com/v2/groups/group/restrict_chat_setting'],
     ['POST', 'https://api.bot.qq.com/v2/groups/group/restrict_chat_setting'],
   ]);
-  expect(await requests[1]!.json()).toEqual({
+  const [reviewRequest, , , muteRequest] = requests;
+
+  expect(await readRequestBody(reviewRequest)).toEqual({
     op: 'decline',
     join_request_id: 'request',
     reject_reason: '拒绝理由',
     add_to_member_blacklist: true,
   });
-  expect(await requests[4]!.json()).toEqual({
+  expect(await readRequestBody(muteRequest)).toEqual({
     members: [{ op: 'add', member_openid: 'member', mute_expire_at: '2026-08-12T12:00:00+08:00' }],
   });
 });
@@ -604,12 +669,12 @@ test('入群审批策略接口', async () => {
   const whitelistData = api.updateGroupJoinApprovalStrategyWhitelist();
 
   globalThis.fetch = mockFetch(async (input, init) => {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
-    requests.push(request);
+    const request = toRequest(input, init);
 
     if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
       return Response.json(api.getAccessToken());
     }
+    requests.push(request);
     if (request.method === 'GET') {
       return Response.json(listData);
     }
@@ -646,7 +711,7 @@ test('入群审批策略接口', async () => {
   expect(updated).toEqual(updatedData);
   expect(executed).toEqual({});
   expect(whitelist).toEqual(whitelistData);
-  expect(requests.slice(1).map(request => [request.method, request.url])).toEqual([
+  expect(requests.map(request => [request.method, request.url])).toEqual([
     ['GET', 'https://api.bot.qq.com/v2/groups/join_approval_strategy?cursor=cursor&limit=20'],
     ['POST', 'https://api.bot.qq.com/v2/groups/join_approval_strategy'],
     ['DELETE', 'https://api.bot.qq.com/v2/groups/join_approval_strategy/strategy'],
@@ -654,7 +719,9 @@ test('入群审批策略接口', async () => {
     ['POST', 'https://api.bot.qq.com/v2/groups/join_approval_strategy/strategy/execute'],
     ['POST', 'https://api.bot.qq.com/v2/groups/join_approval_strategy/strategy/whitelist_users'],
   ]);
-  expect(await requests[2]!.json()).toEqual({ group_openids: ['group'], is_enable: 'on' });
-  expect(await requests[4]!.json()).toEqual({ is_enable: 'off' });
-  expect(await requests[6]!.json()).toEqual({ op: 'add', whitelist_users: ['10000'] });
+  const [, createRequest, , updateRequest, , whitelistRequest] = requests;
+
+  expect(await readRequestBody(createRequest)).toEqual({ group_openids: ['group'], is_enable: 'on' });
+  expect(await readRequestBody(updateRequest)).toEqual({ is_enable: 'off' });
+  expect(await readRequestBody(whitelistRequest)).toEqual({ op: 'add', whitelist_users: ['10000'] });
 });

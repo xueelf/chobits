@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 
 import { MockOpenApi } from './mocks/open-api';
 
-test('OpenAPI 响应数据', () => {
+test('OpenAPI 基础响应', () => {
   const api = new MockOpenApi();
 
   expect(api.getAccessToken()).toEqual({
@@ -22,9 +22,15 @@ test('OpenAPI 响应数据', () => {
     msg: 'success',
     data: { url: 'https://example.com/share' },
   });
+});
+
+test('菜单与面板响应', () => {
+  const api = new MockOpenApi();
+  const panelList = api.getPanelList();
+
   expect(api.getMenu()).toEqual({ version: 1, menu: {} });
   expect(api.updateMenu()).toEqual({ version: 2 });
-  expect(api.getPanelList()).toMatchObject({
+  expect(panelList).toMatchObject({
     records: [
       {
         panel_id: 'panel-id',
@@ -39,10 +45,17 @@ test('OpenAPI 响应数据', () => {
     ],
     is_end: true,
   });
-  expect(api.getPanelList()).not.toHaveProperty('next_cursor');
+  expect(panelList).not.toHaveProperty('next_cursor');
   expect(api.createPanel()).toEqual({ panel_id: 'panel-id' });
   expect(api.getPanel()).toMatchObject({ panel_id: 'panel-id', group_openids: ['group-openid'] });
   expect(api.updatePanel()).toEqual({ version: 2 });
+  expect(api.deletePanel()).toEqual({});
+  expect(api.updatePanelTarget()).toEqual({});
+});
+
+test('错误响应', () => {
+  const api = new MockOpenApi();
+
   expect(api.notGroupAdmin()).toEqual({
     message: 'not group admin',
     code: 11703,
@@ -55,6 +68,11 @@ test('OpenAPI 响应数据', () => {
     err_code: 40011000,
     trace_id: 'trace-id',
   });
+});
+
+test('消息与文件响应', () => {
+  const api = new MockOpenApi();
+
   expect(api.sendUserMessage()).toMatchObject({
     id: 'user-message-id',
     ext_info: { ref_idx: 'user-message-index' },
@@ -94,6 +112,15 @@ test('OpenAPI 响应数据', () => {
     parts: [{ index: 1, block_size: '5242880' }],
     upload_config: { concurrency: 1, retry_timeout: 300, retry_delay: 1 },
   });
+  expect(api.recallUserMessage()).toEqual({});
+  expect(api.finishUserFileUploadPart()).toEqual({});
+  expect(api.recallGroupMessage()).toEqual({});
+  expect(api.finishGroupFileUploadPart()).toEqual({});
+});
+
+test('群信息与审批响应', () => {
+  const api = new MockOpenApi();
+
   expect(api.getGroupInfo()).toEqual({
     group_openid: 'group-openid',
     group_name: '测试群',
@@ -127,13 +154,12 @@ test('OpenAPI 响应数据', () => {
     strategy_id: 'strategy-id',
     whitelist_user_count: 0,
   });
-  expect(api.recallUserMessage()).toEqual({});
-  expect(api.finishUserFileUploadPart()).toEqual({});
-  expect(api.recallGroupMessage()).toEqual({});
-  expect(api.finishGroupFileUploadPart()).toEqual({});
   expect(api.executeGroupJoinApprovalStrategy()).toEqual({});
   expect(api.deleteGroupJoinApprovalStrategy()).toEqual({});
-  expect(api.deletePanel()).toEqual({});
-  expect(api.updatePanelTarget()).toEqual({});
+});
+
+test('互动响应', () => {
+  const api = new MockOpenApi();
+
   expect(api.respondToInteraction()).toEqual({});
 });

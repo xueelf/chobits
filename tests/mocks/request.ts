@@ -10,8 +10,19 @@ export function mockFetch(handler: (...args: Parameters<typeof fetch>) => Return
   });
 }
 
+export function toRequest(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]): Request {
+  return input instanceof Request ? new Request(input, init) : new Request(input.toString(), init);
+}
+
+export async function readRequestBody(request?: Request): Promise<unknown> {
+  if (!request) {
+    throw new TypeError('缺少请求');
+  }
+  return await request.json();
+}
+
 export async function readMessageBody(request: Request): Promise<Record<string, unknown> & { msg_seq: number }> {
-  const body: unknown = await request.json();
+  const body = await readRequestBody(request);
 
   if (!hasMsgSeq(body)) {
     throw new TypeError('消息请求体缺少有效的 msg_seq');

@@ -5,8 +5,8 @@ import {
   type CreatePanel,
   type Gateway,
   type GenerateShareLink,
-  type GetMenu,
-  type GetPanelList,
+  type MenuInfo,
+  type PanelList,
   type PanelRecord,
   type UpdateMenu,
   type UpdatePanel,
@@ -91,7 +91,7 @@ export class MockOpenApi {
     };
   }
 
-  public getMenu(data: Partial<GetMenu> = {}): GetMenu {
+  public getMenu(data: Partial<MenuInfo> = {}): MenuInfo {
     return {
       version: 1,
       menu: {},
@@ -106,7 +106,7 @@ export class MockOpenApi {
     };
   }
 
-  public getPanelList(data: Partial<GetPanelList> = {}): GetPanelList {
+  public getPanelList(data: Partial<PanelList> = {}): PanelList {
     const timestamp = new Date().toISOString();
 
     return {
