@@ -24,6 +24,10 @@ function toHex(value: ArrayBuffer): string {
   return [...new Uint8Array(value)].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+function createSignature(key: CryptoKey, value: string): Promise<ArrayBuffer> {
+  return crypto.subtle.sign('Ed25519', key, textEncoder.encode(value));
+}
+
 function fromHex(value: string): Uint8Array | null {
   if (!/^[\da-f]{128}$/i.test(value)) {
     return null;
@@ -59,7 +63,7 @@ export async function createSigningKey(secret: string): Promise<CryptoKey> {
  * @returns 十六进制签名。
  */
 export async function sign(key: CryptoKey, value: string): Promise<string> {
-  return toHex(await crypto.subtle.sign('Ed25519', key, textEncoder.encode(value)));
+  return toHex(await createSignature(key, value));
 }
 
 /**
@@ -80,11 +84,7 @@ export async function verify(key: CryptoKey, signature: string, value: string): 
   /*
    * Ed25519 签名具有确定性，重新生成的预期签名可以直接进行常量时间比较。
    */
-  const expectedSignature = fromHex(await sign(key, value));
-
-  if (!expectedSignature) {
-    return false;
-  }
+  const expectedSignature = new Uint8Array(await createSignature(key, value));
 
   for (let index = 0; index < expectedSignature.length; index++) {
     signatureDifference |= (expectedSignature[index] ?? 0) ^ (actualSignature[index] ?? 0);
