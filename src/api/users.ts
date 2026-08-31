@@ -161,7 +161,7 @@ export interface FinishUserFileUploadPartPayload {
 }
 
 /** 已发送的单聊消息信息。 */
-export interface SendUserMessage {
+export interface UserMessage {
   /** 消息 ID，可用于后续撤回。 */
   id: string;
   /** 发送时间，RFC3339 东八区。 */
@@ -171,7 +171,7 @@ export interface SendUserMessage {
 }
 
 /** 已发送的流式单聊消息信息。 */
-export interface SendUserStreamMessage {
+export interface UserStreamMessage {
   /** 消息ID。首条返回 stream_msg_id，用于后续分片。 */
   id: string;
   /** 消息发送时间，RFC3339 格式。 */
@@ -187,7 +187,7 @@ export interface SendUserStreamMessage {
 }
 
 /** 单聊富媒体文件信息。 */
-export interface UploadUserFile {
+export interface UserFile {
   /** 文件唯一 ID。 */
   file_uuid: string;
   /**
@@ -223,7 +223,7 @@ export interface UploadUserFile {
 }
 
 /** 单聊富媒体分片上传信息。 */
-export interface PrepareUserFileUpload {
+export interface UserFileMultipartUpload {
   /** 上传任务 ID，后续分片上传和完成合并时需携带。 */
   upload_id: string;
   /** 分块大小（字节），默认 5MB。客户端按此大小对文件分片。 */
@@ -303,7 +303,7 @@ export default (request: EmbusInstance) => {
      * @throws 40054018 消息过长或异常
      * @throws 50055002 消息发送异常，请稍后重试
      */
-    sendUserMessage(user_openid: string, payload: SendUserMessagePayload): Promise<SendUserMessage> {
+    sendUserMessage(user_openid: string, payload: SendUserMessagePayload): Promise<UserMessage> {
       return request.post(`/v2/users/${user_openid}/messages`, payload);
     },
 
@@ -329,7 +329,7 @@ export default (request: EmbusInstance) => {
      * @throws 50001 服务内部错误
      * @throws 50002 频率限制
      */
-    sendUserStreamMessage(user_openid: string, payload: SendUserStreamMessagePayload): Promise<SendUserStreamMessage> {
+    sendUserStreamMessage(user_openid: string, payload: SendUserStreamMessagePayload): Promise<UserStreamMessage> {
       return request.post(`/v2/users/${user_openid}/stream_messages`, payload);
     },
 
@@ -407,7 +407,7 @@ export default (request: EmbusInstance) => {
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
      */
-    uploadUserFile(user_openid: string, payload: UploadUserFilePayload): Promise<UploadUserFile> {
+    uploadUserFile(user_openid: string, payload: UploadUserFilePayload): Promise<UserFile> {
       return request.post(`/v2/users/${user_openid}/files`, payload);
     },
 
@@ -439,7 +439,7 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      */
-    prepareUserFileUpload(user_id: string, payload: PrepareUserFileUploadPayload): Promise<PrepareUserFileUpload> {
+    prepareUserFileUpload(user_id: string, payload: PrepareUserFileUploadPayload): Promise<UserFileMultipartUpload> {
       return request.post(`/v2/users/${user_id}/upload_prepare`, payload);
     },
 

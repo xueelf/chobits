@@ -4,30 +4,25 @@ import {
   type BotInfo,
   type CreatePanel,
   type Gateway,
-  type GenerateShareLink,
   type MenuInfo,
   type PanelList,
   type PanelRecord,
+  type ShareLink,
   type UpdateMenu,
   type UpdatePanel,
 } from '#/api/bot';
 import {
   type CreateGroupJoinApprovalStrategy,
   type GroupBotState,
+  type GroupFile,
+  type GroupFileMultipartUpload,
   type GroupInfo,
   type GroupJoinApprovalStrategyList,
-  type PrepareGroupFileUpload,
-  type SendGroupMessage,
+  type GroupJoinApprovalStrategyWhitelist,
+  type GroupMessage,
   type UpdateGroupJoinApprovalStrategy,
-  type UpdateGroupJoinApprovalStrategyWhitelist,
-  type UploadGroupFile,
 } from '#/api/groups';
-import {
-  type PrepareUserFileUpload,
-  type SendUserMessage,
-  type SendUserStreamMessage,
-  type UploadUserFile,
-} from '#/api/users';
+import { type UserFile, type UserFileMultipartUpload, type UserMessage, type UserStreamMessage } from '#/api/users';
 
 export class MockOpenApi {
   public invalidRequestData() {
@@ -82,7 +77,7 @@ export class MockOpenApi {
     };
   }
 
-  public generateShareLink(data: Partial<GenerateShareLink> = {}): GenerateShareLink {
+  public generateShareLink(data: Partial<ShareLink> = {}): ShareLink {
     return {
       retcode: 0,
       msg: 'success',
@@ -162,7 +157,7 @@ export class MockOpenApi {
     };
   }
 
-  public sendUserMessage(data: Partial<SendUserMessage> = {}): SendUserMessage {
+  public sendUserMessage(data: Partial<UserMessage> = {}): UserMessage {
     return {
       id: 'user-message-id',
       timestamp: new Date().toISOString(),
@@ -171,7 +166,7 @@ export class MockOpenApi {
     };
   }
 
-  public sendUserStreamMessage(data: Partial<SendUserStreamMessage> = {}): SendUserStreamMessage {
+  public sendUserStreamMessage(data: Partial<UserStreamMessage> = {}): UserStreamMessage {
     return {
       id: 'user-stream-message-id',
       timestamp: new Date().toISOString(),
@@ -181,7 +176,7 @@ export class MockOpenApi {
     };
   }
 
-  public uploadUserFile(data: Partial<UploadUserFile> = {}): UploadUserFile {
+  public uploadUserFile(data: Partial<UserFile> = {}): UserFile {
     return {
       file_uuid: 'user-file-uuid',
       file_info: 'user-file-info',
@@ -192,7 +187,7 @@ export class MockOpenApi {
     };
   }
 
-  public prepareUserFileUpload(data: Partial<PrepareUserFileUpload> = {}): PrepareUserFileUpload {
+  public prepareUserFileUpload(data: Partial<UserFileMultipartUpload> = {}): UserFileMultipartUpload {
     return {
       upload_id: 'user-upload-id',
       block_size: '5242880',
@@ -212,7 +207,7 @@ export class MockOpenApi {
     };
   }
 
-  public sendGroupMessage(data: Partial<SendGroupMessage> = {}): SendGroupMessage {
+  public sendGroupMessage(data: Partial<GroupMessage> = {}): GroupMessage {
     return {
       id: 'group-message-id',
       timestamp: new Date().toISOString(),
@@ -221,7 +216,7 @@ export class MockOpenApi {
     };
   }
 
-  public uploadGroupFile(data: Partial<UploadGroupFile> = {}): UploadGroupFile {
+  public uploadGroupFile(data: Partial<GroupFile> = {}): GroupFile {
     return {
       file_uuid: 'group-file-uuid',
       file_info: 'group-file-info',
@@ -232,7 +227,7 @@ export class MockOpenApi {
     };
   }
 
-  public prepareGroupFileUpload(data: Partial<PrepareGroupFileUpload> = {}): PrepareGroupFileUpload {
+  public prepareGroupFileUpload(data: Partial<GroupFileMultipartUpload> = {}): GroupFileMultipartUpload {
     return {
       upload_id: 'group-upload-id',
       block_size: '5242880',
@@ -321,8 +316,8 @@ export class MockOpenApi {
   }
 
   public updateGroupJoinApprovalStrategyWhitelist(
-    data: Partial<UpdateGroupJoinApprovalStrategyWhitelist> = {},
-  ): UpdateGroupJoinApprovalStrategyWhitelist {
+    data: Partial<GroupJoinApprovalStrategyWhitelist> = {},
+  ): GroupJoinApprovalStrategyWhitelist {
     return {
       strategy_id: 'strategy-id',
       whitelist_user_count: 0,

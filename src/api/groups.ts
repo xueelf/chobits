@@ -136,7 +136,7 @@ export interface FinishGroupFileUploadPartPayload {
 }
 
 /** 已发送的群聊消息信息。 */
-export interface SendGroupMessage {
+export interface GroupMessage {
   /** 消息 ID，可用于后续撤回。 */
   id: string;
   /** 发送时间，RFC3339 东八区。 */
@@ -146,7 +146,7 @@ export interface SendGroupMessage {
 }
 
 /** 群聊富媒体文件信息。 */
-export interface UploadGroupFile {
+export interface GroupFile {
   /** 文件唯一 ID。 */
   file_uuid: string;
   /**
@@ -182,7 +182,7 @@ export interface UploadGroupFile {
 }
 
 /** 群聊富媒体分片上传信息。 */
-export interface PrepareGroupFileUpload {
+export interface GroupFileMultipartUpload {
   /** 上传任务 ID，后续分片上传和完成合并时需携带。 */
   upload_id: string;
   /** 分块大小（字节），默认 5MB。客户端按此大小对文件分片。 */
@@ -311,7 +311,15 @@ export interface GlobalMuteRule {
   recurring_rules: MuteRecurringRule[];
 }
 
-/** 群成员禁言状态。 */
+/**
+ * 群成员禁言状态。
+ *
+ * @remarks
+ * 官方文档将禁言操作请求项命名为 `SetMemberMuteState`，容易与查询接口返回的 `MemberMuteState` 混淆，
+ * Chobits 将前者命名为 `MemberMuteAction`。
+ *
+ * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html}
+ */
 export interface MemberMuteState {
   /** 被禁言成员的 openid。 */
   member_openid: string;
@@ -332,7 +340,7 @@ export interface GroupMuteState {
 }
 
 /** 群成员禁言操作。 */
-export interface SetMemberMuteState {
+export interface MemberMuteAction {
   /** 操作类型：add 增加禁言，update 更新禁言到期时间，del 解除禁言。 */
   op: 'add' | 'update' | 'del';
   /** 注意：增加/更新时，只能操作普通成员，不能操作群主，管理员，机器人 被禁言成员的 openid。 */
@@ -344,7 +352,7 @@ export interface SetMemberMuteState {
 /** 群成员禁言列表。 */
 export interface SetGroupMemberMutePayload {
   /** 用户禁言列表，每项通过 op 控制增/改/删，单次设置不能超过10个。 */
-  members?: SetMemberMuteState[];
+  members?: MemberMuteAction[];
 }
 
 /** 查询入群自动审批策略列表时使用的分页信息。 */
@@ -462,7 +470,7 @@ export interface UpdateGroupJoinApprovalStrategyWhitelistPayload {
 }
 
 /** 修改后的入群自动审批策略白名单信息。 */
-export interface UpdateGroupJoinApprovalStrategyWhitelist {
+export interface GroupJoinApprovalStrategyWhitelist {
   /** 策略 ID。 */
   strategy_id: string;
   /** 操作后策略当前白名单号码数（估算）。 */
@@ -535,7 +543,7 @@ export default (request: EmbusInstance) => {
      * @throws 50055001 消息发送异常，请稍后重试
      * @throws 50055006 ARK消息发送异常，请稍后重试
      */
-    sendGroupMessage(group_openid: string, payload: SendGroupMessagePayload): Promise<SendGroupMessage> {
+    sendGroupMessage(group_openid: string, payload: SendGroupMessagePayload): Promise<GroupMessage> {
       return request.post(`/v2/groups/${group_openid}/messages`, payload);
     },
 
@@ -619,7 +627,7 @@ export default (request: EmbusInstance) => {
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
      */
-    uploadGroupFile(group_openid: string, payload: UploadGroupFilePayload): Promise<UploadGroupFile> {
+    uploadGroupFile(group_openid: string, payload: UploadGroupFilePayload): Promise<GroupFile> {
       return request.post(`/v2/groups/${group_openid}/files`, payload);
     },
 
@@ -651,7 +659,10 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      */
-    prepareGroupFileUpload(group_id: string, payload: PrepareGroupFileUploadPayload): Promise<PrepareGroupFileUpload> {
+    prepareGroupFileUpload(
+      group_id: string,
+      payload: PrepareGroupFileUploadPayload,
+    ): Promise<GroupFileMultipartUpload> {
       return request.post(`/v2/groups/${group_id}/upload_prepare`, payload);
     },
 
@@ -941,7 +952,7 @@ export default (request: EmbusInstance) => {
     updateGroupJoinApprovalStrategyWhitelist(
       strategy_id: string,
       payload: UpdateGroupJoinApprovalStrategyWhitelistPayload,
-    ): Promise<UpdateGroupJoinApprovalStrategyWhitelist> {
+    ): Promise<GroupJoinApprovalStrategyWhitelist> {
       return request.post(`/v2/groups/join_approval_strategy/${strategy_id}/whitelist_users`, payload);
     },
   };

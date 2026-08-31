@@ -74,7 +74,7 @@ export interface SubscribeMsgTemplateResult {
 }
 
 /** 自动审批通过的扩展信息。 */
-export interface AutoAppproved {
+export interface AutoApproved {
   /** 自动审批通过的策略ID。 */
   strategy_id: string;
 }
@@ -481,7 +481,7 @@ export type DispatchData = {
     /** 用户入群验证方式。 */
     verify_info?: VerifyInfo;
     /** 自动审批通过的扩展信息，只有在下行事件中会携带。 */
-    auto_approved?: AutoAppproved;
+    auto_approved?: AutoApproved;
   };
   FRIEND_ADD: {
     /** 事件发生时间。 */

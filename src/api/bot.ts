@@ -112,7 +112,7 @@ export interface GenerateShareLinkPayload {
 }
 
 /** 分享链接生成结果。 */
-export interface GenerateShareLink {
+export interface ShareLink {
   /**
    * 生成的分享链接。
    *
@@ -424,7 +424,7 @@ export default (request: EmbusInstance) => {
      * @throws 10044 从协议头获取uin失败
      * @throws 11004 生成分享ARK失败
      */
-    generateShareLink(payload: GenerateShareLinkPayload): Promise<GenerateShareLink> {
+    generateShareLink(payload: GenerateShareLinkPayload): Promise<ShareLink> {
       return request.post('/v2/generate_url_link', payload);
     },
 
