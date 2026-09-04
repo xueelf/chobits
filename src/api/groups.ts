@@ -47,7 +47,14 @@ export interface GroupCardMessage {
   msg_seq?: number;
   /** 引用回复。填写后以引用形式展示，关联上下文。 */
   message_reference?: MessageReference;
-  /** 指明发送消息为互动召回消息，与 msg_id，event_id 互斥使用。 */
+  /**
+   * 指明发送消息为互动召回消息，与 msg_id，event_id 互斥使用。
+   *
+   * @remarks
+   * 当前群聊消息接口已移除该字段。
+   *
+   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
+   */
   is_wakeup?: boolean;
 }
 
@@ -223,6 +230,82 @@ export interface GroupBotState {
   member_role: 'member' | 'owner' | 'admin';
 }
 
+/** 群成员。 */
+export interface Member {
+  /** 成员 OpenID */
+  member_openid: string;
+  /** 用户昵称 */
+  username: string;
+  /** 群成员角色 member-普通成员，owner-群主，admin-管理员 */
+  member_role: 'member' | 'owner' | 'admin';
+  /** 是否机器人 */
+  bot: boolean;
+  /** 入群时间戳（RFC3339格式） */
+  joined_at: string;
+  /** 用户在应用/开放平台下的统一标识（如有） */
+  union_openid: string;
+}
+
+/** 获取群成员列表时使用的分页信息。 */
+export interface GetGroupMemberListPayload {
+  /** 分页游标，首次请求可不传或传空串；后续传上一次响应的 next_cursor */
+  cursor?: string;
+}
+
+/** 群成员列表。 */
+export interface GroupMemberList {
+  /** 成员列表，每次最多返回 30 条 */
+  members: Member[];
+  /** 下一页游标，空串表示已到末页 */
+  next_cursor: string;
+}
+
+/** 批量移除群成员时使用的信息。 */
+export interface RemoveGroupMembersPayload {
+  /** 需要移除的成员 member_openid 列表，单次最多 20 个 */
+  member_openids: string[];
+  /** 是否同时加入群黑名单，默认 false */
+  add_to_member_blacklist?: boolean;
+}
+
+/** 查询群黑名单时使用的分页信息。 */
+export interface GetGroupMemberBlacklistPayload {
+  /** 分页游标，首次请求可不传或传空串 */
+  cursor?: string;
+  /** 单页数量，默认 20，最大 100 */
+  limit?: number;
+}
+
+/** 群黑名单用户。 */
+export interface BlacklistUser {
+  /** 用户在应用/开放平台下的统一标识（如有） */
+  union_openid: string;
+  /** 用户 openid */
+  member_openid: string;
+  /** 用户昵称 */
+  username: string;
+  /** 拉黑时间戳（RFC3339 格式） */
+  banned_at: string;
+  /** 是否为机器人账号 */
+  bot: boolean;
+}
+
+/** 群黑名单。 */
+export interface GroupMemberBlacklist {
+  /** 黑名单用户列表 */
+  users: BlacklistUser[];
+  /** 下一页游标，空串表示已到末页 */
+  next_cursor: string;
+}
+
+/** 操作群黑名单时使用的信息。 */
+export interface UpdateGroupMemberBlacklistPayload {
+  /** 操作类型：del 移出黑名单, add 加入黑名单（目标成员在群中时无法加入黑名单） */
+  op: 'del' | 'add';
+  /** 目标成员 openid 列表，单次最多 20 个 */
+  member_openids: string[];
+}
+
 /** 入群申请的审批信息。 */
 export interface ReviewGroupJoinRequestPayload {
   /** 审批动作：approve 通过，decline 拒绝。 */
@@ -239,7 +322,7 @@ export interface ReviewGroupJoinRequestPayload {
 export interface GetGroupJoinRequestListPayload {
   /** 分页游标，首次请求可不传或传空串。 */
   cursor?: string;
-  /** 单页数量，默认 20，最大 100。 */
+  /** 单页数量，默认 20，最大 50。 */
   limit?: number;
 }
 
@@ -351,7 +434,7 @@ export interface MemberMuteAction {
 
 /** 群成员禁言列表。 */
 export interface SetGroupMemberMutePayload {
-  /** 用户禁言列表，每项通过 op 控制增/改/删，单次设置不能超过10个。 */
+  /** 用户禁言列表；每项通过 op 控制增/改/删， 单次设置不能超过 20 个 */
   members?: MemberMuteAction[];
 }
 
@@ -359,7 +442,7 @@ export interface SetGroupMemberMutePayload {
 export interface GetGroupJoinApprovalStrategyListPayload {
   /** 分页游标，首次请求可不传或传空串。 */
   cursor?: string;
-  /** 单页数量，默认 20，最大 100。 */
+  /** 单页数量，默认 20，最大 50。 */
   limit?: number;
 }
 
@@ -746,6 +829,127 @@ export default (request: EmbusInstance) => {
      */
     getGroupBotState(group_openid: string): Promise<GroupBotState> {
       return request.get(`/v2/groups/${group_openid}/bot_state`);
+    },
+
+    /**
+     * 获取群成员列表
+     *
+     * 获取群成员列表，每次最多返回 30 条，支持分页。
+     *
+     * 该能力正在内邀接入中，敬请期待
+     *
+     * 接口频率限制：60 QPM
+     *
+     * @param group_openid 群OpenID
+     * @returns
+     *
+     * - members：成员列表，每次最多返回 30 条
+     * - next_cursor：下一页游标，空串表示已到末页
+     * @throws 11253 应用无接口访问权限
+     */
+    getGroupMemberList(group_openid: string, payload: GetGroupMemberListPayload = {}): Promise<GroupMemberList> {
+      return request.get(`/v2/groups/${group_openid}/members`, payload);
+    },
+
+    /**
+     * 获取群成员信息
+     *
+     * 获取指定群成员的详细信息。
+     *
+     * 该能力正在内邀接入中，敬请期待
+     *
+     * 接口频率限制：30 QPM
+     *
+     * @param group_openid 群OpenID
+     * @param member_openid 成员OpenID
+     * @returns
+     *
+     * - member_openid：成员 OpenID
+     * - username：用户昵称
+     * - member_role：群成员角色 member-普通成员，owner-群主，admin-管理员
+     * - bot：是否机器人
+     * - joined_at：入群时间戳（RFC3339格式）
+     * - union_openid：用户在应用/开放平台下的统一标识（如有）
+     * @throws 11253 应用无接口访问权限
+     */
+    getGroupMemberInfo(group_openid: string, member_openid: string): Promise<Member> {
+      return request.get(`/v2/groups/${group_openid}/members/${member_openid}`);
+    },
+
+    /**
+     * 群成员批量移除
+     *
+     * 批量移除群成员，单次最多 20 个，可选择同时加入黑名单。
+     *
+     * 该能力正在内邀接入中，敬请期待
+     *
+     * 接口频率限制：30 QPM
+     *
+     * @param group_openid 群OpenID
+     * @returns
+     *
+     * - remove_members_result：成功时返回 success
+     * - add_to_member_blacklist_fail_openids：拉黑失败的 openid
+     * @throws 11253 应用无接口访问权限
+     */
+    removeGroupMembers(
+      group_openid: string,
+      payload: RemoveGroupMembersPayload,
+    ): Promise<{
+      /** 成功时返回 success */
+      remove_members_result: string;
+      /** 拉黑失败的 openid */
+      add_to_member_blacklist_fail_openids: string[];
+    }> {
+      return request.post(`/v2/groups/${group_openid}/batch_remove_members`, payload);
+    },
+
+    /**
+     * 群黑名单查询
+     *
+     * 查询群黑名单列表，支持分页。
+     *
+     * 该能力正在内邀接入中，敬请期待
+     *
+     * 接口频率限制：30 QPM
+     *
+     * @param group_openid 群OpenID
+     * @returns
+     *
+     * - users：黑名单用户列表
+     * - next_cursor：下一页游标，空串表示已到末页
+     * @throws 11253 应用无接口访问权限
+     */
+    getGroupMemberBlacklist(
+      group_openid: string,
+      payload: GetGroupMemberBlacklistPayload = {},
+    ): Promise<GroupMemberBlacklist> {
+      return request.get(`/v2/groups/${group_openid}/member_blacklist`, payload);
+    },
+
+    /**
+     * 群黑名单操作
+     *
+     * 群黑名单操作，只有在目标用户不在群中时才能加入群黑名单。
+     *
+     * 该能力正在内邀接入中，敬请期待
+     *
+     * 接口频率限制：60 QPM
+     *
+     * @param group_openid 群OpenID
+     * @returns
+     *
+     * - fail_openids：op=add 时返回拉黑失败的 openid 列表；op=del 时同义
+     * @throws 11253 应用无接口访问权限
+     */
+    updateGroupMemberBlacklist(
+      group_openid: string,
+      payload: UpdateGroupMemberBlacklistPayload,
+    ): Promise<{
+      /** op=add 时返回拉黑失败的 openid 列表；op=del 时同义 */
+      fail_openids: string[];
+    }> {
+      return request.post(`/v2/groups/${group_openid}/member_blacklist`, payload);
     },
 
     /**

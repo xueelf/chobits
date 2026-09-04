@@ -41,6 +41,7 @@ export type {
   MessageMarkdown,
   MessageMarkdownParams,
   MessageReference,
+  Modal,
   Permission,
   RenderData,
   ReviewQA,

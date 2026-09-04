@@ -34,11 +34,13 @@ enum Intent {
    * 群成员变更事件。
    *
    * @remarks
-   * 官方 Intents 总表未列出该类型，`GROUP_MEMBER_ADD` 和 `GROUP_MEMBER_REMOVE` 事件属于 `1 << 24`。
+   * 官方 Intents 总表未列出 `GROUP_MEMBER (1 << 24)`，`GROUP_MEMBER_ADD`、`GROUP_MEMBER_REMOVE`
+   * 和 `GROUP_JOIN_REQUEST` 事件页均将对应 Intent 写为 `1 << 24`。
    *
    * {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/payload.html}
    * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html}
    * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html}
+   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_join_request.html}
    */
   GROUP_MEMBER = 1 << 24,
   /** 群聊与私聊事件。 */

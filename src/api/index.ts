@@ -88,6 +88,8 @@ export interface Button {
   render_data?: RenderData;
   /** 按钮点击行为。 */
   action?: Action;
+  /** 分组ID, 同一分组内有一个按钮操作后, 其它按钮则变灰不可点击 注意:只有当action.type = 1 时才有效 */
+  group_id?: string;
 }
 
 /** 按钮的文字和样式。 */
@@ -96,8 +98,15 @@ export interface RenderData {
   label?: string;
   /** 点击后文字，不传则保持不变。 */
   visited_label?: string;
-  /** 0=灰线框, 1=蓝线框, 2=白字, 3=蓝底白字。 */
-  style?: 0 | 1 | 2 | 3;
+  /**
+   * 0：灰色线框，1：蓝色线框 3: 白色背景+红色字体, 4:蓝色背景+白色字体
+   *
+   * @remarks
+   * 官方文档此前将 `2` 描述为「白字」，当前已移除该取值说明。
+   *
+   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
+   */
+  style?: 0 | 1 | 2 | 3 | 4;
 }
 
 /** 按钮被点击时执行的操作。 */
@@ -136,6 +145,18 @@ export interface Action {
    * 仅支持手机端版本 8983+ 的单聊场景，桌面端不支持。
    */
   anchor?: 1;
+  /** 用户点击二次确认操作 */
+  modal?: Modal;
+}
+
+/** 用户点击操作按钮时显示的二次确认信息。 */
+export interface Modal {
+  /** 二次确认的提示文本,如果不为空则会进行二次确认. 注意:最多40个字符, 不能有URL */
+  content?: string;
+  /** 二次确认提示确认按钮中展示的文字,可以为空, 默认为"确认" 注意:最多4个字符 */
+  confirm_text?: string;
+  /** 二次确认提示取消按钮中的文字,可以为空,默认为"取消" 注意:最多4个字符 */
+  cancel_text?: string;
 }
 
 /** 按钮的操作权限。 */
@@ -146,15 +167,7 @@ export interface Permission {
   specify_user_ids?: string[];
 }
 
-/**
- * 富媒体消息使用的文件信息。
- *
- * @remarks
- * 单聊消息接口将 file_info 来源写为群聊上传接口，富媒体文档则说明单聊和群聊上传的文件不能跨场景使用。
- *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html}
- */
+/** 富媒体消息使用的文件信息。 */
 export interface MediaInfo {
   /** 文件数据。来自文件上传接口返回值。 */
   file_info?: string;
@@ -263,7 +276,15 @@ interface MessagePayload {
   msg_seq?: number;
   /** 引用回复。填写后以引用形式展示，关联上下文。 */
   message_reference?: MessageReference;
-  /** 指明发送消息为互动召回消息，与 msg_id，event_id 互斥使用。 */
+  /**
+   * 指明发送消息为互动召回消息，与 msg_id，event_id 互斥使用。
+   *
+   * @remarks
+   * 当前群聊消息接口已移除该字段，私聊消息接口仍然保留。
+   *
+   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
+   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
+   */
   is_wakeup?: boolean;
   /**
    * @deprecated 暂不支持。当前单聊和群聊消息接口已经移除该字段。
