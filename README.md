@@ -329,6 +329,11 @@ QQ 实际推送的部分事件与开发文档中的说明并不一致。以下�
 | `finishGroupFileUploadPart`                | 完成群聊文件分片上传       | `POST /v2/groups/{group_id}/upload_part_finish`                        |
 | `getGroupInfo`                             | 获取群资料                 | `GET /v2/groups/{group_openid}/info`                                   |
 | `getGroupBotState`                         | 获取机器人在群内的状态     | `GET /v2/groups/{group_openid}/bot_state`                              |
+| `getGroupMemberList`                       | 获取群成员列表             | `GET /v2/groups/{group_openid}/members`                                |
+| `getGroupMemberInfo`                       | 获取群成员信息             | `GET /v2/groups/{group_openid}/members/{member_openid}`                |
+| `removeGroupMembers`                       | 批量移除群成员             | `POST /v2/groups/{group_openid}/batch_remove_members`                  |
+| `getGroupMemberBlacklist`                  | 查询群黑名单               | `GET /v2/groups/{group_openid}/member_blacklist`                       |
+| `updateGroupMemberBlacklist`               | 操作群黑名单               | `POST /v2/groups/{group_openid}/member_blacklist`                      |
 | `reviewGroupJoinRequest`                   | 审批入群申请               | `POST /v2/groups/{group_openid}/approval_join_request/{member_openid}` |
 | `getGroupJoinRequestList`                  | 拉取入群申请列表           | `GET /v2/groups/{group_openid}/join_request_list`                      |
 | `getGroupMuteState`                        | 查询群禁言状态             | `GET /v2/groups/{group_openid}/restrict_chat_setting`                  |
