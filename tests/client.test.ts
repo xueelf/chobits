@@ -223,12 +223,28 @@ test('消息类型与内容字段', () => {
       content: 'Markdown',
       force_verify_image_resource: true,
     },
+    keyboard: {
+      content: {
+        rows: [
+          {
+            buttons: [
+              {
+                group_id: 'actions',
+                render_data: { label: '确认', style: 4 },
+                action: { type: 1, data: 'confirm', modal: { content: '确认操作吗？' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
   };
   // @ts-expect-error 官方没有定义 msg_type=1 的图片消息。
   const imageMessage: SendGroupMessagePayload = { msg_type: 1, image: 'https://example.com/image.png' };
 
   expect(message.msg_type).toBe(2);
   expect(markdown.markdown.force_verify_image_resource).toBe(true);
+  expect(markdown.keyboard?.content?.rows?.[0]?.buttons?.[0]?.action?.modal?.content).toBe('确认操作吗？');
   expect(imageMessage).toBeDefined();
 });
 
@@ -504,6 +520,47 @@ test('群信息', async () => {
     ['GET', 'https://api.bot.qq.com/v2/groups/group/info'],
     ['GET', 'https://api.bot.qq.com/v2/groups/group/bot_state'],
   ]);
+});
+
+test('群成员管理接口', async () => {
+  const api = new MockOpenApi();
+  const requests: Request[] = [];
+
+  globalThis.fetch = mockFetch(async (input, init) => {
+    const request = toRequest(input, init);
+
+    if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    requests.push(request);
+    return Response.json({});
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
+
+  await client.getGroupMemberList('group', { cursor: 'cursor' });
+  await client.getGroupMemberInfo('group', 'member');
+  await client.removeGroupMembers('group', {
+    member_openids: ['member'],
+    add_to_member_blacklist: true,
+  });
+  await client.getGroupMemberBlacklist('group', { cursor: 'cursor', limit: 20 });
+  await client.updateGroupMemberBlacklist('group', { op: 'add', member_openids: ['member'] });
+
+  expect(requests.map(request => [request.method, request.url])).toEqual([
+    ['GET', 'https://api.bot.qq.com/v2/groups/group/members?cursor=cursor'],
+    ['GET', 'https://api.bot.qq.com/v2/groups/group/members/member'],
+    ['POST', 'https://api.bot.qq.com/v2/groups/group/batch_remove_members'],
+    ['GET', 'https://api.bot.qq.com/v2/groups/group/member_blacklist?cursor=cursor&limit=20'],
+    ['POST', 'https://api.bot.qq.com/v2/groups/group/member_blacklist'],
+  ]);
+  const [, , removeRequest, , blacklistRequest] = requests;
+
+  expect(await readRequestBody(removeRequest)).toEqual({
+    member_openids: ['member'],
+    add_to_member_blacklist: true,
+  });
+  expect(await readRequestBody(blacklistRequest)).toEqual({ op: 'add', member_openids: ['member'] });
 });
 
 test('撤回、互动与分享', async () => {
