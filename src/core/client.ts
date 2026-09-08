@@ -176,16 +176,6 @@ type ClientEvents<CustomEvents extends Record<keyof CustomEvents, unknown[]>> = 
       : never;
 };
 
-/** 累积中间件 State 类型的客户端。 */
-type ClientWithState<CustomEvents extends Record<keyof CustomEvents, unknown[]>, State extends object> = Omit<
-  Client<CustomEvents>,
-  'use'
-> & {
-  use<AddedState extends object = Record<never, never>>(
-    ...middlewares: Middleware<State & AddedState>[]
-  ): ClientWithState<CustomEvents, State & AddedState>;
-};
-
 /** QQ 机器人客户端。 */
 export interface Client<
   CustomEvents extends Record<keyof CustomEvents, unknown[]> = Record<never, never>,
@@ -207,9 +197,11 @@ export interface ClientOptions {
  * QQ 机器人客户端。
  *
  * @typeParam CustomEvents - 自定义事件及其监听器参数。
+ * @typeParam State - 通过 `use()` 逐步累积的中间件共享状态。
  */
 export class Client<
   CustomEvents extends Record<keyof CustomEvents, unknown[]> = Record<never, never>,
+  State extends object = Record<never, never>,
 > extends EventEmitter<ClientEvents<CustomEvents>> {
   private readonly middlewares: Middleware[] = [];
   private readonly composedMiddleware = compose(this.middlewares);
@@ -283,11 +275,11 @@ export class Client<
    * @returns 当前客户端，返回类型包含累积后的共享状态。
    */
   public use<AddedState extends object = Record<never, never>>(
-    ...middlewares: Middleware<AddedState>[]
-  ): ClientWithState<CustomEvents, AddedState> {
+    ...middlewares: Middleware<State & AddedState>[]
+  ): Client<CustomEvents, State & AddedState> {
     this.middlewares.push(...(<Middleware[]>middlewares));
 
-    return <ClientWithState<CustomEvents, AddedState>>this;
+    return this;
   }
 
   /**

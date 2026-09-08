@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { expect, expectTypeOf, test } from 'bun:test';
 
 import { type Dispatch, type DispatchData, OpCode } from '#/core/payload';
 import { type Logger, Client } from '#/index';
@@ -557,6 +557,7 @@ test('中间件执行顺序', async () => {
   });
   const calls: string[] = [];
   const completed = Promise.withResolvers<void>();
+  const ready = () => calls.push('READY');
 
   const configuredClient = client
     .use<DebugState>(async (context, next) => {
@@ -566,7 +567,12 @@ test('中间件执行顺序', async () => {
       calls.push(`离开 ${context.payload.t}`);
       completed.resolve();
     })
+    .on('READY', ready)
+    .off('READY', ready)
     .use<EventState>(async (context, next) => {
+      expectTypeOf(context.state.source).toEqualTypeOf<string>();
+      expectTypeOf(context.state.customEvent).toEqualTypeOf<EventState['customEvent']>();
+
       if (context.payload.t === 'C2C_MESSAGE_CREATE') {
         context.state.customEvent = {
           name: 'message.private',
@@ -581,7 +587,10 @@ test('中间件执行顺序', async () => {
       await next();
     });
 
+  expectTypeOf(configuredClient).toMatchTypeOf<Client<CustomEvents>>();
+  expect(configuredClient).toBe(client);
   configuredClient.on('message.private', event => {
+    expectTypeOf(event).toEqualTypeOf<CustomEvents['message.private'][0]>();
     calls.push(`自定义事件 ${event.content} ${event.source}`);
   });
   configuredClient.on('C2C_MESSAGE_CREATE', (...args) => {
