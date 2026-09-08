@@ -20,7 +20,7 @@ export interface AccessToken {
    * @remarks
    * 官方文档字段表将 `expires_in` 定义为 `number`，响应示例和实际响应均为 `string`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html}
    */
   expires_in: string;
 }
@@ -31,7 +31,7 @@ export interface AccessToken {
  * @remarks
  * 官方文档仅列出错误码和错误信息，未定义错误响应结构。实际响应返回 `code` 和 `message`。
  *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html}
  */
 export interface AccessTokenError {
   /** 错误码。 */
@@ -52,7 +52,7 @@ export interface Gateway {
  * @remarks
  * 接口说明称 union_openid 和 union_user_account 仅在单独拉取 member 时提供，文档同一页面的字段表和示例仍包含这两个字段。
  *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
  */
 export interface BotInfo {
   /** 用户 ID。 */
@@ -67,7 +67,7 @@ export interface BotInfo {
    * @remarks
    * 实际响应未返回 `bot`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
    */
   bot?: boolean;
   /** 跨应用统一用户 OpenID（需特殊申请）。 */
@@ -80,7 +80,7 @@ export interface BotInfo {
    * @remarks
    * 官方文档的响应字段表未收录 `share_url`，文档同一页面的响应示例和实际响应均返回该字段。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
    */
   share_url: string;
   /**
@@ -89,12 +89,12 @@ export interface BotInfo {
    * @remarks
    * 官方文档的响应字段表未收录 `welcome_msg`，文档同一页面的响应示例和实际响应均返回该字段。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
    */
   welcome_msg: string;
 }
 
-/** 生成机器人分享链接时使用的参数。 */
+/** 分享链接的跳转 URL 和 callback_data。 */
 export interface GenerateShareLinkPayload {
   /**
    * 用户通过该链接添加机器人时，callback_data 参数会透传给开发者。
@@ -104,14 +104,14 @@ export interface GenerateShareLinkPayload {
    * @remarks
    * 官方文档的请求体字段表未收录 `callback_data`，接口说明、请求示例和实际请求仍使用该字段。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
   callback_data?: string;
   /** 需要跳转的 URL。 */
   url_link?: string;
 }
 
-/** 分享链接生成结果。 */
+/** 生成的分享链接。 */
 export interface ShareLink {
   /**
    * 生成的分享链接。
@@ -119,7 +119,7 @@ export interface ShareLink {
    * @remarks
    * 实际响应未返回 `url_link`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
   url_link?: string;
   /**
@@ -128,7 +128,7 @@ export interface ShareLink {
    * @remarks
    * 该字段未被文档收录，实际返回 `0`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
   retcode: number;
   /**
@@ -137,7 +137,7 @@ export interface ShareLink {
    * @remarks
    * 该字段未被文档收录，实际返回 `success`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
   msg: string;
   /**
@@ -146,7 +146,7 @@ export interface ShareLink {
    * @remarks
    * 该字段未被文档收录。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
   data: {
     /**
@@ -155,7 +155,7 @@ export interface ShareLink {
      * @remarks
      * 该字段未被文档收录，实际返回生成的分享链接。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
      */
     url: string;
   };
@@ -167,7 +167,7 @@ export interface Menu {
   items?: MenuItem[];
 }
 
-/** 当前生效的自定义菜单。 */
+/** 当前生效的菜单配置。 */
 export interface MenuInfo {
   /** 当前菜单的版本号。 */
   version: number;
@@ -175,7 +175,7 @@ export interface MenuInfo {
   menu: Menu;
 }
 
-/** 自定义菜单项。 */
+/** 菜单项。 */
 export interface MenuItem {
   /** 按钮名称，最多 10 个字符，一个中文汉字算2个字符。 */
   name?: string;
@@ -191,7 +191,7 @@ export interface MenuItem {
   switch?: Switch;
 }
 
-/** 自定义菜单的子菜单项。 */
+/** 子菜单。 */
 export interface SubMenuItem {
   /** 按钮名称，最多 14 个字符，约7个中文汉字。 */
   name?: string;
@@ -203,7 +203,7 @@ export interface SubMenuItem {
   link?: string;
 }
 
-/** 自定义菜单的开关配置。 */
+/** 开关配置。 */
 export interface Switch {
   /**
    * 开关唯一标识。用户切换开关状态后会发送一条消息，消息内容中会携带此字段。
@@ -215,19 +215,19 @@ export interface Switch {
   default?: boolean;
 }
 
-/** 修改自定义菜单时使用的参数。 */
+/** 菜单配置。 */
 export interface UpdateMenuPayload {
   /** 菜单配置。传入后会覆盖原有的完整菜单配置。 */
   menu?: Menu;
 }
 
-/** 自定义菜单修改结果。 */
+/** 本次修改后的菜单版本号。 */
 export interface UpdateMenu {
   /** 本次修改后的菜单版本号，可用于后续判断配置是否有变更。 */
   version: number;
 }
 
-/** 指令面板配置。 */
+/** 面板配置内容，定义面板中展示的指令和链接项。 */
 export interface Panel {
   /** 面板元素列表，定义面板中展示的指令或链接项，一个指令面板里最多配置 20 个面板元素。 */
   items?: PanelItem[];
@@ -237,7 +237,7 @@ export interface Panel {
   version?: number;
 }
 
-/** 指令面板元素。 */
+/** 面板元素。 */
 export interface PanelItem {
   /** 元素名称。type=command 时用户点击后该内容会填入聊天输入框；type=link 时仅用于面板展示 最多 14 个字符，约 7 个中文汉字。 */
   name?: string;
@@ -245,13 +245,13 @@ export interface PanelItem {
   desc?: string;
   /** 元素类型，可选值：command（指令）、link（链接跳转）。 */
   type?: 'command' | 'link';
-  /** 是否仅管理员可操作。true 时仅频道/群管理员可点击，false 时所有用户可点击。 */
+  /** 是否仅管理员可操作。true 时仅群管理员可点击，false 时所有用户可点击。 */
   only_admin?: boolean;
   /** 跳转链接 URL，仅 type=link 时有效。用户点击后在浏览器中打开该地址。 */
   link?: string;
 }
 
-/** 指令面板记录。 */
+/** 面板记录。 */
 export interface PanelRecord {
   /** 面板 ID。 */
   panel_id: string;
@@ -273,7 +273,7 @@ export interface PanelRecord {
   group_openids?: string[];
 }
 
-/** 查询指令面板列表时使用的参数。 */
+/** 指令面板的生效场景、分页游标和每页拉取条数。 */
 export interface GetPanelListPayload {
   /** 生效场景。 */
   scope: 'c2c' | 'group';
@@ -293,14 +293,14 @@ export interface PanelList {
    * @remarks
    * 实际响应在 `is_end` 为 `true` 时未返回 `next_cursor`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.get.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.get.html}
    */
   next_cursor?: string;
   /** 是否已拉取到最后一页。true 表示无更多数据。 */
   is_end: boolean;
 }
 
-/** 创建指令面板时使用的参数。 */
+/** 面板配置内容、生效场景和作用范围。 */
 export interface CreatePanelPayload {
   /** 生效场景。 */
   scope: 'c2c' | 'group';
@@ -314,25 +314,25 @@ export interface CreatePanelPayload {
   panel: Panel;
 }
 
-/** 指令面板创建结果。 */
+/** 新创建的面板 ID。 */
 export interface CreatePanel {
   /** 新创建的面板 ID。后续修改、删除、查询详情均需使用此 ID。 */
   panel_id: string;
 }
 
-/** 修改指令面板时使用的参数。 */
+/** 面板配置内容。 */
 export interface UpdatePanelPayload {
   /** 面板配置内容。传入后会覆盖原有的面板元素列表和备注，不影响已关联的用户/群列表。 */
   panel: Panel;
 }
 
-/** 指令面板修改结果。 */
+/** 本次修改后的面板版本号。 */
 export interface UpdatePanel {
   /** 本次修改后的面板版本号。 */
   version: number;
 }
 
-/** 修改指令面板关联对象时使用的参数。 */
+/** 关联对象的操作类型，以及用户或群 openid 列表。 */
 export interface UpdatePanelTargetPayload {
   /** 操作类型，可选值：add（添加关联对象）、del（移除关联对象）。 */
   op: 'add' | 'del';
@@ -345,14 +345,19 @@ export interface UpdatePanelTargetPayload {
 /**
  * 获取 access_token
  *
+ * 错误码
+ *
+ * - 100001 Too many requests
+ * - 100007 appid invalid
+ * - 100016 invalid appid or secret
+ * - 10004 机器人不存在
+ *
  * @returns
  *
  * - access_token：获取到的凭证。
  * - expires_in：凭证有效时间，单位：秒。目前是 7200 秒之内的值。
- * @throws 100001 Too many requests
- * @throws 100007 appid invalid
- * @throws 100016 invalid appid or secret
- * @throws 10004 机器人不存在
+ *
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html}
  */
 export const getAccessToken = async (payload: GetAccessTokenPayload): Promise<AccessToken | AccessTokenError> => {
   const response = await embus<AccessToken | AccessTokenError>({
@@ -375,6 +380,8 @@ export default (request: EmbusInstance) => {
      * 接口频率限制：2 QPM / 10 QPM burst
      *
      * @returns WebSocket 连接地址
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/gateway.get.html}
      */
     getGateway(): Promise<Gateway> {
       return request.get('/gateway');
@@ -399,6 +406,8 @@ export default (request: EmbusInstance) => {
      * - bot：是否为机器人
      * - union_openid：跨应用统一用户 OpenID（需特殊申请）
      * - union_user_account：跨应用统一用户账号（需特殊申请）
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/users_me.get.html}
      */
     getBotInfo(): Promise<BotInfo> {
       return request.get('/users/@me');
@@ -423,6 +432,8 @@ export default (request: EmbusInstance) => {
      * @throws 10003 查询机器人信息异常
      * @throws 10044 从协议头获取uin失败
      * @throws 11004 生成分享ARK失败
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
      */
     generateShareLink(payload: GenerateShareLinkPayload): Promise<ShareLink> {
       return request.post('/v2/generate_url_link', payload);
@@ -439,6 +450,8 @@ export default (request: EmbusInstance) => {
      *
      * - version：当前菜单的版本号
      * - menu：当前生效的菜单配置。未设置过菜单时该字段为空
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_menu.get.html}
      */
     getMenu(): Promise<MenuInfo> {
       return request.get('/v2/menu');
@@ -457,6 +470,8 @@ export default (request: EmbusInstance) => {
      * @throws 40030014 菜单类型不合法
      * @throws 40030016 必填字段缺失
      * @throws 40030020 内容存在安全风险，请修改后重试
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_menu.put.html}
      */
     updateMenu(payload: UpdateMenuPayload): Promise<UpdateMenu> {
       return request.put('/v2/menu', payload);
@@ -469,9 +484,6 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @remarks
-     * Chobits 只支持私聊和群聊，因此 `scope` 仅提供 `c2c` 和 `group`。
-     *
      * @returns
      *
      * - records：面板记录列表，按设置时间倒序排列
@@ -479,6 +491,8 @@ export default (request: EmbusInstance) => {
      * - is_end：是否已拉取到最后一页。true 表示无更多数据
      * @throws 40030001 参数错误
      * @throws 40030011 生效场景不合法
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.get.html}
      */
     getPanelList(payload: GetPanelListPayload): Promise<PanelList> {
       return request.get('/v2/panels', payload);
@@ -493,9 +507,6 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：10 QPM
      *
-     * @remarks
-     * Chobits 只支持私聊和群聊，因此 `scope` 仅提供 `c2c` 和 `group`。
-     *
      * @returns panel_id：新创建的面板 ID。后续修改、删除、查询详情均需使用此 ID
      * @throws 40030008 URL 格式错误
      * @throws 40030009 指令面板操作进行中，请稍后重试
@@ -507,6 +518,8 @@ export default (request: EmbusInstance) => {
      * @throws 40030018 当前场景不支持此操作
      * @throws 40030020 内容存在安全风险，请修改后重试
      * @throws 40030021 全局面板不支持添加指定关联对象
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels.post.html}
      */
     createPanel(payload: CreatePanelPayload): Promise<CreatePanel> {
       return request.post('/v2/panels', payload);
@@ -519,8 +532,10 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param panel_id 面板 ID
+     * @param panel_id - 面板 ID
      * @throws 40030006 指令面板不存在
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.get.html}
      */
     getPanel(panel_id: string): Promise<PanelRecord> {
       return request.get(`/v2/panels/${panel_id}`);
@@ -533,7 +548,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：10 QPM
      *
-     * @param panel_id 面板 ID
+     * @param panel_id - 面板 ID
      * @returns version：本次修改后的面板版本号
      * @throws 40030006 指令面板不存在
      * @throws 40030008 URL 格式错误
@@ -544,6 +559,8 @@ export default (request: EmbusInstance) => {
      * @throws 40030018 当前场景不支持此操作
      * @throws 40030020 内容存在安全风险，请修改后重试
      * @throws 40030021 全局面板不支持添加指定关联对象
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.put.html}
      */
     updatePanel(panel_id: string, payload: UpdatePanelPayload): Promise<UpdatePanel> {
       return request.put(`/v2/panels/${panel_id}`, payload);
@@ -559,10 +576,10 @@ export default (request: EmbusInstance) => {
      * @remarks
      * 官方文档将响应标记为「无」，文档同一页面的响应示例和实际响应均为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.delete.html}
-     *
-     * @param panel_id 面板 ID
+     * @param panel_id - 面板 ID
      * @throws 40030006 指令面板不存在
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id.delete.html}
      */
     deletePanel(panel_id: string): Promise<Record<string, never>> {
       return request.delete(`/v2/panels/${panel_id}`);
@@ -571,22 +588,20 @@ export default (request: EmbusInstance) => {
     /**
      * 修改指令面板关联对象
      *
-     * 对指定指令面板关联的用户或群进行添加或删除操作。c2c 场景操作用户 openid，group 场景操作群 openid。channel 和 dm 场景为全局配置，不支持此操作
+     * 对指定指令面板关联的用户或群进行添加或删除操作。c2c 场景操作用户 openid，group 场景操作群 openid。
      *
      * 接口频率限制：60 QPM
      *
      * @remarks
      * 官方文档将响应标记为「无」，文档同一页面的响应示例和实际响应均为 `{}`。
      *
-     * Chobits 只支持私聊和群聊。
-     *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id_target.put.html}
-     *
-     * @param panel_id 面板 ID
+     * @param panel_id - 面板 ID
      * @throws 40030013 超出数量限制
      * @throws 40030017 操作类型不合法
      * @throws 40030018 当前场景不支持此操作
      * @throws 40030021 全局面板不支持添加指定关联对象
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_panels_panel_id_target.put.html}
      */
     updatePanelTarget(panel_id: string, payload: UpdatePanelTargetPayload): Promise<Record<string, never>> {
       return request.put(`/v2/panels/${panel_id}/target`, payload);

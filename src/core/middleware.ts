@@ -6,23 +6,24 @@ import { type ReadonlyDeep } from '#/utils/object';
  *
  * 同一事件的所有中间件共享一个 Context。
  *
- * @typeParam State 中间件共享状态。
+ * @typeParam State - 中间件共享状态。
  */
 export interface Context<State extends object = Record<string, unknown>> {
-  /** 深层只读并冻结的原始 Dispatch Payload。 */
+  /** 深层只读的原始 Dispatch Payload，运行时也会深度冻结。 */
   readonly payload: ReadonlyDeep<Dispatch>;
-  /** 事件共享状态。 */
+  /** 中间件在当前事件中共享的可写数据。 */
   readonly state: State;
 }
 
 /**
  * 事件中间件。
  *
- * 调用 `next()` 后继续执行后续中间件与事件监听器。不调用 `next()` 时，当前事件不再继续分发。
+ * `await next()` 等待后续中间件与事件监听器完成，再执行当前中间件的剩余逻辑。
+ * 不调用 `next()` 时，当前事件不再继续分发。
  *
- * @typeParam State 中间件共享状态。
- * @param context 事件上下文。
- * @param next 继续执行后续中间件与事件监听器。
+ * @typeParam State - 中间件共享状态。
+ * @param context - 事件上下文。
+ * @param next - 继续执行后续中间件与事件监听器。
  */
 export type Middleware<State extends object = Record<string, unknown>> = (
   context: Context<State>,
@@ -32,7 +33,7 @@ export type Middleware<State extends object = Record<string, unknown>> = (
 /**
  * 组合事件中间件，并确保每个中间件只能调用一次 `next()`。
  *
- * @param middlewares 事件中间件。
+ * @param middlewares - 事件中间件。
  * @returns 中间件执行函数。
  */
 export const compose = (middlewares: readonly Middleware[]): Middleware => {

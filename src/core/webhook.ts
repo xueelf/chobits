@@ -4,15 +4,14 @@ import { createSigningKey, sign, verify } from '#/utils/signature';
 import { isNumber, isRecord, isString } from '#/utils/type';
 
 export class Webhook {
-  /** Webhook 签名密钥。 */
   private signingKey: Promise<CryptoKey> | null = null;
 
   /**
    * 初始化 Webhook 回调。
    *
-   * @param clientSecret 机器人 AppSecret。
-   * @param dispatch 分发已验证事件的函数。
-   * @param logger SDK 日志回调。
+   * @param clientSecret - 机器人 AppSecret。
+   * @param dispatch - 分发已验证事件的函数。
+   * @param logger - SDK 日志回调。
    */
   public constructor(
     private readonly clientSecret: string,
@@ -23,8 +22,8 @@ export class Webhook {
   /**
    * 处理 QQ Webhook 回调请求。
    *
-   * @param request HTTP Server 或 Serverless 平台提供的标准 Request。
-   * @param waitUntil 延长事件处理的生命周期，不阻塞 ACK。
+   * @param request - HTTP Server 或 Serverless 平台提供的标准 Request。
+   * @param waitUntil - 延长事件处理的生命周期，不阻塞 ACK。
    * @returns 需要返回给 QQ 的标准 Response。
    */
   public async callback(request: Request, waitUntil?: (task: Promise<void>) => void): Promise<Response> {
@@ -61,9 +60,7 @@ export class Webhook {
 
         return new Response('Invalid validation payload', { status: 400 });
       }
-      /*
-       * Webhook 回调地址验证请求不包含事件签名头，OpCode 13 需要在事件签名校验前处理。
-       */
+      // Webhook 回调地址验证请求不包含事件签名头，OpCode 13 需要在事件签名校验前处理。
       const response = Response.json({
         plain_token: data.plain_token,
         signature: await sign(await this.getSigningKey(), data.event_ts + data.plain_token),
@@ -88,6 +85,7 @@ export class Webhook {
       return new Response('Invalid signature', { status: 401 });
     }
     const task = (async () => {
+      // 将事件处理推迟到下一个任务，让 callback() 先返回 ACK。
       await new Promise<void>(resolve => setTimeout(resolve));
 
       try {
@@ -110,7 +108,6 @@ export class Webhook {
     return Response.json({ op: OpCode.HttpCallbackAck });
   }
 
-  /** 获取 Webhook 签名密钥。 */
   private getSigningKey(): Promise<CryptoKey> {
     this.signingKey ??= createSigningKey(this.clientSecret);
 

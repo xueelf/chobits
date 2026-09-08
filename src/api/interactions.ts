@@ -1,6 +1,6 @@
 import { type EmbusInstance } from 'embus';
 
-/** 互动事件的回调结果。 */
+/** 回调结果。 */
 export interface RespondToInteractionPayload {
   /**
    * 回调结果：
@@ -30,9 +30,7 @@ export default (request: EmbusInstance) => {
      * @remarks
      * 官方文档将响应标记为「无」，文档同一页面的响应示例为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/interactions_interaction_id.put.html}
-     *
-     * @param interaction_id 互动事件 ID，从 INTERACTION_CREATE 事件的 d.id 字段获取，注意该 ID 不带“INTERACTION_CREATE:”前缀
+     * @param interaction_id - 互动事件 ID，从 INTERACTION_CREATE 事件的 d.id 字段获取，注意该 ID 不带“INTERACTION_CREATE:”前缀
      * @throws 630001 param invalid
      * @throws 630002 get appid failed
      * @throws 630003 appid invalid
@@ -41,6 +39,8 @@ export default (request: EmbusInstance) => {
      * @throws 630006 get header appid failed
      * @throws 630007 data too large
      * @throws 630008 interaction preprocess failed
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/interactions_interaction_id.put.html}
      */
     respondToInteraction(interaction_id: string, payload: RespondToInteractionPayload): Promise<Record<string, never>> {
       return request.put(`/interactions/${interaction_id}`, payload);

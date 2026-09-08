@@ -35,15 +35,23 @@ export enum DispatchType {
 /**
  * 服务端推送事件的通用 Payload。
  *
- * @typeParam Type 官方事件名。
- * @typeParam Data 事件数据。
+ * @typeParam Type - 官方事件名。
+ * @typeParam Data - 事件数据。
  */
 export interface DispatchPayload<Type extends string = string, Data = unknown> {
   /** 事件 ID。 */
   id?: string;
   /** Payload 操作码。 */
   op: OpCode.Dispatch;
-  /** 事件序列号。 */
+  /**
+   * 事件序列号。
+   *
+   * @remarks
+   * WebSocket Dispatch 实际携带该字段，已取得的 Webhook Dispatch 均未携带该字段。
+   *
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/webhook.html}
+   */
   s?: number;
   /** 官方事件名。 */
   t: Type;
@@ -79,7 +87,7 @@ export interface AutoApproved {
   strategy_id: string;
 }
 
-/** 官方定义的互动事件类型。 */
+/** 互动事件类型。 */
 export enum InteractionType {
   /** 消息按钮回调。 */
   INLINE_KEYBOARD = 11,
@@ -87,9 +95,10 @@ export enum InteractionType {
    * 私聊快捷菜单回调（CALLBACK_COMMAND）：用户点击私聊场景下的自定义菜单。
    *
    * @remarks
-   * 快捷指令和快捷菜单实测均触发 `C2C_MESSAGE_CREATE`，未收到该类型。服务入口依赖小程序，暂未取得真实 Payload。
+   * 实测点击快捷指令或快捷菜单均触发 `C2C_MESSAGE_CREATE`，未收到该类型的事件。
+   * 服务入口依赖小程序，暂未取得真实 Payload。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   CALLBACK_COMMAND = 12,
   /** 用户授权。 */
@@ -100,16 +109,16 @@ export enum InteractionType {
    * @remarks
    * 移动端切换「机器人主动在群聊内发言」时，WebSocket 与 Webhook 均未收到该类型。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   GROUP_AUTHORIZE = 19,
   /**
    * 群授权状态变更。
    *
    * @remarks
-   * WebSocket 与 Webhook 实测进入群设置中的「机器人管理」时触发该类型。
+   * 实测进入群设置中的「机器人管理」时，WebSocket 和 Webhook 均收到该类型的事件。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   GROUP_AUTHORIZE_STATUS = 20,
 }
@@ -117,14 +126,14 @@ export enum InteractionType {
 /** 互动事件携带的数据。 */
 export interface InteractionData {
   /**
-   * 官方定义的互动数据类型。
+   * 互动数据类型。
    *
-   * QQ 机器人当前公开的消息按钮和快捷菜单事件分别使用 `11` 和 `12`。
+   * 文档中，消息按钮和快捷菜单分别使用 `11` 和 `12`。
    *
    * @remarks
    * `GROUP_AUTHORIZE_STATUS` 实际返回 `type: 2001`，该取值未被文档收录。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   type?: InteractionType.INLINE_KEYBOARD | InteractionType.CALLBACK_COMMAND | 2001;
   /** 已解析的互动数据。 */
@@ -151,18 +160,19 @@ export interface AuthorizeData {
    * @remarks
    * 文档仅定义 `dialog` 和 `setting`，删除机器人好友时实际返回 `friend_del`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   opt_scene: 'dialog' | 'setting' | 'friend_del';
   /** 授权范围。 */
   scope: 'c2c_push' | 'group_push';
   /**
-   * 授权开关字段。
+   * 授权开关。
    *
    * @remarks
-   * 该字段未被文档收录。WebSocket 与 Webhook 实测开启「允许主动发送消息」时返回 `true`，关闭时不返回该字段。
+   * 该字段未被文档收录。
+   * 实测开启「允许主动发送消息」后，WebSocket 和 Webhook 均返回 `true`，关闭后均不返回该字段。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   switch?: boolean;
 }
@@ -176,7 +186,11 @@ export interface User {
   /**
    * 头像 URL。
    *
-   * @deprecated 旧版 `User` 结构包含该字段，当前事件 `User` 结构已经移除，请勿依赖消息事件返回该值。
+   * @remarks
+   * 官方文档历史的 `User` 结构包含 `avatar`，当前消息事件文档的字段表已移除该字段。
+   *
+   * @see {@link https://github.com/tencent-connect/bot-docs/blob/main/docs/develop/api-v2/openapi/user/model.md}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html}
    */
   avatar?: string;
   /** 是否为机器人。 */
@@ -187,7 +201,7 @@ export interface User {
    * @remarks
    * 该字段未被文档收录，WebSocket `READY` Payload 实际返回 `1`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
    */
   status?: number;
   /** 用户跨应用的 UnionOpenID。 */
@@ -201,13 +215,13 @@ export interface User {
   /** 群成员角色。 */
   member_role?: string;
   /**
-   * 是否指向当前机器人。
+   * 是否为当前机器人。
    *
    * @remarks
    * 该字段未被文档收录，群消息中提及当前机器人时实际返回 `true`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
    */
   is_you?: boolean;
   /**
@@ -216,8 +230,8 @@ export interface User {
    * @remarks
    * 该字段未被文档收录，群消息中提及当前机器人时实际返回 `single`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
    */
   scope?: string;
 }
@@ -249,7 +263,7 @@ export interface MessageAttachment {
    * @remarks
    * 该字段未被文档收录，图片附件实际返回空字符串。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html}
    */
   content?: string;
   /** 附件 URL。 */
@@ -270,7 +284,7 @@ export interface MessageAttachment {
   asr_refer_text?: string;
 }
 
-/** 接收消息中的 ARK 数据。 */
+/** 收到的消息中的 ARK 数据。 */
 export interface ARKData {
   /** ARK 提示文本。 */
   prompt?: string;
@@ -282,7 +296,7 @@ export interface ARKData {
   fields?: Record<string, unknown>;
 }
 
-/** 接收消息中的消息元素。 */
+/** 收到的消息中的元素。 */
 export interface MsgElement {
   /** 消息元素索引。 */
   msg_idx?: string;
@@ -338,7 +352,7 @@ export type DispatchData = {
      * @remarks
      * 该字段未被文档收录，Webhook 引用消息实测返回该字段。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html}
      */
     parallel_message?: ParallelMessage;
   };
@@ -357,8 +371,8 @@ export type DispatchData = {
      * @remarks
      * 该字段未被文档收录，群消息事件中实际与 `group_openid` 相同。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
      */
     group_id: string;
     /** 消息发送时间。 */
@@ -381,7 +395,7 @@ export type DispatchData = {
      * @remarks
      * 该字段未被文档收录，Webhook 引用消息实测返回该字段。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
      */
     parallel_message?: ParallelMessage;
   };
@@ -411,7 +425,7 @@ export type DispatchData = {
      * @remarks
      * WebSocket 与 Webhook 实测均未返回该字段。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html}
      */
     user_openid?: string;
   };
@@ -429,7 +443,7 @@ export type DispatchData = {
      * @remarks
      * WebSocket 与 Webhook 实测均未返回该字段。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html}
      */
     user_openid?: string;
   };
@@ -439,7 +453,7 @@ export type DispatchData = {
    * @remarks
    * 当前没有订阅消息模板的授权入口，尚未取得真实 Payload。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/subscribe_message_status.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/subscribe_message_status.html}
    */
   SUBSCRIBE_MESSAGE_STATUS: {
     /** 群 OpenID（群订阅场景时有值）。 */
@@ -453,9 +467,9 @@ export type DispatchData = {
    * 用户入群申请事件。
    *
    * @remarks
-   * WebSocket 与 Webhook 实测提交入群申请时均未收到该事件，同意申请后收到 `GROUP_MEMBER_ADD`。
+   * 实测提交入群申请时，WebSocket 和 Webhook 均未收到该事件，同意申请后收到 `GROUP_MEMBER_ADD`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_join_request.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_join_request.html}
    */
   GROUP_JOIN_REQUEST: {
     /** 群OpenID。 */
@@ -494,27 +508,27 @@ export type DispatchData = {
      * 加好友场景值。
      *
      * @remarks
-     * WebSocket 实测重新添加机器人好友时未返回该字段。
+     * 实测重新添加机器人好友时，WebSocket 未返回该字段。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
      */
     scene?: number;
     /**
      * 开发者自定义的回调数据（callback_data），用于区分不同来源。
      *
      * @remarks
-     * WebSocket 实测重新添加机器人好友时未返回该字段。
+     * 实测重新添加机器人好友时，WebSocket 未返回该字段。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
      */
     scene_param?: string;
     /**
      * 机器人分享链接的短链code。
      *
      * @remarks
-     * WebSocket 与 Webhook 实测重新添加机器人好友时未返回该字段。
+     * 实测重新添加机器人好友时，WebSocket 和 Webhook 均未返回该字段。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_add.html}
      */
     short_code?: string;
   };
@@ -527,9 +541,10 @@ export type DispatchData = {
      * 好友用户信息。
      *
      * @remarks
-     * 官方文档字段表定义 `author`，文档同一页面的事件示例未返回该字段，实际事件返回该字段。
+     * 官方文档的字段表包含 `author`，文档同一页面的事件示例却未包含该字段。
+     * 实测事件会返回 `author`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_del.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/friend_del.html}
      */
     author: FriendAuthor;
   };
@@ -567,7 +582,7 @@ export type DispatchData = {
          * @remarks
          * 该字段未被文档收录，Webhook 实测返回该字段。
          *
-         * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+         * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
          */
         union_openid?: string;
       }

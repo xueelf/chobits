@@ -31,8 +31,8 @@ export interface UserInputNotifyMessage {
    * @remarks
    * 单聊消息的官方接口文档中，msg_id 字段说明标注为 5 分钟，文档同一页面的接口说明和消息收发概述文档标注为 60 分钟。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/overview.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/overview.html}
    */
   msg_id?: string;
   /** 被动回复的事件 ID。从事件最外层的id获取。与 msg_id 二选一，支持事件："INTERACTION_CREATE"、"C2C_MSG_RECEIVE"、"FRIEND_ADD"。 */
@@ -70,7 +70,7 @@ export interface SendUserStreamMessagePayload {
    * @remarks
    * 官方将 content_type 定义为 text 或 markdown，但 content_raw 仅说明 Markdown，示例也只使用 markdown。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_stream_messages.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_stream_messages.post.html}
    */
   content_raw?: string;
   /** 被动回复事件 ID，与 msg_id 二选一。 */
@@ -91,8 +91,8 @@ export interface SendUserStreamMessagePayload {
  * @remarks
  * 富媒体概述中的格式范围比文件限制和单聊上传接口更宽，图片另含 gif/webp/bmp，语音另含 mp3/wav/ogg。
  *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html}
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
  */
 export interface UploadUserFilePayload {
   /**
@@ -124,10 +124,13 @@ export interface UploadUserFilePayload {
    */
   upload_id?: string;
   /**
-   * @deprecated 暂未支持。当前文件上传接口已经移除该字段。
+   * 暂未支持。
    *
-   * {@link https://github.com/tencent-connect/bot-docs/blob/e603b92cfc77487e5415e32c6eee6bf88bd05f5c/docs/develop/api-v2/server-inter/message/send-receive/rich-media.md}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
+   * @remarks
+   * 官方文档历史将 `file_data` 标注为「暂未支持」，当前文件上传接口的字段表已移除该字段。
+   *
+   * @see {@link https://github.com/tencent-connect/bot-docs/blob/e603b92cfc77487e5415e32c6eee6bf88bd05f5c/docs/develop/api-v2/server-inter/message/send-receive/rich-media.md}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
    */
   file_data?: unknown;
 }
@@ -160,7 +163,7 @@ export interface FinishUserFileUploadPartPayload {
   md5?: string;
 }
 
-/** 已发送的单聊消息信息。 */
+/** 单聊消息。 */
 export interface UserMessage {
   /** 消息 ID，可用于后续撤回。 */
   id: string;
@@ -170,7 +173,7 @@ export interface UserMessage {
   ext_info?: MessageExtInfo;
 }
 
-/** 已发送的流式单聊消息信息。 */
+/** 单聊消息。 */
 export interface UserStreamMessage {
   /** 消息ID。首条返回 stream_msg_id，用于后续分片。 */
   id: string;
@@ -186,7 +189,7 @@ export interface UserStreamMessage {
   remain_msg_len?: number;
 }
 
-/** 单聊富媒体文件信息。 */
+/** 文件信息。 */
 export interface UserFile {
   /** 文件唯一 ID。 */
   file_uuid: string;
@@ -204,7 +207,7 @@ export interface UserFile {
    * @remarks
    * srv_send_msg=false 时实际返回空字符串。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
    */
   id?: string;
   /**
@@ -217,12 +220,12 @@ export interface UserFile {
    * @remarks
    * URL 直传且 srv_send_msg=false 时实际返回空字符串。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
    */
   raw_url?: string;
 }
 
-/** 单聊富媒体分片上传信息。 */
+/** upload_id、分片预签名 URL 和上传配置。 */
 export interface UserFileMultipartUpload {
   /** 上传任务 ID，后续分片上传和完成合并时需携带。 */
   upload_id: string;
@@ -257,7 +260,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：100 QPS，包括主动、被动等所有消息类型
      *
-     * @param user_openid 用户 OpenID
+     * @param user_openid - 用户 OpenID
      * @returns
      *
      * - id：消息 ID，可用于后续撤回
@@ -302,6 +305,8 @@ export default (request: EmbusInstance) => {
      * @throws 40054016 机器人已下线
      * @throws 40054018 消息过长或异常
      * @throws 50055002 消息发送异常，请稍后重试
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
      */
     sendUserMessage(user_openid: string, payload: SendUserMessagePayload): Promise<UserMessage> {
       return request.post(`/v2/users/${user_openid}/messages`, payload);
@@ -318,7 +323,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：50 QPS
      *
-     * @param user_openid 用户 OpenID
+     * @param user_openid - 用户 OpenID
      * @returns
      *
      * - id：消息ID。首条返回 stream_msg_id，用于后续分片
@@ -328,6 +333,8 @@ export default (request: EmbusInstance) => {
      * @throws 40007 已下发内容前缀不可修改
      * @throws 50001 服务内部错误
      * @throws 50002 频率限制
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_stream_messages.post.html}
      */
     sendUserStreamMessage(user_openid: string, payload: SendUserStreamMessagePayload): Promise<UserStreamMessage> {
       return request.post(`/v2/users/${user_openid}/stream_messages`, payload);
@@ -347,14 +354,14 @@ export default (request: EmbusInstance) => {
      * @remarks
      * 官方文档说明成功返回 HTTP 200，无响应体，文档同一页面的响应示例为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages_message_id.delete.html}
-     *
-     * @param user_openid 用户 OpenID
-     * @param message_id 消息 ID
+     * @param user_openid - 用户 OpenID
+     * @param message_id - 消息 ID
      * @throws 306009 用户openid无效
      * @throws 40061001 请求参数无效
      * @throws 40061002 请求参数msgid无效
      * @throws 40064004 已超出消息撤回时限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages_message_id.delete.html}
      */
     recallUserMessage(user_openid: string, message_id: string): Promise<Record<string, never>> {
       return request.delete(`/v2/users/${user_openid}/messages/${message_id}`);
@@ -390,7 +397,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：50 QPS
      *
-     * @param user_openid 用户 OpenID
+     * @param user_openid - 用户 OpenID
      * @returns
      *
      * - file_uuid：文件唯一 ID
@@ -406,6 +413,8 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html}
      */
     uploadUserFile(user_openid: string, payload: UploadUserFilePayload): Promise<UserFile> {
       return request.post(`/v2/users/${user_openid}/files`, payload);
@@ -424,7 +433,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：10 QPS
      *
-     * @param user_id 用户 OpenID
+     * @param user_id - 用户 OpenID
      * @returns
      *
      * - upload_id：上传任务 ID，后续分片上传和完成合并时需携带
@@ -438,6 +447,8 @@ export default (request: EmbusInstance) => {
      * @throws 850027 发送数据超时
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_prepare.post.html}
      */
     prepareUserFileUpload(user_id: string, payload: PrepareUserFileUploadPayload): Promise<UserFileMultipartUpload> {
       return request.post(`/v2/users/${user_id}/upload_prepare`, payload);
@@ -454,16 +465,14 @@ export default (request: EmbusInstance) => {
      *
      * 每个分片 PUT 到预签名 URL 成功后调用，通知服务端该分片已上传完成。
      *
-     * 全部分片完成后，携带 upload_id 调用 /v2/users/{user_openid}/files 完成合并。
+     * 全部分片完成后，携带 upload_id 调用 `/v2/users/{user_openid}/files` 完成合并。
      *
      * 接口频率限制：10 QPS
      *
      * @remarks
      * 官方文档将响应标记为「无」，文档同一页面的响应示例为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_part_finish.post.html}
-     *
-     * @param user_id 用户 OpenID
+     * @param user_id - 用户 OpenID
      * @throws 850018 群被禁言或者机器人被禁言
      * @throws 850019 不支持的文件格式
      * @throws 850026 下载原始文件失败
@@ -472,6 +481,8 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_part_finish.post.html}
      */
     finishUserFileUploadPart(
       user_id: string,

@@ -40,7 +40,7 @@ function fromHex(value: string): Uint8Array | null {
 /**
  * 使用机器人密钥生成 QQ Webhook 签名密钥。
  *
- * @param secret 机器人密钥。
+ * @param secret - 机器人密钥。
  * @returns 用于生成 Ed25519 签名的私钥。
  */
 export async function createSigningKey(secret: string): Promise<CryptoKey> {
@@ -58,8 +58,8 @@ export async function createSigningKey(secret: string): Promise<CryptoKey> {
 /**
  * 生成 QQ Webhook 要求的十六进制 Ed25519 签名。
  *
- * @param key Ed25519 私钥。
- * @param value 需要签名的原始内容。
+ * @param key - Ed25519 私钥。
+ * @param value - 需要签名的原始内容。
  * @returns 十六进制签名。
  */
 export async function sign(key: CryptoKey, value: string): Promise<string> {
@@ -69,9 +69,9 @@ export async function sign(key: CryptoKey, value: string): Promise<string> {
 /**
  * 验证 QQ Webhook 的十六进制 Ed25519 签名。
  *
- * @param key Ed25519 私钥。
- * @param signature 请求携带的十六进制签名。
- * @param value 需要验证的原始内容。
+ * @param key - Ed25519 私钥。
+ * @param signature - 请求携带的十六进制签名。
+ * @param value - 需要验证的原始内容。
  * @returns 签名有效时返回 `true`。
  */
 export async function verify(key: CryptoKey, signature: string, value: string): Promise<boolean> {
@@ -81,9 +81,7 @@ export async function verify(key: CryptoKey, signature: string, value: string): 
   if (!actualSignature) {
     return false;
   }
-  /*
-   * Ed25519 签名具有确定性，重新生成的预期签名可以直接进行常量时间比较。
-   */
+  // Ed25519 签名具有确定性，可重新生成预期签名，并比较全部字节以避免提前返回。
   const expectedSignature = new Uint8Array(await createSignature(key, value));
 
   for (let index = 0; index < expectedSignature.length; index++) {

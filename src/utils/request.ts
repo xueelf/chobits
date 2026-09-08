@@ -5,7 +5,7 @@ import { Auth } from '#/core/auth';
 import { type Logger } from '#/core/logger';
 import { isRecord, isString } from '#/utils/type';
 
-/** 创建已鉴权并处理 QQ 业务错误的网络请求实例。 */
+/** 创建 QQ OpenAPI 请求实例，统一处理鉴权和业务错误。 */
 export const createRequest = (auth: Auth, logger?: Logger): EmbusInstance => {
   const request = createInstance({ origin: OPEN_API_ORIGIN });
 

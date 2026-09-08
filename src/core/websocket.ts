@@ -11,11 +11,13 @@ const FATAL_CLOSE_CODES = [4001, 4002, 4010, 4011, 4012, 4013, 4014, 4914, 4915]
 /**
  * 可尝试恢复会话的 WebSocket 关闭码。
  *
- * @remarks
- * 官方错误码表允许 4008 和 4009 Resume，文档同一页面的简化说明仅列出 4009，当前按错误码表处理。1006 在会话可恢复时同样 Resume。
+ * 关闭码为 `1006` 且会话仍可恢复时，也使用 Resume。
  *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
- * {@link https://www.rfc-editor.org/rfc/rfc6455.html#section-7.4.1}
+ * @remarks
+ * 官方错误码表允许关闭码 `4008` 和 `4009` 使用 Resume，文档同一页面的简化说明却只列出 `4009`。
+ *
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
+ * @see {@link https://www.rfc-editor.org/rfc/rfc6455.html#section-7.4.1}
  */
 const RESUMABLE_CLOSE_CODES = [1006, 4008, 4009];
 
@@ -34,13 +36,13 @@ enum Intent {
    * 群成员变更事件。
    *
    * @remarks
-   * 官方 Intents 总表未列出 `GROUP_MEMBER (1 << 24)`，`GROUP_MEMBER_ADD`、`GROUP_MEMBER_REMOVE`
-   * 和 `GROUP_JOIN_REQUEST` 事件页均将对应 Intent 写为 `1 << 24`。
+   * 官方 Intents 总表未列出 `GROUP_MEMBER (1 << 24)`。
+   * `GROUP_MEMBER_ADD`、`GROUP_MEMBER_REMOVE` 和 `GROUP_JOIN_REQUEST` 事件页均将对应 Intent 写为 `1 << 24`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/payload.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_join_request.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/payload.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_join_request.html}
    */
   GROUP_MEMBER = 1 << 24,
   /** 群聊与私聊事件。 */
@@ -121,37 +123,27 @@ const isRetryable = (error: unknown): boolean =>
   !(isError(error) && isNumber(error.cause) && NON_RETRYABLE_CODES.includes(error.cause));
 
 export class WebSocketSession {
-  /** WebSocket 连接。 */
   private socket: WebSocket | null = null;
-  /** Dispatch 处理状态。 */
+  /** 按序列号记录事件是否处理完成，用于去重和更新 Resume 序列号。 */
   private dispatches = new Map<number, boolean>();
-  /** 可恢复会话 ID。 */
   private sessionId: string | null = null;
-  /** 最新收到的事件序列号。 */
+  /** 最新收到的事件序列号，用于心跳。 */
   private receivedSeq: number | null = null;
-  /** 已连续处理完成的事件序列号。 */
+  /** 已连续处理完成的事件序列号，用于 Resume。 */
   private processedSeq: number | null = null;
-  /** 心跳间隔，单位为毫秒。 */
   private heartbeatIntervalMs: number | null = null;
-  /** 心跳定时器。 */
   private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
-  /** 重连等待。 */
   private retryDelay: { resolve: () => void; timer: ReturnType<typeof setTimeout> } | null = null;
-  /** 心跳 ACK 状态。 */
   private heartbeatAck = true;
-  /** 连接 Promise。 */
   private connectionPromise: Promise<void> | null = null;
-  /** 断线重连状态。 */
   private reconnecting = false;
-  /** 会话恢复标记。 */
   private resumeRequested = false;
-  /** 主动停止标记。 */
   private connectionStopped = true;
 
   /**
    * 初始化 WebSocket 会话。
    *
-   * @param options WebSocket 会话配置。
+   * @param options - WebSocket 会话配置。
    */
   public constructor(
     private readonly options: {
@@ -171,7 +163,7 @@ export class WebSocketSession {
   ) {}
 
   /**
-   * 建立 WebSocket 连接，并等待会话准备完成。
+   * 建立 WebSocket 连接，并等待会话就绪。
    *
    * @throws 建立或恢复连接失败时抛出原错误。
    */
@@ -190,7 +182,7 @@ export class WebSocketSession {
     await this.connectionPromise;
   }
 
-  /** 主动关闭 WebSocket 连接，并等待关闭事件完成。 */
+  /** 主动关闭 WebSocket 连接，并等待 `close` 事件。 */
   public async disconnect(): Promise<void> {
     const connectionPromise = this.connectionPromise;
     const retryDelay = this.retryDelay;
@@ -222,9 +214,9 @@ export class WebSocketSession {
   }
 
   /**
-   * 打开 QQ Gateway 连接并鉴权或恢复会话。
+   * 连接 QQ Gateway，完成鉴权或恢复会话。
    *
-   * @param resumeSession 是否恢复已有会话。
+   * @param resumeSession - 是否恢复已有会话。
    */
   private async openConnection(resumeSession: boolean): Promise<void> {
     const mode = resumeSession && this.sessionId && this.processedSeq !== null ? 'resume' : 'identify';
@@ -388,7 +380,6 @@ export class WebSocketSession {
     });
   }
 
-  /** 建立连接，失败时重试。 */
   private async connectWithRetry(): Promise<void> {
     try {
       await this.openConnection(false);
@@ -403,7 +394,7 @@ export class WebSocketSession {
   /**
    * 启动断线重连。
    *
-   * @param resumeSession 是否恢复已有会话。
+   * @param resumeSession - 是否恢复已有会话。
    */
   private async reconnect(resumeSession: boolean): Promise<void> {
     if (this.reconnecting || this.connectionStopped) {
@@ -427,10 +418,10 @@ export class WebSocketSession {
   }
 
   /**
-   * 按递增延迟重试建立连接。
+   * 重试连接，间隔随重试次数增加。
    *
-   * @param resumeSession 是否恢复已有会话。
-   * @param cause 首次连接失败的原因。
+   * @param resumeSession - 是否恢复已有会话。
+   * @param cause - 首次连接失败的原因。
    * @throws 遇到不可重试的错误或达到最大重试次数时抛出最后一次错误。
    */
   private async retryConnection(resumeSession: boolean, cause?: unknown): Promise<void> {
@@ -486,14 +477,13 @@ export class WebSocketSession {
   /**
    * 关闭连接并设置会话恢复状态。
    *
-   * @param resumeSession 是否恢复已有会话。
+   * @param resumeSession - 是否恢复已有会话。
    */
   private restartConnection(resumeSession: boolean): void {
     this.resumeRequested = resumeSession;
     this.socket?.close();
   }
 
-  /** 启动心跳循环。 */
   private startHeartbeat(): void {
     this.clearHeartbeat();
     this.heartbeatAck = true;
@@ -501,7 +491,6 @@ export class WebSocketSession {
     this.scheduleHeartbeat();
   }
 
-  /** 安排下一次心跳。 */
   private scheduleHeartbeat(): void {
     if (this.heartbeatIntervalMs === null) {
       return;
@@ -518,7 +507,6 @@ export class WebSocketSession {
     }, this.heartbeatIntervalMs);
   }
 
-  /** 清除心跳定时器。 */
   private clearHeartbeat(): void {
     if (this.heartbeatTimer !== null) {
       clearTimeout(this.heartbeatTimer);
@@ -526,7 +514,6 @@ export class WebSocketSession {
     }
   }
 
-  /** 清除会话恢复信息。 */
   private resetSession(): void {
     this.dispatches = new Map();
     this.sessionId = null;
@@ -534,12 +521,6 @@ export class WebSocketSession {
     this.processedSeq = null;
   }
 
-  /**
-   * 发送 Gateway Payload。
-   *
-   * @param socket WebSocket 连接。
-   * @param payload 需要发送的 Gateway Payload。
-   */
   private sendPayload(socket: WebSocket | null, payload: SendPayload): void {
     if (socket?.readyState === WebSocket.OPEN) {
       this.options.logger?.('websocket', '发送 Gateway Payload', payload);

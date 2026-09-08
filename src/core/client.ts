@@ -14,11 +14,13 @@ import { createRequest } from '#/utils/request';
 import { isString } from '#/utils/type';
 
 /**
+ * 回复消息序号的最大值。
+ *
  * @remarks
  * 官方仅将 `msg_seq` 定义为 integer，实测 `4294967295` 可以正常发送，`4294967296` 返回 `40011000` 请求数据异常。
  *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
  */
 const MAX_MESSAGE_SEQUENCE = 2 ** 32 - 1;
 
@@ -41,11 +43,10 @@ type EventWithReply<Data, Method extends ReplyMethod> = ReadonlyDeep<
     /**
      * 回复当前事件。
      *
-     * 字符串会作为文本消息发送。
-     * 对象直接使用当前场景的官方消息结构。
+     * 传入字符串时发送文本消息，传入对象时使用当前场景的官方消息结构。
      * `msg_id`、`event_id` 和 `msg_seq` 会根据事件自动补充。
      *
-     * @param message 回复内容或官方消息结构。
+     * @param message - 文本内容或当前场景的官方消息对象。
      * @returns 消息发送结果。
      */
     reply(message: string | EventReplyMessage<Parameters<Operations[Method]>[1]>): ReturnType<Operations[Method]>;
@@ -105,19 +106,19 @@ type Events = {
   RESUMED: [event: ReadonlyDeep<DispatchData['RESUMED']>];
   /** 收到私聊消息。 */
   C2C_MESSAGE_CREATE: [event: EventWithReply<DispatchData['C2C_MESSAGE_CREATE'], 'sendUserMessage'>];
-  /** 未开启全量模式时，收到群内 @ 机器人的消息。 */
+  /** 未开启全量模式时，收到群内 `@` 机器人的消息。 */
   GROUP_AT_MESSAGE_CREATE: [event: EventWithReply<DispatchData['GROUP_AT_MESSAGE_CREATE'], 'sendGroupMessage'>];
-  /** 开启「接收所有消息」后，收到群内每一条消息，包括 @ 机器人的消息。 */
+  /** 开启「接收所有消息」后，收到群内每一条消息，包括 `@` 机器人的消息。 */
   GROUP_MESSAGE_CREATE: [event: EventWithReply<DispatchData['GROUP_MESSAGE_CREATE'], 'sendGroupMessage'>];
   /** 机器人被添加到群。 */
   GROUP_ADD_ROBOT: [event: EventWithReply<DispatchData['GROUP_ADD_ROBOT'], 'sendGroupMessage'>];
   /** 机器人被移出群。 */
   GROUP_DEL_ROBOT: [event: ReadonlyDeep<DispatchData['GROUP_DEL_ROBOT']>];
-  /** 群消息接收设置被开启。 */
+  /** 群消息接收已开启。 */
   GROUP_MSG_RECEIVE: [event: EventWithReply<DispatchData['GROUP_MSG_RECEIVE'], 'sendGroupMessage'>];
-  /** 群消息接收设置被关闭。 */
+  /** 群消息接收已关闭。 */
   GROUP_MSG_REJECT: [event: ReadonlyDeep<DispatchData['GROUP_MSG_REJECT']>];
-  /** 群成员加入群。 */
+  /** 新成员加入群。 */
   GROUP_MEMBER_ADD: [event: ReadonlyDeep<DispatchData['GROUP_MEMBER_ADD']>];
   /** 群成员离开群。 */
   GROUP_MEMBER_REMOVE: [event: ReadonlyDeep<DispatchData['GROUP_MEMBER_REMOVE']>];
@@ -134,10 +135,11 @@ type Events = {
    *
    * @remarks
    * 官方事件文档定义 `C2C_MSG_RECEIVE`。
-   * WebSocket 与 Webhook 实测开启「允许主动发送消息」时收到 `INTERACTION_CREATE`，`type: 18`，`authorize_data.switch: true`。
+   * 实测开启「允许主动发送消息」后，WebSocket 和 Webhook 收到的都是 `INTERACTION_CREATE`。
+   * 事件中的 `type` 为 `18`，`authorize_data.switch` 为 `true`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_msg_receive.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_msg_receive.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   C2C_MSG_RECEIVE: [event: EventWithReply<DispatchData['C2C_MSG_RECEIVE'], 'sendUserMessage'>];
   /**
@@ -145,20 +147,25 @@ type Events = {
    *
    * @remarks
    * 官方事件文档定义 `C2C_MSG_REJECT`。
-   * WebSocket 与 Webhook 实测关闭「允许主动发送消息」时收到 `INTERACTION_CREATE`，`type: 18`，且不包含 `authorize_data.switch`。
+   * 实测关闭「允许主动发送消息」后，WebSocket 和 Webhook 收到的都是 `INTERACTION_CREATE`。
+   * 事件中的 `type` 为 `18`，不包含 `authorize_data.switch`。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_msg_reject.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_msg_reject.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
    */
   C2C_MSG_REJECT: [event: ReadonlyDeep<DispatchData['C2C_MSG_REJECT']>];
   /** 用户点击消息按钮、变更授权或进入群机器人管理。 */
   INTERACTION_CREATE: [event: InteractionEvent];
 };
 
-/** Chobits 原生事件类型。 */
+/** Chobits 内置事件名。 */
 export type ClientEventType = keyof Events;
 
-/** 指定 Chobits 原生事件的数据。 */
+/**
+ * 指定 Chobits 内置事件的数据。
+ *
+ * @typeParam Type - Chobits 内置事件名。
+ */
 export type ClientEvent<Type extends ClientEventType = ClientEventType> = Events[Type][0];
 
 type ClientEvents<CustomEvents extends Record<keyof CustomEvents, unknown[]>> = {
@@ -196,29 +203,26 @@ export interface ClientOptions {
   logger?: Logger;
 }
 
+/**
+ * QQ 机器人客户端。
+ *
+ * @typeParam CustomEvents - 自定义事件及其监听器参数。
+ */
 export class Client<
   CustomEvents extends Record<keyof CustomEvents, unknown[]> = Record<never, never>,
 > extends EventEmitter<ClientEvents<CustomEvents>> {
-  /** 事件中间件。 */
   private readonly middlewares: Middleware[] = [];
-  /** 中间件执行函数。 */
   private readonly composedMiddleware = compose(this.middlewares);
-  /** 日志回调。 */
   private readonly logger?: Logger;
-  /** Webhook 回调处理器。 */
   private readonly webhook: Webhook;
-  /** WebSocket 会话。 */
   private readonly websocket: WebSocketSession;
 
   /**
    * 创建 QQ 机器人客户端。
    *
-   * @param options 客户端配置。
-   * @param options.appId 机器人 AppID。
-   * @param options.clientSecret 机器人 AppSecret。
-   * @param options.maxRetry WebSocket 建立或恢复连接时允许的最大重试次数，默认为 `3`，`Infinity` 表示持续重试。
-   * @param options.logger SDK 日志回调。
-   * @throws `appId` 或 `clientSecret` 为空，或者 `maxRetry` 不是非负整数或 `Infinity` 时抛出。
+   * @param options - 客户端配置，各配置项见 {@link ClientOptions}。
+   * @throws `appId` 或 `clientSecret` 为空时抛出 `TypeError`。
+   * @throws `maxRetry` 不是非负整数且不为 `Infinity` 时抛出 `TypeError`。
    */
   public constructor(options: ClientOptions) {
     super();
@@ -270,12 +274,13 @@ export class Client<
   /**
    * 注册事件中间件。
    *
-   * 中间件按照注册顺序执行。调用并等待 `next()` 后继续执行后续中间件和监听器，不调用则停止当前事件分发。
+   * 中间件按注册顺序执行，`await next()` 会等待后续中间件和监听器完成。
+   * 不调用 `next()` 则停止当前事件的后续分发。
    * WebSocket 与 Webhook 共用同一条中间件链。
    *
-   * @typeParam AddedState 当前中间件向共享状态增加的数据。
-   * @param middlewares 事件中间件。
-   * @returns 累积当前 State 后的客户端，便于继续链式调用。
+   * @typeParam AddedState - 当前中间件向共享状态增加的数据。
+   * @param middlewares - 事件中间件。
+   * @returns 当前客户端，返回类型包含累积后的共享状态。
    */
   public use<AddedState extends object = Record<never, never>>(
     ...middlewares: Middleware<AddedState>[]
@@ -290,7 +295,6 @@ export class Client<
    *
    * 重复调用时复用正在建立的连接或当前在线会话。
    *
-   * @returns WebSocket 会话就绪后完成。
    * @throws 建立或恢复连接失败时抛出原错误。
    */
   public async online(): Promise<void> {
@@ -298,9 +302,7 @@ export class Client<
   }
 
   /**
-   * 主动关闭 WebSocket 会话并清理可恢复状态。
-   *
-   * @returns WebSocket 会话关闭后完成。
+   * 关闭 WebSocket 会话，清除会话恢复信息，并等待连接关闭。
    */
   public async offline(): Promise<void> {
     await this.websocket.disconnect();
@@ -309,21 +311,18 @@ export class Client<
   /**
    * 处理 QQ Webhook 回调请求。
    *
-   * 负责回调地址验证、Ed25519 验签和 HTTP Callback ACK，事件分发在 ACK 返回后开始。
+   * 地址验证请求返回验证响应。事件请求通过 Ed25519 验签后返回 HTTP Callback ACK，再开始事件分发。
+   * 本方法不等待事件中间件或监听器完成。
+   * 可通过传给 `waitUntil` 的任务 Promise 捕获事件处理错误。
    *
-   * @param request HTTP Server 或 Serverless 平台提供的标准 Request。
-   * @param waitUntil 延长事件处理的生命周期，不阻塞 ACK。
+   * @param request - HTTP Server 或 Serverless 平台提供的标准 Request。
+   * @param waitUntil - 延长事件处理的生命周期，不阻塞 ACK。
    * @returns 需要返回给 QQ 的标准 Response。
    */
   public async callback(request: Request, waitUntil?: (task: Promise<void>) => void): Promise<Response> {
     return await this.webhook.callback(request, waitUntil);
   }
 
-  /**
-   * 运行中间件并分发事件。
-   *
-   * @param payload QQ 推送的 Dispatch Payload。
-   */
   private async dispatch(payload: Dispatch): Promise<void> {
     const context: Context = {
       payload: deepFreeze(payload),
@@ -350,12 +349,14 @@ export class Client<
    * 分发 QQ Dispatch 事件。
    *
    * @remarks
-   * 互动事件文档称 d.id 可用于被动回复，消息接口则要求使用 Dispatch 最外层 id。实测被动回复使用 d.id 返回 40034025，仅互动回调可用。
+   * 互动事件文档称 `d.id` 可用于被动回复，消息接口则要求使用 Dispatch 最外层的 `id`。
+   * 实测通过消息接口被动回复时，传入 `d.id` 会返回 `40034025`，该 ID 只能用于互动回调。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
-   * @param payload QQ 推送的 Dispatch Payload。
+   * @param payload - QQ 推送的 Dispatch Payload。
+   *
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/interaction_create.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
    */
   private async emitDispatch(payload: Dispatch): Promise<void> {
     const dispatchType: string = payload.t;

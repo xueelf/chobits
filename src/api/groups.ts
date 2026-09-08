@@ -16,18 +16,19 @@ import {
  * 卡片消息 (msg_type=8)。
  *
  * @remarks
- * 当前群聊消息文档未收录 card、msg_type 8 和卡片消息示例。
+ * 当前群聊消息文档未收录 `card`、`msg_type: 8` 和卡片消息示例，官方历史文档仍保留这些定义。
  *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
+ * @see {@link https://qq-ai.cdn-go.cn/web/bot-docs/-/v1.20.0/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
  */
 export interface GroupCardMessage {
-  /** 消息类型，8=卡片消息。 */
+  /** 卡片消息 (msg_type=8)。 */
   msg_type: 8;
   /** 卡片消息。 */
   card: {
     /** 当 type 为 tuwen 时，会发送一个包括标题、描述、图片、跳转链接的消息。 */
     type?: string;
-    /** 卡片消息内容。 */
+    /** 卡片消息。 */
     content?: {
       /** 表示卡片消息的描述。 */
       description?: string;
@@ -53,7 +54,7 @@ export interface GroupCardMessage {
    * @remarks
    * 当前群聊消息接口已移除该字段。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
    */
   is_wakeup?: boolean;
 }
@@ -67,8 +68,8 @@ export type SendGroupMessagePayload = TextMessage | MarkdownMessage | ArkMessage
  * @remarks
  * 富媒体概述中的格式范围比文件限制和群聊上传接口更宽，图片另含 gif/webp/bmp，语音另含 mp3/wav/ogg。
  *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html}
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
  */
 export interface UploadGroupFilePayload {
   /**
@@ -100,10 +101,13 @@ export interface UploadGroupFilePayload {
    */
   upload_id?: string;
   /**
-   * @deprecated 暂未支持。当前文件上传接口已经移除该字段。
+   * 暂未支持。
    *
-   * {@link https://github.com/tencent-connect/bot-docs/blob/e603b92cfc77487e5415e32c6eee6bf88bd05f5c/docs/develop/api-v2/server-inter/message/send-receive/rich-media.md}
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
+   * @remarks
+   * 官方文档历史将 `file_data` 标注为「暂未支持」，当前文件上传接口的字段表已移除该字段。
+   *
+   * @see {@link https://github.com/tencent-connect/bot-docs/blob/e603b92cfc77487e5415e32c6eee6bf88bd05f5c/docs/develop/api-v2/server-inter/message/send-receive/rich-media.md}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
    */
   file_data?: unknown;
 }
@@ -142,7 +146,7 @@ export interface FinishGroupFileUploadPartPayload {
   md5?: string;
 }
 
-/** 已发送的群聊消息信息。 */
+/** 群聊消息。 */
 export interface GroupMessage {
   /** 消息 ID，可用于后续撤回。 */
   id: string;
@@ -152,7 +156,7 @@ export interface GroupMessage {
   ext_info?: MessageExtInfo;
 }
 
-/** 群聊富媒体文件信息。 */
+/** 文件信息。 */
 export interface GroupFile {
   /** 文件唯一 ID。 */
   file_uuid: string;
@@ -170,7 +174,7 @@ export interface GroupFile {
    * @remarks
    * srv_send_msg=false 时实际返回空字符串。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
    */
   id?: string;
   /**
@@ -183,12 +187,12 @@ export interface GroupFile {
    * @remarks
    * URL 直传且 srv_send_msg=false 时实际返回空字符串。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
    */
   raw_url?: string;
 }
 
-/** 群聊富媒体分片上传信息。 */
+/** upload_id、分片预签名 URL 和上传配置。 */
 export interface GroupFileMultipartUpload {
   /** 上传任务 ID，后续分片上传和完成合并时需携带。 */
   upload_id: string;
@@ -246,7 +250,7 @@ export interface Member {
   union_openid: string;
 }
 
-/** 获取群成员列表时使用的分页信息。 */
+/** 群成员列表的分页游标。 */
 export interface GetGroupMemberListPayload {
   /** 分页游标，首次请求可不传或传空串；后续传上一次响应的 next_cursor */
   cursor?: string;
@@ -260,7 +264,7 @@ export interface GroupMemberList {
   next_cursor: string;
 }
 
-/** 批量移除群成员时使用的信息。 */
+/** 需要移除的成员 member_openid 列表，以及是否同时加入群黑名单。 */
 export interface RemoveGroupMembersPayload {
   /** 需要移除的成员 member_openid 列表，单次最多 20 个 */
   member_openids: string[];
@@ -268,7 +272,7 @@ export interface RemoveGroupMembersPayload {
   add_to_member_blacklist?: boolean;
 }
 
-/** 查询群黑名单时使用的分页信息。 */
+/** 群黑名单的分页游标和单页数量。 */
 export interface GetGroupMemberBlacklistPayload {
   /** 分页游标，首次请求可不传或传空串 */
   cursor?: string;
@@ -276,7 +280,7 @@ export interface GetGroupMemberBlacklistPayload {
   limit?: number;
 }
 
-/** 群黑名单用户。 */
+/** 黑名单用户。 */
 export interface BlacklistUser {
   /** 用户在应用/开放平台下的统一标识（如有） */
   union_openid: string;
@@ -298,7 +302,7 @@ export interface GroupMemberBlacklist {
   next_cursor: string;
 }
 
-/** 操作群黑名单时使用的信息。 */
+/** 群黑名单的操作类型和目标成员 openid 列表。 */
 export interface UpdateGroupMemberBlacklistPayload {
   /** 操作类型：del 移出黑名单, add 加入黑名单（目标成员在群中时无法加入黑名单） */
   op: 'del' | 'add';
@@ -318,7 +322,7 @@ export interface ReviewGroupJoinRequestPayload {
   add_to_member_blacklist?: boolean;
 }
 
-/** 拉取入群申请列表时使用的分页信息。 */
+/** 入群申请列表的分页游标和单页数量。 */
 export interface GetGroupJoinRequestListPayload {
   /** 分页游标，首次请求可不传或传空串。 */
   cursor?: string;
@@ -395,13 +399,9 @@ export interface GlobalMuteRule {
 }
 
 /**
- * 群成员禁言状态。
+ * 当前处于禁言中的用户。
  *
- * @remarks
- * 官方文档将禁言操作请求项命名为 `SetMemberMuteState`，容易与查询接口返回的 `MemberMuteState` 混淆，
- * Chobits 将前者命名为 `MemberMuteAction`。
- *
- * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.get.html}
  */
 export interface MemberMuteState {
   /** 被禁言成员的 openid。 */
@@ -422,7 +422,7 @@ export interface GroupMuteState {
   members: MemberMuteState[];
 }
 
-/** 群成员禁言操作。 */
+/** SetMemberMuteState。 */
 export interface MemberMuteAction {
   /** 操作类型：add 增加禁言，update 更新禁言到期时间，del 解除禁言。 */
   op: 'add' | 'update' | 'del';
@@ -432,13 +432,13 @@ export interface MemberMuteAction {
   mute_expire_at?: string;
 }
 
-/** 群成员禁言列表。 */
+/** 用户禁言列表。 */
 export interface SetGroupMemberMutePayload {
   /** 用户禁言列表；每项通过 op 控制增/改/删， 单次设置不能超过 20 个 */
   members?: MemberMuteAction[];
 }
 
-/** 查询入群自动审批策略列表时使用的分页信息。 */
+/** 入群自动审批策略列表的分页游标和单页数量。 */
 export interface GetGroupJoinApprovalStrategyListPayload {
   /** 分页游标，首次请求可不传或传空串。 */
   cursor?: string;
@@ -458,7 +458,7 @@ export interface JoinApprovalStrategy {
    * @remarks
    * 官方文档字段表仅将 `group_ids` 定义为 `array`，请求说明称数组元素为 `uint64`，响应示例返回脱敏字符串。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.get.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.get.html}
    */
   group_ids: unknown[];
   /** 白名单中的号码数量（估算，可能存在少量误差）。 */
@@ -477,12 +477,12 @@ export interface JoinApprovalStrategy {
    * @remarks
    * 官方文档的响应字段表包含 `remark`，响应示例未返回该字段。
    *
-   * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.get.html}
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.get.html}
    */
   remark?: string;
 }
 
-/** 生效中的入群自动审批策略列表。 */
+/** 生效中的策略列表。 */
 export interface GroupJoinApprovalStrategyList {
   /** 生效中的策略列表。 */
   strategies: JoinApprovalStrategy[];
@@ -490,7 +490,7 @@ export interface GroupJoinApprovalStrategyList {
   next_cursor: string;
 }
 
-/** 创建入群自动审批策略时使用的信息。 */
+/** 入群自动审批策略的关联群、启用状态、过期时间和备注。 */
 export interface CreateGroupJoinApprovalStrategyPayload {
   /** group_openids 与 group_ids 二选一必填，同时传入或均未传入均返回错误 关联的群 openid 列表，最多 100 个，与 group_ids 互斥。 */
   group_openids?: string[];
@@ -504,7 +504,7 @@ export interface CreateGroupJoinApprovalStrategyPayload {
   remark?: string;
 }
 
-/** 创建的入群自动审批策略。 */
+/** 入群自动审批策略。 */
 export interface CreateGroupJoinApprovalStrategy {
   /** 服务端生成的策略 ID。 */
   strategy_id: string;
@@ -514,7 +514,7 @@ export interface CreateGroupJoinApprovalStrategy {
   expire_at: string;
 }
 
-/** 入群自动审批策略的关联群增删操作。 */
+/** 关联群增删操作。 */
 export interface GroupAction {
   /** 操作类型：add 新增关联群，del 删除关联群。 */
   op: 'add' | 'del';
@@ -524,7 +524,7 @@ export interface GroupAction {
   group_ids?: unknown[];
 }
 
-/** 修改入群自动审批策略时使用的信息。 */
+/** 入群自动审批策略的启用状态、过期时间、关联群增删操作和备注。 */
 export interface UpdateGroupJoinApprovalStrategyPayload {
   /** 是否启用策略，on-启用 off-关闭。 */
   is_enable?: 'on' | 'off';
@@ -536,7 +536,7 @@ export interface UpdateGroupJoinApprovalStrategyPayload {
   remark?: string;
 }
 
-/** 修改后的入群自动审批策略。 */
+/** 入群自动审批策略。 */
 export interface UpdateGroupJoinApprovalStrategy {
   /** 是否启用，on-启用 off-关闭。 */
   is_enable: 'on' | 'off';
@@ -544,7 +544,7 @@ export interface UpdateGroupJoinApprovalStrategy {
   expire_at: string;
 }
 
-/** 入群自动审批策略的白名单号码操作。 */
+/** 白名单号码的操作类型和 QQ 号码列表。 */
 export interface UpdateGroupJoinApprovalStrategyWhitelistPayload {
   /** 操作类型：add 新增号码，del 删除号码。 */
   op: 'add' | 'del';
@@ -552,7 +552,7 @@ export interface UpdateGroupJoinApprovalStrategyWhitelistPayload {
   whitelist_users: string[];
 }
 
-/** 修改后的入群自动审批策略白名单信息。 */
+/** 操作后策略当前白名单号码数（估算）。 */
 export interface GroupJoinApprovalStrategyWhitelist {
   /** 策略 ID。 */
   strategy_id: string;
@@ -581,7 +581,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：100 QPS
      *
-     * @param group_openid 群 OpenID
+     * @param group_openid - 群 OpenID
      * @returns
      *
      * - id：消息 ID，可用于后续撤回
@@ -625,6 +625,8 @@ export default (request: EmbusInstance) => {
      * @throws 40054016 机器人已下线
      * @throws 50055001 消息发送异常，请稍后重试
      * @throws 50055006 ARK消息发送异常，请稍后重试
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
      */
     sendGroupMessage(group_openid: string, payload: SendGroupMessagePayload): Promise<GroupMessage> {
       return request.post(`/v2/groups/${group_openid}/messages`, payload);
@@ -648,14 +650,14 @@ export default (request: EmbusInstance) => {
      * @remarks
      * 官方文档说明成功返回 HTTP 200，无响应体，文档同一页面的响应示例为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages_message_id.delete.html}
-     *
-     * @param group_openid 群 OpenID
-     * @param message_id 消息 ID
+     * @param group_openid - 群 OpenID
+     * @param message_id - 消息 ID
      * @throws 40061001 请求参数无效
      * @throws 40062003 无操作权限
      * @throws 40064004 已超出消息撤回时限
      * @throws 50065001 消息撤回失败，请稍后重试
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages_message_id.delete.html}
      */
     recallGroupMessage(group_openid: string, message_id: string): Promise<Record<string, never>> {
       return request.delete(`/v2/groups/${group_openid}/messages/${message_id}`);
@@ -693,7 +695,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：50 QPS
      *
-     * @param group_openid 群 OpenID
+     * @param group_openid - 群 OpenID
      * @returns
      *
      * - file_uuid：文件唯一 ID
@@ -709,6 +711,8 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
      */
     uploadGroupFile(group_openid: string, payload: UploadGroupFilePayload): Promise<GroupFile> {
       return request.post(`/v2/groups/${group_openid}/files`, payload);
@@ -727,7 +731,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：10 QPS
      *
-     * @param group_id 群 OpenID
+     * @param group_id - 群 OpenID
      * @returns
      *
      * - upload_id：上传任务 ID，后续分片上传和完成合并时需携带
@@ -741,6 +745,8 @@ export default (request: EmbusInstance) => {
      * @throws 850027 发送数据超时
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_id_upload_prepare.post.html}
      */
     prepareGroupFileUpload(
       group_id: string,
@@ -762,16 +768,14 @@ export default (request: EmbusInstance) => {
      *
      * 每个分片 PUT 到预签名 URL 成功后调用，通知服务端该分片已上传完成。
      *
-     * 全部分片完成后，携带 upload_id 调用 /v2/groups/{group_openid}/files 完成合并。
+     * 全部分片完成后，携带 upload_id 调用 `/v2/groups/{group_openid}/files` 完成合并。
      *
      * 接口频率限制：10 QPS
      *
      * @remarks
      * 官方文档将响应标记为「无」，文档同一页面的响应示例为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_id_upload_part_finish.post.html}
-     *
-     * @param group_id 群 OpenID
+     * @param group_id - 群 OpenID
      * @throws 850018 群被禁言或者机器人被禁言
      * @throws 850019 不支持的文件格式
      * @throws 850026 下载原始文件失败
@@ -780,6 +784,8 @@ export default (request: EmbusInstance) => {
      * @throws 10000 不支持的操作
      * @throws 40093001 文件上传失败，请重试
      * @throws 40093002 超过今天发送文件容量上限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_id_upload_part_finish.post.html}
      */
     finishGroupFileUploadPart(
       group_id: string,
@@ -795,7 +801,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param group_openid 群 OpenID
+     * @param group_openid - 群 OpenID
      * @returns
      *
      * - group_openid：群 OpenID
@@ -805,6 +811,8 @@ export default (request: EmbusInstance) => {
      * - group_tags：群标签列表
      * - group_member_num：群成员人数
      * @throws 11253 应用无接口访问权限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_info.get.html}
      */
     getGroupInfo(group_openid: string): Promise<GroupInfo> {
       return request.get(`/v2/groups/${group_openid}/info`);
@@ -817,7 +825,7 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param group_openid 群 OpenID
+     * @param group_openid - 群 OpenID
      * @returns
      *
      * - member_openid：机器人的 openid
@@ -826,6 +834,8 @@ export default (request: EmbusInstance) => {
      * - recv_msg_setting：接受消息的类型：群内接收消息的设置：all、only_mention、mention_and_context
      * - member_role：群成员角色 member-普通成员，owner-群主，admin-管理员
      * @throws 11253 应用无接口访问权限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_bot_state.get.html}
      */
     getGroupBotState(group_openid: string): Promise<GroupBotState> {
       return request.get(`/v2/groups/${group_openid}/bot_state`);
@@ -840,12 +850,14 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：60 QPM
      *
-     * @param group_openid 群OpenID
+     * @param group_openid - 群OpenID
      * @returns
      *
      * - members：成员列表，每次最多返回 30 条
      * - next_cursor：下一页游标，空串表示已到末页
      * @throws 11253 应用无接口访问权限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_members.get.html}
      */
     getGroupMemberList(group_openid: string, payload: GetGroupMemberListPayload = {}): Promise<GroupMemberList> {
       return request.get(`/v2/groups/${group_openid}/members`, payload);
@@ -860,8 +872,8 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param group_openid 群OpenID
-     * @param member_openid 成员OpenID
+     * @param group_openid - 群OpenID
+     * @param member_openid - 成员OpenID
      * @returns
      *
      * - member_openid：成员 OpenID
@@ -871,6 +883,8 @@ export default (request: EmbusInstance) => {
      * - joined_at：入群时间戳（RFC3339格式）
      * - union_openid：用户在应用/开放平台下的统一标识（如有）
      * @throws 11253 应用无接口访问权限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_members_member_openid.get.html}
      */
     getGroupMemberInfo(group_openid: string, member_openid: string): Promise<Member> {
       return request.get(`/v2/groups/${group_openid}/members/${member_openid}`);
@@ -885,12 +899,14 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param group_openid 群OpenID
+     * @param group_openid - 群OpenID
      * @returns
      *
      * - remove_members_result：成功时返回 success
      * - add_to_member_blacklist_fail_openids：拉黑失败的 openid
      * @throws 11253 应用无接口访问权限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_batch_remove_members.post.html}
      */
     removeGroupMembers(
       group_openid: string,
@@ -913,12 +929,14 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param group_openid 群OpenID
+     * @param group_openid - 群OpenID
      * @returns
      *
      * - users：黑名单用户列表
      * - next_cursor：下一页游标，空串表示已到末页
      * @throws 11253 应用无接口访问权限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_member_blacklist.get.html}
      */
     getGroupMemberBlacklist(
       group_openid: string,
@@ -936,11 +954,13 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：60 QPM
      *
-     * @param group_openid 群OpenID
+     * @param group_openid - 群OpenID
      * @returns
      *
      * - fail_openids：op=add 时返回拉黑失败的 openid 列表；op=del 时同义
      * @throws 11253 应用无接口访问权限
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_member_blacklist.post.html}
      */
     updateGroupMemberBlacklist(
       group_openid: string,
@@ -961,12 +981,12 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：60 QPM
      *
-     * @param group_openid 群OpenID
-     * @param member_openid 成员OpenID
      * @remarks
      * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_approval_join_request_member_openid.post.html}
+     * @param group_openid - 群OpenID
+     * @param member_openid - 成员OpenID
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_approval_join_request_member_openid.post.html}
      */
     reviewGroupJoinRequest(
       group_openid: string,
@@ -985,15 +1005,15 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param group_openid 群OpenID
+     * @remarks
+     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
+     *
+     * @param group_openid - 群OpenID
      * @returns
      *
      * - list：入群申请列表
      * - next_cursor：下一页游标，空串表示已到末页
-     * @remarks
-     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
-     *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_join_request_list.get.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_join_request_list.get.html}
      */
     getGroupJoinRequestList(
       group_openid: string,
@@ -1011,15 +1031,15 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @param group_openid 群OpenID
+     * @remarks
+     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
+     *
+     * @param group_openid - 群OpenID
      * @returns
      *
      * - global_rule：群级禁言规则（全员禁言配置）
      * - members：当前处于禁言中的用户列表（不含已过期）
-     * @remarks
-     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
-     *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.get.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.get.html}
      */
     getGroupMuteState(group_openid: string): Promise<GroupMuteState> {
       return request.get(`/v2/groups/${group_openid}/restrict_chat_setting`);
@@ -1034,11 +1054,11 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：60 QPM
      *
-     * @param group_openid 群OpenID
      * @remarks
      * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html}
+     * @param group_openid - 群OpenID
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html}
      */
     setGroupMemberMute(group_openid: string, payload: SetGroupMemberMutePayload): Promise<Record<string, never>> {
       return request.post(`/v2/groups/${group_openid}/restrict_chat_setting`, payload);
@@ -1055,6 +1075,8 @@ export default (request: EmbusInstance) => {
      *
      * - strategies：生效中的策略列表
      * - next_cursor：下一页游标，空串表示已到末页
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.get.html}
      */
     getGroupJoinApprovalStrategyList(
       payload: GetGroupJoinApprovalStrategyListPayload = {},
@@ -1076,6 +1098,8 @@ export default (request: EmbusInstance) => {
      * - strategy_id：服务端生成的策略 ID
      * - is_enable：是否启用，on-启用 off-关闭
      * - expire_at：过期时间（RFC3339 格式）
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy.post.html}
      */
     createGroupJoinApprovalStrategy(
       payload: CreateGroupJoinApprovalStrategyPayload,
@@ -1093,9 +1117,9 @@ export default (request: EmbusInstance) => {
      * @remarks
      * 官方文档将响应标记为「无」，文档同一页面的响应示例为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id.delete.html}
+     * @param strategy_id - 策略 ID
      *
-     * @param strategy_id 策略 ID
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id.delete.html}
      */
     deleteGroupJoinApprovalStrategy(strategy_id: string): Promise<Record<string, never>> {
       return request.delete(`/v2/groups/join_approval_strategy/${strategy_id}`);
@@ -1108,11 +1132,13 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：60 QPM
      *
-     * @param strategy_id 策略 ID
+     * @param strategy_id - 策略 ID
      * @returns
      *
      * - is_enable：是否启用，on-启用 off-关闭
      * - expire_at：过期时间（RFC3339 格式）
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id.patch.html}
      */
     updateGroupJoinApprovalStrategy(
       strategy_id: string,
@@ -1131,9 +1157,9 @@ export default (request: EmbusInstance) => {
      * @remarks
      * 官方文档将响应标记为「无」，文档同一页面的响应示例为 `{}`。
      *
-     * {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id_execute.post.html}
+     * @param strategy_id - 策略 ID
      *
-     * @param strategy_id 策略 ID
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id_execute.post.html}
      */
     executeGroupJoinApprovalStrategy(strategy_id: string): Promise<Record<string, never>> {
       return request.post(`/v2/groups/join_approval_strategy/${strategy_id}/execute`);
@@ -1146,12 +1172,14 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：60 QPM
      *
-     * @param strategy_id 策略 ID
+     * @param strategy_id - 策略 ID
      * @returns
      *
      * - strategy_id：策略 ID
      * - whitelist_user_count：操作后策略当前白名单号码数（估算）
      * - updated_at：策略更新时间（RFC3339 格式）
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_join_approval_strategy_strategy_id_whitelist_users.post.html}
      */
     updateGroupJoinApprovalStrategyWhitelist(
       strategy_id: string,

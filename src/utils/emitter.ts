@@ -1,5 +1,10 @@
 type Listener<Arguments extends unknown[]> = (...args: Arguments) => unknown;
 
+/**
+ * 类型安全的异步事件分发器。
+ *
+ * @typeParam Events - 事件名与监听器参数元组的映射。
+ */
 export class EventEmitter<Events extends Record<keyof Events, unknown[]>> {
   private readonly listeners: Partial<{
     [Event in keyof Events]: Set<Listener<Events[Event]>>;
@@ -8,8 +13,9 @@ export class EventEmitter<Events extends Record<keyof Events, unknown[]>> {
   /**
    * 订阅事件。
    *
-   * @param event 事件名。
-   * @param listener 事件监听器。
+   * @typeParam Event - 事件名。
+   * @param event - 事件名。
+   * @param listener - 事件监听器。
    * @returns 当前实例。
    */
   public on<Event extends keyof Events>(event: Event, listener: Listener<Events[Event]>): this {
@@ -24,8 +30,9 @@ export class EventEmitter<Events extends Record<keyof Events, unknown[]>> {
   /**
    * 移除指定事件监听器。
    *
-   * @param event 事件名。
-   * @param listener 传给 `on()` 的同一个监听器。
+   * @typeParam Event - 事件名。
+   * @param event - 事件名。
+   * @param listener - 传给 `on()` 的同一个监听器。
    * @returns 当前实例。
    */
   public off<Event extends keyof Events>(event: Event, listener: Listener<Events[Event]>): this {
@@ -37,11 +44,12 @@ export class EventEmitter<Events extends Record<keyof Events, unknown[]>> {
   /**
    * 触发事件。
    *
-   * 该方法直接调用对应监听器，不会进入中间件链。
+   * 直接调用该事件的监听器，不经过中间件链。
+   * 所有监听器并发执行，全部完成后本次调用才结束。
    *
-   * @param event 事件名。
-   * @param args 事件参数。
-   * @returns 事件监听器执行完成后结束。
+   * @typeParam Event - 事件名。
+   * @param event - 事件名。
+   * @param args - 事件参数。
    * @throws 监听器执行失败时，在全部监听器完成后按注册顺序抛出首个错误。
    */
   public async emit<Event extends keyof Events>(event: Event, ...args: Events[Event]): Promise<void> {
