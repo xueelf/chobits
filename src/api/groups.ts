@@ -30,7 +30,7 @@ export interface UploadGroupFilePayload {
    *
    * 1=图片, 2=视频, 3=语音, 4=文件
    *
-   * 图片支持 png/jpg，视频支持 mp4，语音支持 silk。
+   * 图片支持 png/jpg，视频支持 mp4，语音支持 silk,mp3,wav。
    */
   file_type?: 1 | 2 | 3 | 4;
   /**
@@ -45,7 +45,7 @@ export interface UploadGroupFilePayload {
    * false=仅返回 file_info，用于后续发送消息接口的 media 字段。
    */
   srv_send_msg?: boolean;
-  /** 文件名（可选）。 */
+  /** 文件名 (分片上传或者二进制上传时必填)。 */
   file_name?: string;
   /**
    * 分片上传任务 ID。来自 UploadPrepare 响应的 upload_id。
@@ -53,16 +53,8 @@ export interface UploadGroupFilePayload {
    * 传入后走分片上传合并路径，url 可为空。
    */
   upload_id?: string;
-  /**
-   * 暂未支持。
-   *
-   * @remarks
-   * 官方文档历史将 `file_data` 标注为「暂未支持」，当前文件上传接口的字段表已移除该字段。
-   *
-   * @see {@link https://github.com/tencent-connect/bot-docs/blob/e603b92cfc77487e5415e32c6eee6bf88bd05f5c/docs/develop/api-v2/server-inter/message/send-receive/rich-media.md}
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}
-   */
-  file_data?: unknown;
+  /** 直接上传二进制数据。 直接上传二进制有大小限制，需要在5M以内，如果超过则需要使用URL上传或者分片上传。 */
+  file_data?: string;
 }
 
 /** 群聊富媒体分片上传前的文件信息。 */
@@ -629,22 +621,29 @@ export default (request: EmbusInstance) => {
      *
      * - 1=图片(png/jpg): 软限制 20MB, 硬限制 200MB
      * - 2=视频(mp4): 软限制 30MB, 硬限制 200MB
-     * - 3=语音(silk): 软限制 20MB, 硬限制 200MB
+     * - 3=语音(silk/mp3/wav): 软限制 20MB, 硬限制 200MB
      * - 4=文件: 软限制 200MB, 硬限制 200MB
      *
      * 超过软限制会降级为文件类型上传，超过硬限制会报错。
      *
-     * 支持两种上传方式：
+     * 支持三种上传方式，按实际文件大小和资源来源选择。
      *
-     * - URL 上传：传入 url，平台下载转存
-     * - 分片上传合并：先通过 upload_prepare + upload_part_finish 完成分片上传，再携带 upload_id 调用本接口完成合并
+     * - URL 上传：传入 url，由平台下载并转存。服务端下载资源可能因网络等原因失败
+     * - 分片上传合并：先通过 upload_prepare + upload_part_finish 完成分片上传，再携带 upload_id 调用本接口完成合并。推荐使用
+     * - 直接上传二进制数据：直接传文件二进制内容。数据大小不能超过 5M，超过建议使用分片上传
      *
-     * 推荐使用分片上传，流程如下：
+     * 推荐流程：分片上传
      *
-     * 1. 调用 upload_prepare 获取 upload_id、block_size 和各分片预签名 URL
-     * 2. 按 block_size 将文件分片，逐片 HTTP PUT 到对应的预签名 URL
-     * 3. 每片 PUT 成功后调用 upload_part_finish 通知服务端该分片完成
-     * 4. 全部分片完成后，携带 upload_id 调用本接口完成合并，返回 file_info
+     * 1. 调用 upload_prepare，获取 upload_id、block_size 以及各分片的预签名 URL。
+     * 2. 按 block_size 将文件切分为多个分片，逐片通过 HTTP PUT 上传到对应的预签名 URL。
+     * 3. 每片 PUT 成功后，调用 upload_part_finish 通知服务端该分片上传完成。
+     * 4. 全部分片上传完成后，携带 upload_id 调用本接口完成合并，返回 file_info。
+     *
+     * 注意事项
+     *
+     * URL 上传存在服务端下载失败的可能，若遇到下载失败，可先将资源下载到本地，再通过直接上传二进制数据的方式上传。
+     *
+     * 二进制直传有 5M 大小上限，文件较大时请改用分片上传。
      *
      * 接口频率限制：50 QPS
      *
