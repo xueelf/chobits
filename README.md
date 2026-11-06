@@ -253,7 +253,7 @@ client.on('GROUP_MESSAGE_CREATE', async event => {
 });
 ```
 
-传入字符串时，Chobits 会将其转换为 `msg_type: 0` 的文本消息。发送 Markdown、富媒体或键盘时，需要传入对应场景的官方消息结构：
+传入字符串时，Chobits 会将其转换为 `msg_type: 0` 的文本消息。发送 Markdown、富媒体、图文卡片或键盘时，需要传入对应场景的官方消息结构：
 
 ```typescript
 client.on('GROUP_AT_MESSAGE_CREATE', async event => {
@@ -268,6 +268,19 @@ client.on('GROUP_AT_MESSAGE_CREATE', async event => {
     msg_type: 7,
     media: {
       file_info: '上传接口返回的 file_info',
+    },
+  });
+
+  await event.reply({
+    msg_type: 8,
+    card: {
+      type: 'tuwen',
+      content: {
+        title: '标题',
+        description: '描述',
+        url: 'https://example.com',
+        pic_url: 'https://example.com/pic.png',
+      },
     },
   });
 });

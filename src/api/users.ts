@@ -2,6 +2,7 @@ import { type EmbusInstance } from 'embus';
 
 import {
   type ArkMessage,
+  type CardMessage,
   type MarkdownMessage,
   type MediaMessage,
   type MessageExtInfo,
@@ -21,7 +22,7 @@ export interface InputNotify {
 
 /** 输入状态通知 (msg_type=6)。 */
 export interface UserInputNotifyMessage {
-  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media)。 */
+  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media) 8=图文卡片(card)。 */
   msg_type: 6;
   /** 输入中状态，msg_type=6时使用。 */
   input_notify: InputNotify;
@@ -46,7 +47,8 @@ export interface UserInputNotifyMessage {
 }
 
 /** 向指定用户发送的私聊消息。 */
-export type SendUserMessagePayload = TextMessage | MarkdownMessage | ArkMessage | UserInputNotifyMessage | MediaMessage;
+export type SendUserMessagePayload =
+  TextMessage | MarkdownMessage | ArkMessage | UserInputNotifyMessage | MediaMessage | CardMessage;
 
 /** 流式发送的单聊消息分片。 */
 export interface SendUserStreamMessagePayload {

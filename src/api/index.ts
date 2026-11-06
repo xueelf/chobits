@@ -187,6 +187,23 @@ export interface MediaInfo {
   file_info?: string;
 }
 
+/** 图文卡片消息。 */
+export interface MessageCard {
+  /** 卡片类型：tuwen： 图文卡片。 */
+  type?: string;
+  /** 卡片消息中上传的元素 当type=tuwen, 时必须包括: title(1-50 字符), description(1-200 字符), url(必须为https,链接长度≤ 1024 字符), pic_url(必须为https,链接长度≤ 1024 字符)。 */
+  content?: {
+    /** 表示卡片消息的描述。 */
+    description?: string;
+    /** 表示卡片消息中出现的图片。 */
+    pic_url?: string;
+    /** 表示卡片消息的标题。 */
+    title?: string;
+    /** 表示卡片消息中的跳转链接。 */
+    url?: string;
+  };
+}
+
 /** 引用回复。 */
 export interface MessageReference {
   /**
@@ -322,7 +339,7 @@ interface KeyboardMessagePayload extends MessagePayload {
 
 /** 文本消息 (msg_type=0)。 */
 export interface TextMessage extends KeyboardMessagePayload {
-  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media)。 */
+  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media) 8=图文卡片(card)。 */
   msg_type?: 0;
   /** 文本内容。msg_type=0 时为全文 注意: 传了 markdown 后此字段必须为空。 */
   content: string;
@@ -330,7 +347,7 @@ export interface TextMessage extends KeyboardMessagePayload {
 
 /** Markdown 消息 (msg_type=2)。 */
 export interface MarkdownMessage extends KeyboardMessagePayload {
-  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media)。 */
+  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media) 8=图文卡片(card)。 */
   msg_type: 2;
   /** Markdown 消息。msg_type=2 时必填 注意: 填写此字段后 content/ark 必须全为空。 */
   markdown: MessageMarkdown;
@@ -346,7 +363,7 @@ export interface ArkMessage extends KeyboardMessagePayload {
 
 /** 富媒体消息 (msg_type=7)。 */
 export interface MediaMessage extends KeyboardMessagePayload {
-  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media)。 */
+  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media) 8=图文卡片(card)。 */
   msg_type: 7;
   /** 富媒体消息。msg_type=7 时填写。 */
   media: MediaInfo;
@@ -361,6 +378,14 @@ export interface MediaMessage extends KeyboardMessagePayload {
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
    */
   content?: string;
+}
+
+/** 图文卡片消息 (msg_type=8)。 */
+export interface CardMessage extends KeyboardMessagePayload {
+  /** 消息类型。决定哪个内容字段生效: 0=纯文本(content) 2=Markdown(markdown) 6=输入中状态（input_notify) 7=富媒体(media) 8=图文卡片(card)。 */
+  msg_type: 8;
+  /** 卡片消息。msg_type=8时必须填写。 */
+  card: MessageCard;
 }
 
 /** UploadPart。 */

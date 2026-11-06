@@ -2,65 +2,18 @@ import { type EmbusInstance } from 'embus';
 
 import {
   type ArkMessage,
+  type CardMessage,
   type MarkdownMessage,
   type MediaMessage,
   type MessageExtInfo,
-  type MessageReference,
   type TextMessage,
   type UploadConfig,
   type UploadPart,
   type VerifyInfo,
 } from '#/api/index';
 
-/**
- * 卡片消息 (msg_type=8)。
- *
- * @remarks
- * 当前群聊消息文档未收录 `card`、`msg_type: 8` 和卡片消息示例，官方历史文档仍保留这些定义。
- *
- * @see {@link https://qq-ai.cdn-go.cn/web/bot-docs/-/v1.20.0/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
- * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
- */
-export interface GroupCardMessage {
-  /** 卡片消息 (msg_type=8)。 */
-  msg_type: 8;
-  /** 卡片消息。 */
-  card: {
-    /** 当 type 为 tuwen 时，会发送一个包括标题、描述、图片、跳转链接的消息。 */
-    type?: string;
-    /** 卡片消息。 */
-    content?: {
-      /** 表示卡片消息的描述。 */
-      description?: string;
-      /** 表示卡片消息中出现的图片。 */
-      pic_url?: string;
-      /** 表示卡片消息的标题。 */
-      title?: string;
-      /** 表示卡片消息中的跳转链接。 */
-      url?: string;
-    };
-  };
-  /** 被动回复的消息 ID。从 GROUP_AT_MESSAGE_CREATE 等事件的 d.id 获取，5 分钟内有效。 */
-  msg_id?: string;
-  /** 被动回复的事件 ID。从事件最外层的id获取。与 msg_id 二选一，支持事件："INTERACTION_CREATE"、"GROUP_ADD_ROBOT"、"GROUP_MSG_RECEIVE"。 */
-  event_id?: string;
-  /** 回复消息的序号，与 msg_id 联合使用，避免相同消息 id 回复重复发送，不填默认是 1。相同的 msg_id + msg_seq 重复发送会失败。 */
-  msg_seq?: number;
-  /** 引用回复。填写后以引用形式展示，关联上下文。 */
-  message_reference?: MessageReference;
-  /**
-   * 指明发送消息为互动召回消息，与 msg_id，event_id 互斥使用。
-   *
-   * @remarks
-   * 当前群聊消息接口已移除该字段。
-   *
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
-   */
-  is_wakeup?: boolean;
-}
-
 /** 向指定群发送的消息。 */
-export type SendGroupMessagePayload = TextMessage | MarkdownMessage | ArkMessage | MediaMessage | GroupCardMessage;
+export type SendGroupMessagePayload = TextMessage | MarkdownMessage | ArkMessage | MediaMessage | CardMessage;
 
 /**
  * 群聊富媒体文件的上传信息。
