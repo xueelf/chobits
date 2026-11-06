@@ -3,6 +3,7 @@ import { type EmbusInstance } from 'embus';
 import bot from '#/api/bot';
 import groups from '#/api/groups';
 import interactions from '#/api/interactions';
+import media from '#/api/media';
 import users from '#/api/users';
 
 export const OPEN_API_ORIGIN = 'https://api.bot.qq.com';
@@ -393,11 +394,13 @@ export interface UploadConfig {
 export type Operations = ReturnType<typeof users> &
   ReturnType<typeof groups> &
   ReturnType<typeof bot> &
+  ReturnType<typeof media> &
   ReturnType<typeof interactions>;
 
 export default (request: EmbusInstance) => ({
   ...bot(request),
   ...users(request),
   ...groups(request),
+  ...media(request),
   ...interactions(request),
 });

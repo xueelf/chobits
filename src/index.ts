@@ -53,6 +53,7 @@ export type {
 } from '#/api/index';
 export type * from '#/api/groups';
 export type * from '#/api/users';
+export type * from '#/api/media';
 export type * from '#/api/interactions';
 export type * from '#/core/middleware';
 export type {

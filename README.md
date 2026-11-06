@@ -344,6 +344,10 @@ QQ 实际推送的部分事件与开发文档中的说明并不一致。以下�
 | `updateGroupJoinApprovalStrategy`          | 修改入群自动审批策略       | `PATCH /v2/groups/join_approval_strategy/{strategy_id}`                |
 | `executeGroupJoinApprovalStrategy`         | 执行入群自动审批策略       | `POST /v2/groups/join_approval_strategy/{strategy_id}/execute`         |
 | `updateGroupJoinApprovalStrategyWhitelist` | 修改入群自动审批策略白名单 | `POST /v2/groups/join_approval_strategy/{strategy_id}/whitelist_users` |
+| `prepareMediaImage`                        | 申请素材图片上传           | `POST /v2/media-images/prepare`                                        |
+| `finishMediaImage`                         | 完成素材图片上传           | `POST /v2/media-images/complete`                                       |
+| `getMediaImageList`                        | 查询有效素材图片           | `GET /v2/media-images`                                                 |
+| `deleteMediaImage`                         | 删除素材图片               | `DELETE /v2/media-images/{image_id}/delete`                            |
 | `getBotInfo`                               | 获取机器人资料             | `GET /users/@me`                                                       |
 | `generateShareLink`                        | 生成机器人分享链接         | `POST /v2/generate_url_link`                                           |
 | `getMenu`                                  | 查询全局自定义菜单         | `GET /v2/menu`                                                         |
