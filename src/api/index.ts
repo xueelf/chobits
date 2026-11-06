@@ -113,8 +113,7 @@ export interface RenderData {
   /**
    * 0：灰色线框，1：蓝色线框 3: 白色背景+红色字体, 4:蓝色背景+白色字体
    *
-   * @remarks
-   * 官方文档此前将 `2` 描述为「白字」，当前已移除该取值说明。
+   * 当前文档仅定义 0、1、3、4，未定义 `2`。
    *
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html}
    */
@@ -370,8 +369,7 @@ export interface MediaMessage extends KeyboardMessagePayload {
   /**
    * 文本内容。
    *
-   * @remarks
-   * 官方文档历史要求 msg_type=7 时填写 content，当前消息接口仅为 msg_type=0 定义该字段，富媒体示例也未传入。
+   * 当前消息接口仅为 msg_type=0 定义该字段，富媒体示例也未传入。
    *
    * @see {@link https://github.com/tencent-connect/bot-docs/blob/645787a45937e5d9c4f0f61afefdffde0f38696e/docs/develop/api-v2/server-inter/message/send-receive/send.md}
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html}

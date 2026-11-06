@@ -19,7 +19,7 @@ export type SendGroupMessagePayload = TextMessage | MarkdownMessage | ArkMessage
  * 群聊富媒体文件的上传信息。
  *
  * @remarks
- * 富媒体概述中的格式范围比文件限制和群聊上传接口更宽，图片另含 gif/webp/bmp，语音另含 mp3/wav/ogg。
+ * 富媒体概述中的格式范围比文件限制和群聊上传接口更宽，图片另含 gif/webp/bmp，语音另含 ogg。
  *
  * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/rich-media.html}
  * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_files.post.html}

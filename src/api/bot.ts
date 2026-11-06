@@ -28,9 +28,6 @@ export interface AccessToken {
 /**
  * 获取 access_token 失败时返回的错误信息。
  *
- * @remarks
- * 官方文档仅列出错误码和错误信息，未定义错误响应结构。实际响应返回 `code` 和 `message`。
- *
  * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/access-token.html}
  */
 export interface AccessTokenError {
@@ -97,17 +94,19 @@ export interface BotInfo {
 /** 分享链接的跳转 URL 和 callback_data。 */
 export interface GenerateShareLinkPayload {
   /**
-   * 用户通过该链接添加机器人时，callback_data 参数会透传给开发者。
+   * 回传给机器人后台的数据。
    *
    * callback_data 最长 32 字符。
+   */
+  callback_data?: string;
+  /**
+   * 需要跳转的 URL。
    *
    * @remarks
-   * 官方文档的请求体字段表未收录 `callback_data`，接口说明、请求示例和实际请求仍使用该字段。
+   * 当前文档的请求体字段表已移除 `url_link`，请求示例使用 `callback_data`。
    *
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
-  callback_data?: string;
-  /** 需要跳转的 URL。 */
   url_link?: string;
 }
 
@@ -117,7 +116,7 @@ export interface ShareLink {
    * 生成的分享链接。
    *
    * @remarks
-   * 实际响应未返回 `url_link`。
+   * 实际响应未返回 `url_link`，当前文档的响应体字段表也已移除该字段，生成的分享链接由 `data.url` 返回。
    *
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
@@ -140,23 +139,9 @@ export interface ShareLink {
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
    */
   msg: string;
-  /**
-   * 返回数据。
-   *
-   * @remarks
-   * 该字段未被文档收录。
-   *
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
-   */
+  /** 返回数据。 */
   data: {
-    /**
-     * 生成的分享链接。
-     *
-     * @remarks
-     * 该字段未被文档收录，实际返回生成的分享链接。
-     *
-     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_generate_url_link.post.html}
-     */
+    /** 生成的分享链接。 */
     url: string;
   };
 }
