@@ -183,16 +183,6 @@ export interface User {
   id: string;
   /** 用户名称。 */
   username?: string;
-  /**
-   * 头像 URL。
-   *
-   * @remarks
-   * 官方文档历史的 `User` 结构包含 `avatar`，当前消息事件文档的字段表已移除该字段。
-   *
-   * @see {@link https://github.com/tencent-connect/bot-docs/blob/main/docs/develop/api-v2/openapi/user/model.md}
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html}
-   */
-  avatar?: string;
   /** 是否为机器人。 */
   bot?: boolean;
   /**
@@ -288,7 +278,20 @@ export interface MessageAttachment {
 export interface ARKData {
   /** ARK 提示文本。 */
   prompt?: string;
-  /** ARK 类型。 */
+  /**
+   * ARK 类型。
+   *
+   * 卡片消息类型标识:
+   *
+   * - tuwen = 图文 H5（如快手分享链接）
+   * - feed = 图文卡片（群相册、分享卡片）
+   * - miniapp = 小程序（微信小程序、QQ 小程序、哔哩哔哩等）
+   * - map = 位置卡片
+   * - contact_card = 好友名片
+   * - video_share = 视频分享
+   * - music_together = 一起听歌
+   * - picture = 图片
+   */
   ark_type?: string;
   /** ARK 名称。 */
   ark_name?: string;
@@ -361,7 +364,13 @@ export type DispatchData = {
     id: string;
     /** 消息发送者。 */
     author: User & Required<Pick<User, 'username' | 'bot' | 'union_openid' | 'member_openid' | 'member_role'>>;
-    /** 消息文本内容。 */
+    /**
+     * 消息文本内容。
+     *
+     * 群消息（全量模式）中，消息中 @ 某成员时，会替换为 <@ + 该成员的 member_openid + >（如 <@7A3B9C1D5E2F4A6B8C0D1E3F5A7B9C2D>）。
+     * 消息中 @全体成员时，会替换为 <@all>。
+     * 被 @ 的成员列表见 mentions 字段。
+     */
     content: string;
     /** 群 OpenID。 */
     group_openid: string;
@@ -419,15 +428,6 @@ export type DispatchData = {
     group_openid: string;
     /** 群成员 OpenID。 */
     member_openid: string;
-    /**
-     * 新成员的用户 OpenID（跨应用统一标识，可能为空）。
-     *
-     * @remarks
-     * WebSocket 与 Webhook 实测均未返回该字段。
-     *
-     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html}
-     */
-    user_openid?: string;
   };
   /** 群成员退出事件。 */
   GROUP_MEMBER_REMOVE: {
