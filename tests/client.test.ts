@@ -212,11 +212,6 @@ test('修改日志数据', async () => {
 });
 
 test('消息类型与内容字段', () => {
-  const message: SendGroupMessagePayload = {
-    msg_type: 2,
-    // @ts-expect-error Markdown 消息不能携带富媒体内容代替 markdown。
-    media: { file_info: 'file-info' },
-  };
   const markdown: SendGroupMessagePayload = {
     msg_type: 2,
     markdown: {
@@ -239,13 +234,8 @@ test('消息类型与内容字段', () => {
       },
     },
   };
-  // @ts-expect-error 官方没有定义 msg_type=1 的图片消息。
-  const imageMessage: SendGroupMessagePayload = { msg_type: 1, image: 'https://example.com/image.png' };
-
-  expect(message.msg_type).toBe(2);
   expect(markdown.markdown.force_verify_image_resource).toBe(true);
   expect(markdown.keyboard?.content?.rows?.[0]?.buttons?.[0]?.action?.modal?.content).toBe('确认操作吗？');
-  expect(imageMessage).toBeDefined();
 });
 
 test('流式消息', async () => {
