@@ -484,6 +484,67 @@ test('文件与分片上传', async () => {
   });
 });
 
+test('素材管理接口', async () => {
+  const api = new MockOpenApi();
+  const requests: Request[] = [];
+  const uploadData = api.prepareMediaImage();
+  const imageData = api.finishMediaImage();
+  const listData = api.getMediaImageList();
+
+  globalThis.fetch = mockFetch(async (input, init) => {
+    const request = toRequest(input, init);
+
+    if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    requests.push(request);
+    if (request.url.endsWith('/prepare')) {
+      return Response.json(uploadData);
+    }
+    if (request.url.endsWith('/complete')) {
+      return Response.json(imageData);
+    }
+    if (request.method === 'GET') {
+      return Response.json(listData);
+    }
+    return Response.json(api.deleteMediaImage());
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
+
+  const upload = await client.prepareMediaImage({
+    file_name: 'image.png',
+    file_size: 1024,
+    content_type: 'image/png',
+    md5: 'md5',
+    sha1: 'sha1',
+  });
+  const image = await client.finishMediaImage({ upload_id: 'upload-id', md5: 'md5' });
+  const list = await client.getMediaImageList({ cursor: 'cursor' });
+  const removed = await client.deleteMediaImage('image-id');
+
+  expect(upload).toEqual(uploadData);
+  expect(image).toEqual(imageData);
+  expect(list).toEqual(listData);
+  expect(removed).toEqual({});
+  expect(requests.map(request => [request.method, request.url])).toEqual([
+    ['POST', 'https://api.bot.qq.com/v2/media-images/prepare'],
+    ['POST', 'https://api.bot.qq.com/v2/media-images/complete'],
+    ['GET', 'https://api.bot.qq.com/v2/media-images?cursor=cursor'],
+    ['DELETE', 'https://api.bot.qq.com/v2/media-images/image-id/delete'],
+  ]);
+  const [prepareRequest, finishRequest] = requests;
+
+  expect(await readRequestBody(prepareRequest)).toEqual({
+    file_name: 'image.png',
+    file_size: 1024,
+    content_type: 'image/png',
+    md5: 'md5',
+    sha1: 'sha1',
+  });
+  expect(await readRequestBody(finishRequest)).toEqual({ upload_id: 'upload-id', md5: 'md5' });
+});
+
 test('群信息', async () => {
   const api = new MockOpenApi();
   const requests: Request[] = [];

@@ -22,6 +22,7 @@ import {
   type GroupMessage,
   type UpdateGroupJoinApprovalStrategy,
 } from '#/api/groups';
+import { type MediaImage, type MediaImageList, type MediaImageUpload } from '#/api/media';
 import { type UserFile, type UserFileMultipartUpload, type UserMessage, type UserStreamMessage } from '#/api/users';
 
 export class MockOpenApi {
@@ -347,6 +348,49 @@ export class MockOpenApi {
   }
 
   public deleteGroupJoinApprovalStrategy(): Record<string, never> {
+    return {};
+  }
+
+  public prepareMediaImage(data: Partial<MediaImageUpload> = {}): MediaImageUpload {
+    return {
+      upload_id: 'upload-id',
+      presigned_url: 'https://example.com/presigned',
+      expires_in: 3600,
+      ...data,
+    };
+  }
+
+  public finishMediaImage(data: Partial<MediaImage> = {}): MediaImage {
+    return {
+      image_id: 'image-id',
+      url: 'qqbot-media://image/v1/image-token',
+      ttl: 7776000,
+      preview_url: 'https://example.com/preview',
+      ...data,
+    };
+  }
+
+  public getMediaImageList(data: Partial<MediaImageList> = {}): MediaImageList {
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    return {
+      total: '1',
+      images: [
+        {
+          image_id: 'image-id',
+          url: 'qqbot-media://image/v1/image-token',
+          file_name: 'image.png',
+          preview_url: 'https://example.com/preview',
+          created_at: String(timestamp),
+          expires_at: String(timestamp + 7776000),
+        },
+      ],
+      next_cursor: '',
+      ...data,
+    };
+  }
+
+  public deleteMediaImage(): Record<string, never> {
     return {};
   }
 
