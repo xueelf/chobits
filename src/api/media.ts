@@ -44,10 +44,24 @@ export interface MediaImage {
   ttl?: number;
   /** 上传时的文件名。查询有效图片时返回。 */
   file_name?: string;
-  /** 上传时间（Unix 秒）。查询有效图片时返回。 */
-  created_at?: number;
-  /** 过期时间（Unix 秒），每次被引用后自动顺延。查询有效图片时返回。 */
-  expires_at?: number;
+  /**
+   * 上传时间（Unix 秒）。查询有效图片时返回。
+   *
+   * @remarks
+   * 官方文档字段表将 `created_at` 定义为 `int64`，实际响应返回字符串。
+   *
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/material-management.html}
+   */
+  created_at?: string;
+  /**
+   * 过期时间（Unix 秒），每次被引用后自动顺延。查询有效图片时返回。
+   *
+   * @remarks
+   * 官方文档字段表将 `expires_at` 定义为 `int64`，实际响应返回字符串。
+   *
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/material-management.html}
+   */
+  expires_at?: string;
 }
 
 /** 有效图片列表的查询游标。 */
@@ -62,8 +76,15 @@ export interface MediaImageList {
   images: MediaImage[];
   /** 下一页游标，为空表示末页。 */
   next_cursor: string;
-  /** 当前有效图片总数（与数量上限同一口径）。 */
-  total: number;
+  /**
+   * 当前有效图片总数（与数量上限同一口径）。
+   *
+   * @remarks
+   * 官方文档字段表将 `total` 定义为 `uint64`，实际响应返回字符串。
+   *
+   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/material-management.html}
+   */
+  total: string;
 }
 
 export default (request: EmbusInstance) => ({
