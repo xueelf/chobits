@@ -13,12 +13,8 @@ interface ImageResponse {
   };
 }
 
-const isGroupMessage = (event: MessageEvent): event is GroupMessageEvent => {
-  return Object.hasOwn(event, 'group_openid');
-};
-
 const getPixivImageUrl = async (): Promise<string> => {
-  const response = await fetch('https://pixiv.yuki.sh/api/recommend?type=json');
+  const response = await fetch('https://pixiv.yuki.sh/api/recommend?type=json&proxy=i.pixiv.re');
   const { data } = <ImageResponse>await response.json();
   const url = data?.urls?.regular;
 
@@ -26,6 +22,10 @@ const getPixivImageUrl = async (): Promise<string> => {
     throw new Error(`图片接口请求失败：${response.status}`);
   }
   return url;
+};
+
+const isGroupMessage = (event: MessageEvent): event is GroupMessageEvent => {
+  return Object.hasOwn(event, 'group_openid');
 };
 
 const uploadImage = async (client: Client, event: MessageEvent, url: string): Promise<string> => {
@@ -51,7 +51,10 @@ const handleMessage = async (client: Client, event: MessageEvent): Promise<void>
 
     await event.reply({ msg_type: 7, media: { file_info } });
   }
-  if (content === '测试排版') {
+  if (content === '测试at') {
+    await event.reply({ msg_type: 2, markdown: { content: '<qqbot-at-everyone /> 测试 at 全体成员' } });
+  }
+  if (content === '测试md') {
     await event.reply({
       msg_type: 2,
       markdown: {
@@ -69,10 +72,28 @@ const handleMessage = async (client: Client, event: MessageEvent): Promise<void>
       },
     });
   }
+  if (content === '测试卡片') {
+    const url = await getPixivImageUrl();
+
+    await event.reply({
+      msg_type: 8,
+      card: {
+        type: 'tuwen',
+        content: {
+          title: '图文卡片',
+          description: '测试 msg_type=8 消息',
+          url: 'https://github.com/xueelf/chobits',
+          pic_url: url,
+        },
+      },
+    });
+  }
   if (content === '测试按钮') {
     await event.reply({
-      msg_type: 0,
-      content: '点击下方按钮测试互动事件。',
+      msg_type: 2,
+      markdown: {
+        content: '点击下方按钮测试互动事件。',
+      },
       keyboard: {
         content: {
           rows: [
