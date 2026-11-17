@@ -335,6 +335,7 @@ QQ 实际推送的部分事件与开发文档中的说明并不一致。以下�
 | `uploadUserFile`                           | 上传私聊文件               | `POST /v2/users/{user_openid}/files`                                   |
 | `prepareUserFileUpload`                    | 准备私聊文件分片上传       | `POST /v2/users/{user_id}/upload_prepare`                              |
 | `finishUserFileUploadPart`                 | 完成私聊文件分片上传       | `POST /v2/users/{user_id}/upload_part_finish`                          |
+| `getUserInfo`                              | 获取用户基本信息           | `GET /v2/users/{user_openid}/info`                                     |
 | `sendGroupMessage`                         | 发送群聊消息               | `POST /v2/groups/{group_openid}/messages`                              |
 | `recallGroupMessage`                       | 撤回群聊消息               | `DELETE /v2/groups/{group_openid}/messages/{message_id}`               |
 | `uploadGroupFile`                          | 上传群聊文件               | `POST /v2/groups/{group_openid}/files`                                 |

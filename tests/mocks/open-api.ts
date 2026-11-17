@@ -19,11 +19,19 @@ import {
   type GroupInfo,
   type GroupJoinApprovalStrategyList,
   type GroupJoinApprovalStrategyWhitelist,
+  type GroupJoinRequestList,
   type GroupMessage,
+  type GroupMuteState,
   type UpdateGroupJoinApprovalStrategy,
 } from '#/api/groups';
 import { type MediaImage, type MediaImageList, type MediaImageUpload } from '#/api/media';
-import { type UserFile, type UserFileMultipartUpload, type UserMessage, type UserStreamMessage } from '#/api/users';
+import {
+  type UserFile,
+  type UserFileMultipartUpload,
+  type UserInfo,
+  type UserMessage,
+  type UserStreamMessage,
+} from '#/api/users';
 
 export class MockOpenApi {
   public invalidRequestData() {
@@ -256,7 +264,43 @@ export class MockOpenApi {
       group_class_text: '游戏',
       group_tags: [],
       group_member_num: 3,
+      union_group_openid: 'group-openid',
       ...data,
+    };
+  }
+
+  public getUserInfo(data: Partial<UserInfo> = {}): UserInfo {
+    return {
+      union_openid: 'user-openid',
+      username: 'user',
+      avatar: 'https://example.com/user-avatar.png',
+      allow_proactive_msg: true,
+      ...data,
+    };
+  }
+
+  public getGroupMuteState(): GroupMuteState {
+    return {
+      global_rule: {
+        mode: 'none',
+        schedule_rules: [],
+        recurring_rules: [],
+      },
+      members: [],
+    };
+  }
+
+  public setGroupMemberMute(): Record<string, never> {
+    return {};
+  }
+
+  public removeGroupMembers(): {
+    remove_members_result: string;
+    add_to_member_blacklist_fail_openids: string[];
+  } {
+    return {
+      remove_members_result: 'success',
+      add_to_member_blacklist_fail_openids: [],
     };
   }
 
@@ -267,6 +311,31 @@ export class MockOpenApi {
       allow_proactive_msg: true,
       recv_msg_setting: 'all',
       member_role: 'member',
+      ...data,
+    };
+  }
+
+  public reviewGroupJoinRequest(): Record<string, never> {
+    return {};
+  }
+
+  public getGroupJoinRequestList(data: Partial<GroupJoinRequestList> = {}): GroupJoinRequestList {
+    return {
+      list: [
+        {
+          join_request_id: 'join-request-id',
+          risk_tips: '',
+          union_openid: 'member-openid',
+          member_openid: 'member-openid',
+          username: 'member',
+          apply_at: new Date().toISOString(),
+          apply_source: 'self_apply',
+          invited_by: '',
+          bot: false,
+          verify_info: { method: 'verify_message', verify_message: '', review_qa_list: [] },
+        },
+      ],
+      next_cursor: '',
       ...data,
     };
   }

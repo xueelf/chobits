@@ -163,6 +163,8 @@ export interface GroupInfo {
   group_tags: string[];
   /** 群成员人数。 */
   group_member_num: number;
+  /** 跨应用关联群openid，当绑定了3方应用时有效。 */
+  union_group_openid: string;
 }
 
 /** 机器人在指定群中的状态信息。 */
@@ -209,12 +211,10 @@ export interface GroupMemberList {
   next_cursor: string;
 }
 
-/** 需要移除的成员 member_openid 列表，以及是否同时加入群黑名单。 */
+/** 需要移除的成员 member_openid 列表。 */
 export interface RemoveGroupMembersPayload {
   /** 需要移除的成员 member_openid 列表，单次最多 20 个 */
   member_openids: string[];
-  /** 是否同时加入群黑名单，默认 false */
-  add_to_member_blacklist?: boolean;
 }
 
 /** 群黑名单的分页游标和单页数量。 */
@@ -762,6 +762,7 @@ export default (request: EmbusInstance) => {
      * - group_class_text：群分类
      * - group_tags：群标签列表
      * - group_member_num：群成员人数
+     * - union_group_openid：跨应用关联群openid，当绑定了3方应用时有效
      * @throws 11253 应用无接口访问权限
      *
      * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_info.get.html}
@@ -845,9 +846,7 @@ export default (request: EmbusInstance) => {
     /**
      * 群成员批量移除
      *
-     * 批量移除群成员，单次最多 20 个，可选择同时加入黑名单。
-     *
-     * 该能力正在内邀接入中，敬请期待
+     * 批量移除群成员，单次最多 20 个openid。
      *
      * 接口频率限制：30 QPM
      *
@@ -856,7 +855,8 @@ export default (request: EmbusInstance) => {
      *
      * - remove_members_result：成功时返回 success
      * - add_to_member_blacklist_fail_openids：拉黑失败的 openid
-     * @throws 11253 应用无接口访问权限
+     * @throws 40103012 操作失败, 群主已经关闭操作权限
+     * @throws 40103011 操作失败, 机器人已经关闭操作权限
      *
      * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_batch_remove_members.post.html}
      */
@@ -866,7 +866,14 @@ export default (request: EmbusInstance) => {
     ): Promise<{
       /** 成功时返回 success */
       remove_members_result: string;
-      /** 拉黑失败的 openid */
+      /**
+       * 拉黑失败的 openid。
+       *
+       * @remarks
+       * 该字段未被文档收录，实际响应返回空数组。
+       *
+       * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_batch_remove_members.post.html}
+       */
       add_to_member_blacklist_fail_openids: string[];
     }> {
       return request.post(`/v2/groups/${group_openid}/batch_remove_members`, payload);
@@ -933,9 +940,6 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：60 QPM
      *
-     * @remarks
-     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
-     *
      * @param group_openid - 群OpenID
      * @param member_openid - 成员OpenID
      * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_approval_join_request_member_openid.post.html}
@@ -956,9 +960,6 @@ export default (request: EmbusInstance) => {
      * 机器人需拥有群管理员身份。
      *
      * 接口频率限制：30 QPM
-     *
-     * @remarks
-     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
      *
      * @param group_openid - 群OpenID
      * @returns
@@ -983,9 +984,6 @@ export default (request: EmbusInstance) => {
      *
      * 接口频率限制：30 QPM
      *
-     * @remarks
-     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
-     *
      * @param group_openid - 群OpenID
      * @returns
      *
@@ -1005,9 +1003,6 @@ export default (request: EmbusInstance) => {
      * 机器人需拥有群管理员身份，最大禁言时长为 30 天。
      *
      * 接口频率限制：60 QPM
-     *
-     * @remarks
-     * QQ 客户端无法将机器人设置为群管理员，实际请求返回 `11703 not group admin`。
      *
      * @param group_openid - 群OpenID
      * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_restrict_chat_setting.post.html}

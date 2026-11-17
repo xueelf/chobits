@@ -22,6 +22,12 @@ test('OpenAPI 基础响应', () => {
     msg: 'success',
     data: { url: 'https://example.com/share' },
   });
+  expect(api.getUserInfo()).toEqual({
+    union_openid: 'user-openid',
+    username: 'user',
+    avatar: 'https://example.com/user-avatar.png',
+    allow_proactive_msg: true,
+  });
 });
 
 test('菜单与面板响应', () => {
@@ -128,12 +134,35 @@ test('群信息与审批响应', () => {
     group_class_text: '游戏',
     group_tags: [],
     group_member_num: 3,
+    union_group_openid: 'group-openid',
+  });
+  expect(api.getGroupMuteState()).toEqual({
+    global_rule: { mode: 'none', schedule_rules: [], recurring_rules: [] },
+    members: [],
+  });
+  expect(api.setGroupMemberMute()).toEqual({});
+  expect(api.removeGroupMembers()).toEqual({
+    remove_members_result: 'success',
+    add_to_member_blacklist_fail_openids: [],
   });
   expect(api.getGroupBotState()).toMatchObject({
     member_openid: 'bot-member-openid',
     allow_proactive_msg: true,
     recv_msg_setting: 'all',
     member_role: 'member',
+  });
+  expect(api.reviewGroupJoinRequest()).toEqual({});
+  expect(api.getGroupJoinRequestList()).toMatchObject({
+    list: [
+      {
+        join_request_id: 'join-request-id',
+        member_openid: 'member-openid',
+        username: 'member',
+        apply_source: 'self_apply',
+        verify_info: { method: 'verify_message' },
+      },
+    ],
+    next_cursor: '',
   });
   expect(api.getGroupJoinApprovalStrategyList()).toMatchObject({
     strategies: [

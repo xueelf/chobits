@@ -157,6 +157,18 @@ export interface FinishUserFileUploadPartPayload {
   md5?: string;
 }
 
+/** 用户的基本信息。 */
+export interface UserInfo {
+  /** 跨应用关联用户openid，当绑定了3方应用时有效。 */
+  union_openid: string;
+  /** 用户名。 */
+  username: string;
+  /** 用户头像原图。 */
+  avatar: string;
+  /** 是否接收主动推送。true: 接受主动推送。 */
+  allow_proactive_msg: boolean;
+}
+
 /** 单聊消息。 */
 export interface UserMessage {
   /** 消息 ID，可用于后续撤回。 */
@@ -490,6 +502,28 @@ export default (request: EmbusInstance) => {
       payload: FinishUserFileUploadPartPayload,
     ): Promise<Record<string, never>> {
       return request.post(`/v2/users/${user_id}/upload_part_finish`, payload);
+    },
+
+    /**
+     * 获取用户基本信息
+     *
+     * 获取指定 openid 的用户信息。
+     *
+     * 接口频率限制：10 QPS
+     *
+     * @param user_openid - 用户 OpenID
+     * @returns
+     *
+     * - union_openid：跨应用关联用户openid，当绑定了3方应用时有效
+     * - username：用户名
+     * - avatar：用户头像原图
+     * - allow_proactive_msg：是否接收主动推送。true: 接受主动推送
+     * @throws 40184001 无好友关系
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_info.get.html}
+     */
+    getUserInfo(user_openid: string): Promise<UserInfo> {
+      return request.get(`/v2/users/${user_openid}/info`);
     },
   };
 };

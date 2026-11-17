@@ -573,6 +573,30 @@ test('群信息', async () => {
   ]);
 });
 
+test('用户信息', async () => {
+  const api = new MockOpenApi();
+  const requests: Request[] = [];
+  const userInfo = api.getUserInfo();
+
+  globalThis.fetch = mockFetch(async (input, init) => {
+    const request = toRequest(input, init);
+
+    if (request.url === 'https://api.bot.qq.com/app/getAppAccessToken') {
+      return Response.json(api.getAccessToken());
+    }
+    requests.push(request);
+    return Response.json(userInfo);
+  });
+
+  const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
+  const info = await client.getUserInfo('user');
+
+  expect(info).toEqual(userInfo);
+  expect(requests.map(request => [request.method, request.url])).toEqual([
+    ['GET', 'https://api.bot.qq.com/v2/users/user/info'],
+  ]);
+});
+
 test('群成员管理接口', async () => {
   const api = new MockOpenApi();
   const requests: Request[] = [];
@@ -584,17 +608,14 @@ test('群成员管理接口', async () => {
       return Response.json(api.getAccessToken());
     }
     requests.push(request);
-    return Response.json({});
+    return Response.json(request.url.endsWith('/batch_remove_members') ? api.removeGroupMembers() : {});
   });
 
   const client = new Client({ appId: 'app-id', clientSecret: 'secret' });
 
   await client.getGroupMemberList('group', { cursor: 'cursor' });
   await client.getGroupMemberInfo('group', 'member');
-  await client.removeGroupMembers('group', {
-    member_openids: ['member'],
-    add_to_member_blacklist: true,
-  });
+  const removed = await client.removeGroupMembers('group', { member_openids: ['member'] });
   await client.getGroupMemberBlacklist('group', { cursor: 'cursor', limit: 20 });
   await client.updateGroupMemberBlacklist('group', { op: 'add', member_openids: ['member'] });
 
@@ -607,10 +628,8 @@ test('群成员管理接口', async () => {
   ]);
   const [, , removeRequest, , blacklistRequest] = requests;
 
-  expect(await readRequestBody(removeRequest)).toEqual({
-    member_openids: ['member'],
-    add_to_member_blacklist: true,
-  });
+  expect(removed).toEqual(api.removeGroupMembers());
+  expect(await readRequestBody(removeRequest)).toEqual({ member_openids: ['member'] });
   expect(await readRequestBody(blacklistRequest)).toEqual({ op: 'add', member_openids: ['member'] });
 });
 
