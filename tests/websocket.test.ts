@@ -97,12 +97,17 @@ test('WebSocket 消息字段', () => {
         bot: true,
         id: 'bot-openid',
         is_you: true,
+        member_nickname: 'bot',
         member_openid: 'bot-openid',
         member_role: 'member',
         scope: 'single',
         username: 'bot',
       },
     ],
+  });
+  const groupAll = gateway.sendGroupMessage({
+    content: '<@all> 测试全体',
+    mentions: [{ is_you: true, scope: 'all', username: '全体成员' }],
   });
   const groupQuote = gateway.sendGroupMessage({
     content: ' 引用消息',
@@ -136,6 +141,20 @@ test('WebSocket 消息字段', () => {
     voice_wav_url: 'https://example.com/voice.wav',
   });
   expect(mention).toMatchObject({ is_you: true, scope: 'single' });
+  expect(userImage.d.author).toMatchObject({
+    avatar: 'https://example.com/user-avatar.png',
+    union_openid: 'user-openid',
+    user_openid: 'user-openid',
+    username: 'user',
+  });
+  expect(groupVoice.d.author).toMatchObject({
+    avatar: 'https://example.com/member-avatar.png',
+    member_nickname: 'member',
+    union_openid: 'member-openid',
+  });
+  expect(groupVoice.d.union_group_openid).toBe('group-openid');
+  expect(groupMention.d.mentions?.[0]).toMatchObject({ member_nickname: 'bot' });
+  expect(groupAll.d.mentions).toEqual([{ is_you: true, scope: 'all', username: '全体成员' }]);
   expect(groupQuote.d).toMatchObject({
     message_type: 103,
     msg_elements: [{ content: '语音消息', message_type: 103, msg_idx: 'referenced-message-index' }],
@@ -154,6 +173,7 @@ test('WebSocket 事件字段', () => {
     groupMessageReject: gateway.sendGroupMessageReject(),
     groupMemberAdd: gateway.sendGroupMemberAdd(),
     groupMemberRemove: gateway.sendGroupMemberRemove(),
+    groupJoinRequest: gateway.sendGroupJoinRequest(),
     userButton: gateway.sendUserButtonInteraction(),
     groupButton: gateway.sendGroupButtonInteraction(),
     userAuthorize: gateway.sendUserAuthorizeInteraction(),
@@ -186,6 +206,7 @@ test('WebSocket 事件字段', () => {
     'GROUP_MSG_REJECT',
     'GROUP_MEMBER_ADD',
     'GROUP_MEMBER_REMOVE',
+    'GROUP_JOIN_REQUEST',
     'INTERACTION_CREATE',
     'INTERACTION_CREATE',
     'INTERACTION_CREATE',
@@ -198,6 +219,22 @@ test('WebSocket 事件字段', () => {
   expect(payloads.friendAdd.d).not.toHaveProperty('short_code');
   expect(payloads.groupMemberAdd.d).not.toHaveProperty('user_openid');
   expect(payloads.groupMemberRemove.d).not.toHaveProperty('user_openid');
+  expect(payloads.groupMemberAdd.d).toMatchObject({
+    union_group_openid: 'group-openid',
+    union_openid: 'member-openid',
+  });
+  expect(payloads.groupMemberRemove.d).toMatchObject({
+    union_group_openid: 'group-openid',
+    union_openid: 'member-openid',
+  });
+  expect(payloads.groupJoinRequest.d).toMatchObject({
+    apply_source: 'self_apply',
+    group_openid: 'group-openid',
+    join_request_id: 'join-request-id',
+    member_openid: 'member-openid',
+    username: 'member',
+    verify_info: { method: 'verify_message' },
+  });
   expect(payloads.userButton.d).not.toHaveProperty('union_openid');
   expect(payloads.userAuthorize.d).not.toHaveProperty('chat_type');
   expect(payloads.userAuthorize.d).not.toHaveProperty('union_openid');
@@ -271,11 +308,13 @@ test('回复消息', async () => {
   gateway.sendGroupAtMessage({
     id: 'message-id',
     author: {
+      avatar: 'https://example.com/member-avatar.png',
       bot: false,
       id: 'member',
+      member_nickname: 'member',
       member_openid: 'member',
       member_role: 'member',
-      union_openid: '',
+      union_openid: 'member-openid',
       username: 'member',
     },
     content: 'hello',
@@ -290,11 +329,13 @@ test('回复消息', async () => {
   gateway.sendGroupAtMessage({
     id: 'next-message-id',
     author: {
+      avatar: 'https://example.com/member-avatar.png',
       bot: false,
       id: 'member',
+      member_nickname: 'member',
       member_openid: 'member',
       member_role: 'member',
-      union_openid: '',
+      union_openid: 'member-openid',
       username: 'member',
     },
     content: 'next',

@@ -5,8 +5,10 @@ import {
   type GroupInteractionData,
   type UserInteractionData,
   createGroupEvent,
+  createGroupJoinRequest,
   createGroupMemberEvent,
   createGroupMessage,
+  createGroupMessageSettingEvent,
   createUserMessage,
 } from './payload';
 
@@ -157,13 +159,17 @@ export class MockGateway extends EventTarget {
   public sendGroupMessageReceive(
     data: Partial<DispatchData['GROUP_MSG_RECEIVE']> = {},
   ): DispatchPayload<'GROUP_MSG_RECEIVE', DispatchData['GROUP_MSG_RECEIVE']> {
-    return this.dispatch('GROUP_MSG_RECEIVE', createGroupEvent(data), { id: 'group-message-receive-event-id' });
+    return this.dispatch('GROUP_MSG_RECEIVE', createGroupMessageSettingEvent(data), {
+      id: 'group-message-receive-event-id',
+    });
   }
 
   public sendGroupMessageReject(
     data: Partial<DispatchData['GROUP_MSG_REJECT']> = {},
   ): DispatchPayload<'GROUP_MSG_REJECT', DispatchData['GROUP_MSG_REJECT']> {
-    return this.dispatch('GROUP_MSG_REJECT', createGroupEvent(data), { id: 'group-message-reject-event-id' });
+    return this.dispatch('GROUP_MSG_REJECT', createGroupMessageSettingEvent(data), {
+      id: 'group-message-reject-event-id',
+    });
   }
 
   public sendGroupMemberAdd(
@@ -176,6 +182,12 @@ export class MockGateway extends EventTarget {
     data: Partial<DispatchData['GROUP_MEMBER_REMOVE']> = {},
   ): DispatchPayload<'GROUP_MEMBER_REMOVE', DispatchData['GROUP_MEMBER_REMOVE']> {
     return this.dispatch('GROUP_MEMBER_REMOVE', createGroupMemberEvent(data), { id: 'group-member-remove-event-id' });
+  }
+
+  public sendGroupJoinRequest(
+    data: Partial<DispatchData['GROUP_JOIN_REQUEST']> = {},
+  ): DispatchPayload<'GROUP_JOIN_REQUEST', DispatchData['GROUP_JOIN_REQUEST']> {
+    return this.dispatch('GROUP_JOIN_REQUEST', createGroupJoinRequest(data), { id: 'group-join-request-event-id' });
   }
 
   public sendUserButtonInteraction(

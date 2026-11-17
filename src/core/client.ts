@@ -382,6 +382,18 @@ export class Client<
           }),
         );
       case 'GROUP_ADD_ROBOT':
+        return await this.emit(
+          payload.t,
+          deepFreeze({
+            ...payload.d,
+            reply: async message => {
+              return await this.sendGroupMessage(
+                payload.d.group_openid,
+                createReplyPayload(message, 'event_id', payload.id),
+              );
+            },
+          }),
+        );
       case 'GROUP_MSG_RECEIVE':
         return await this.emit(
           payload.t,
@@ -442,6 +454,7 @@ export class Client<
       case 'RESUMED':
         return await this.emit(payload.t, payload.d);
       case 'GROUP_DEL_ROBOT':
+        return await this.emit(payload.t, payload.d);
       case 'GROUP_MSG_REJECT':
         return await this.emit(payload.t, payload.d);
       case 'GROUP_MEMBER_ADD':

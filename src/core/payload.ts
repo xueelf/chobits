@@ -177,60 +177,97 @@ export interface AuthorizeData {
   switch?: boolean;
 }
 
-/** QQ 用户或机器人信息。 */
+/**
+ * 用户对象。
+ *
+ * 用户对象中所涉及的 ID 类数据，都仅在机器人场景流通，与真实的 ID 无关。请不要理解为真实的 ID。
+ *
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/openapi/user/model.html}
+ */
 export interface User {
-  /** 用户 ID。 */
+  /** 用户 id。 */
   id: string;
-  /** 用户名称。 */
+  /** 用户名。 */
+  username?: string;
+  /** 用户头像地址。 */
+  avatar?: string;
+  /** 是否是机器人。 */
+  bot?: boolean;
+  /** 特殊关联应用的 openid，需要特殊申请并配置后才会返回。如需申请，请联系平台运营人员。 */
+  union_openid?: string;
+  /** 机器人关联的互联应用的用户信息，与union_openid关联的应用是同一个。如需申请，请联系平台运营人员。 */
+  union_user_account?: string;
+}
+
+/** 单聊消息的发送者。 */
+export interface C2CUser {
+  /** 用户唯一标识（OpenID 格式）。 */
+  id: string;
+  /** 用户昵称。 */
+  username?: string;
+  /** 用户头像 URL。 */
+  avatar?: string;
+  /** 是否为机器人。 */
+  bot?: boolean;
+  /** 跨应用关联用户openid，当绑定了3方应用时有效。 */
+  union_openid?: string;
+  /** 用户 OpenID。 */
+  user_openid: string;
+}
+
+/** 群聊消息的发送者。 */
+export interface GroupUser {
+  /** 用户唯一标识（OpenID 格式）。 */
+  id: string;
+  /** 用户昵称。 */
+  username?: string;
+  /** 用户头像 URL。 */
+  avatar?: string;
+  /** 是否为机器人。 */
+  bot?: boolean;
+  /** 跨应用关联用户openid，当绑定了3方应用时有效。 */
+  union_openid?: string;
+  /** 群成员 OpenID。 */
+  member_openid: string;
+  /** 群内角色。member=普通成员, admin=管理员, owner=群主。 */
+  member_role?: string;
+  /** 群场景：用户在群内的昵称。 */
+  member_nickname?: string;
+}
+
+/**
+ * 群消息中提及的用户。
+ *
+ * @remarks
+ * 官方文档将 `id` 和 `member_openid` 列为字段，实测 @全体成员 的条目只有 `is_you`、`scope` 和 `username`，其中 `is_you` 为 `true`。
+ *
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
+ * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
+ */
+export interface GroupMentionsUser {
+  /** 用户唯一标识（OpenID 格式）。 */
+  id?: string;
+  /** 用户昵称。 */
   username?: string;
   /** 是否为机器人。 */
   bot?: boolean;
-  /**
-   * 用户状态。
-   *
-   * @remarks
-   * 该字段未被文档收录，WebSocket `READY` Payload 实际返回 `1`。
-   *
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
-   */
-  status?: number;
-  /** 用户跨应用的 UnionOpenID。 */
-  union_openid?: string;
-  /** 用户跨应用的 UnionUserAccount。 */
-  union_user_account?: string;
-  /** 私聊场景的用户 OpenID。 */
-  user_openid?: string;
-  /** 群聊场景的成员 OpenID。 */
+  /** 群成员 OpenID（群聊场景使用）。 */
   member_openid?: string;
-  /** 群成员角色。 */
+  /** 群内角色。member=普通成员, admin=管理员, owner=群主。 */
   member_role?: string;
-  /**
-   * 是否为当前机器人。
-   *
-   * @remarks
-   * 该字段未被文档收录，群消息中提及当前机器人时实际返回 `true`。
-   *
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
-   */
+  /** 用户在群内的昵称。 */
+  member_nickname?: string;
+  /** 是否是@的当前bot。 */
   is_you?: boolean;
-  /**
-   * 提及范围。
-   *
-   * @remarks
-   * 该字段未被文档收录，群消息中提及当前机器人时实际返回 `single`。
-   *
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
-   * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
-   */
+  /** all：@全体成员，single：指定@对象。 */
   scope?: string;
 }
 
-/** 消息来源场景。 */
+/** 消息场景上下文。 */
 export interface MessageScene {
-  /** 消息来源。 */
+  /** 场景来源。default=默认聊天窗口 */
   source: string;
-  /** 场景扩展信息。 */
+  /** 扩展数据列表，key=value 格式: msg_idx=消息索引, 用于引用场景 ref_msg_idx=引用的消息索引 auth_token=鉴权令牌 */
   ext: string[];
 }
 
@@ -256,27 +293,27 @@ export interface MessageAttachment {
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/c2c_message_create.html}
    */
   content?: string;
-  /** 附件 URL。 */
+  /** 附件下载 URL。 */
   url?: string;
-  /** 附件文件名。 */
+  /** 文件名。 */
   filename?: string;
-  /** 图片宽度。 */
+  /** 图片宽度（像素），非图片附件无此字段。 */
   width?: number;
-  /** 图片高度。 */
+  /** 图片高度（像素），非图片附件无此字段。 */
   height?: number;
-  /** 附件大小。 */
+  /** 文件大小（字节）。 */
   size?: number;
-  /** 附件内容类型。 */
+  /** 附件内容类型（MIME 类型）: voice=语音消息 image/jpeg=JPEG 图片 image/png=PNG 图片 image/gif=GIF 图片 video/mp4=MP4 视频 file=群文件。 */
   content_type?: string;
-  /** 语音附件的 WAV URL。 */
+  /** 语音消息 SILK 等转换后的 WAV 文件 URL。 */
   voice_wav_url?: string;
-  /** 语音识别参考文本。 */
+  /** 语音消息 ASR 参考结果。 */
   asr_refer_text?: string;
 }
 
 /** 收到的消息中的 ARK 数据。 */
 export interface ARKData {
-  /** ARK 提示文本。 */
+  /** 卡片消息中的用户操作提示文本。 */
   prompt?: string;
   /**
    * ARK 类型。
@@ -293,27 +330,25 @@ export interface ARKData {
    * - picture = 图片
    */
   ark_type?: string;
-  /** ARK 名称。 */
+  /** 卡片消息类型的中文名称，如「图文 H5」、「小程序」、「图文卡片」。 */
   ark_name?: string;
-  /** ARK 字段数据。 */
+  /** 卡片消息字段，常见键名: tag/tags=来源标签, title=标题, desc=描述, jump_url=跳转链接, preview=预览图, source=来源名称, source_logo=来源图标, tag_icon=标签图标, nickname=昵称, avatar=头像, address=地址。 */
   fields?: Record<string, unknown>;
 }
 
 /** 收到的消息中的元素。 */
 export interface MsgElement {
-  /** 消息元素索引。 */
+  /** 消息元素在列表中的引用消息索引。 */
   msg_idx?: string;
-  /** 消息元素作者。 */
-  author?: User;
-  /** 官方定义的入站消息类型。 */
+  /** 消息内容类型: 0=普通文本, 3=结构化卡片, 101=并行消息, 102=聊天记录, 103=引用消息。 */
   message_type?: number;
-  /** 文本内容。 */
+  /** 消息正文内容。 */
   content?: string;
-  /** 附件列表。 */
+  /** 该元素携带的附件。 */
   attachments?: MessageAttachment[];
-  /** ARK 数据。 */
+  /** 结构化卡片消息数据（message_type=3 时有值）。 */
   ark_data?: ARKData;
-  /** 嵌套消息元素。 */
+  /** 嵌套消息元素列表（递归结构）。 */
   msg_elements?: MsgElement[];
 }
 
@@ -325,29 +360,40 @@ export type DispatchData = {
     /** 当前会话 ID。 */
     session_id: string;
     /** 当前机器人用户信息。 */
-    user: User & Required<Pick<User, 'username' | 'bot' | 'status'>>;
+    user: User &
+      Required<Pick<User, 'username' | 'bot'>> & {
+        /**
+         * 用户状态。
+         *
+         * @remarks
+         * 该字段未被文档收录，WebSocket `READY` Payload 实际返回 `1`。
+         *
+         * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/dev-prepare/event-emit/websocket.html}
+         */
+        status: number;
+      };
     /** 当前分片信息。 */
     shard: [number, number];
   };
   RESUMED: '';
   C2C_MESSAGE_CREATE: {
-    /** 消息 ID。 */
+    /** 消息 ID，可用于被动回复和撤回。 */
     id: string;
-    /** 消息发送者。 */
-    author: User & Required<Pick<User, 'username' | 'bot' | 'union_openid' | 'user_openid'>>;
+    /** 发送者（user_openid 有值）。 */
+    author: C2CUser & Required<Pick<C2CUser, 'username' | 'avatar' | 'bot' | 'union_openid'>>;
     /** 消息文本内容。 */
     content: string;
-    /** 消息发送时间。 */
+    /** 消息发送时间，RFC3339 格式。 */
     timestamp: string;
-    /** 官方定义的入站消息类型。 */
+    /** 消息内容类型: 0=普通文本, 3=结构化卡片, 101=并行消息, 102=聊天记录, 103=引用消息。 */
     message_type: number;
-    /** 消息来源场景。 */
+    /** 消息场景上下文（含消息索引、鉴权令牌等）。 */
     message_scene: MessageScene;
-    /** 消息附件。 */
+    /** 消息附件（图片、文件、语音等）。 */
     attachments?: MessageAttachment[];
-    /** ARK 数据。 */
+    /** 结构化卡片消息数据（message_type=3 时有值）。 */
     ark_data?: ARKData;
-    /** 消息元素。 */
+    /** 消息元素列表（message_type=103 引用消息时包含被引用内容）。 */
     msg_elements?: MsgElement[];
     /**
      * 并行消息数据。
@@ -360,16 +406,27 @@ export type DispatchData = {
     parallel_message?: ParallelMessage;
   };
   GROUP_AT_MESSAGE_CREATE: {
-    /** 消息 ID。 */
+    /** 消息 ID，可用于被动回复和撤回。 */
     id: string;
-    /** 消息发送者。 */
-    author: User & Required<Pick<User, 'username' | 'bot' | 'union_openid' | 'member_openid' | 'member_role'>>;
+    /** 发送者（member_openid 有值）。 */
+    author: GroupUser &
+      Required<
+        Pick<
+          GroupUser,
+          'username' | 'avatar' | 'bot' | 'union_openid' | 'member_openid' | 'member_role' | 'member_nickname'
+        >
+      >;
     /**
      * 消息文本内容。
      *
      * 群消息（全量模式）中，消息中 @ 某成员时，会替换为 <@ + 该成员的 member_openid + >（如 <@7A3B9C1D5E2F4A6B8C0D1E3F5A7B9C2D>）。
      * 消息中 @全体成员时，会替换为 <@all>。
      * 被 @ 的成员列表见 mentions 字段。
+     *
+     * @remarks
+     * 官方文档说明群 @ 机器人消息已去除 @ 机器人前缀，实测该事件还会去除其他成员的 @ 内容。
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
      */
     content: string;
     /** 群 OpenID。 */
@@ -384,25 +441,35 @@ export type DispatchData = {
      * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
      */
     group_id: string;
-    /** 消息发送时间。 */
+    /** 消息发送时间，RFC3339 格式。 */
     timestamp: string;
-    /** 官方定义的入站消息类型。 */
+    /** 消息内容类型（同 C2C_MESSAGE_CREATE）。 */
     message_type: number;
-    /** 消息来源场景。 */
+    /** 消息场景上下文。 */
     message_scene: MessageScene;
     /** 消息附件。 */
     attachments?: MessageAttachment[];
-    /** 消息中提及的用户。 */
-    mentions?: User[];
-    /** ARK 数据。 */
+    /**
+     * 消息中@的用户列表。
+     *
+     * @remarks
+     * 官方文档为群 @ 机器人消息定义该字段，实测该事件不返回该字段。群消息（全量模式）会返回该字段。
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html}
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
+     */
+    mentions?: GroupMentionsUser[];
+    /** 结构化卡片消息数据。 */
     ark_data?: ARKData;
-    /** 消息元素。 */
+    /** 消息元素列表。 */
     msg_elements?: MsgElement[];
+    /** 跨应用关联群openid，当绑定了3方应用时有效。 */
+    union_group_openid: string;
     /**
      * 并行消息数据。
      *
      * @remarks
-     * 该字段未被文档收录，Webhook 引用消息实测返回该字段。
+     * 该字段未被文档收录，WebSocket 与 Webhook 的引用消息实测均返回该字段。
      *
      * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html}
      */
@@ -410,28 +477,57 @@ export type DispatchData = {
   };
   GROUP_MESSAGE_CREATE: DispatchData['GROUP_AT_MESSAGE_CREATE'];
   GROUP_ADD_ROBOT: {
-    /** 事件发生时间。 */
+    /** 加入时间戳（Unix 秒）。 */
     timestamp: number;
     /** 群 OpenID。 */
     group_openid: string;
-    /** 执行操作的群成员 OpenID。 */
+    /** 操作添加机器人进群的群成员 OpenID。 */
+    op_member_openid: string;
+    /** 跨应用关联群openid，当绑定了3方应用时有效。 */
+    union_group_openid: string;
+  };
+  GROUP_DEL_ROBOT: {
+    /** 移除时间戳（Unix 秒）。 */
+    timestamp: number;
+    /** 群 OpenID。 */
+    group_openid: string;
+    /** 操作移除机器人退群的群成员 OpenID。 */
+    op_member_openid: string;
+    /** 跨应用关联群openid，当绑定了3方应用时有效。 */
+    union_group_openid: string;
+  };
+  GROUP_MSG_RECEIVE: {
+    /** 操作时间戳（Unix 秒）。 */
+    timestamp: number;
+    /** 群 OpenID。 */
+    group_openid: string;
+    /** 操作群成员 OpenID。 */
     op_member_openid: string;
   };
-  GROUP_DEL_ROBOT: DispatchData['GROUP_ADD_ROBOT'];
-  GROUP_MSG_RECEIVE: DispatchData['GROUP_ADD_ROBOT'];
-  GROUP_MSG_REJECT: DispatchData['GROUP_ADD_ROBOT'];
+  GROUP_MSG_REJECT: DispatchData['GROUP_MSG_RECEIVE'];
   /** 群成员加入事件。 */
   GROUP_MEMBER_ADD: {
-    /** 事件发生时间。 */
+    /** 事件时间戳（Unix 秒）。 */
     timestamp: number;
     /** 群 OpenID。 */
     group_openid: string;
-    /** 群成员 OpenID。 */
+    /** 新加入成员的 OpenID。 */
     member_openid: string;
+    /**
+     * 跨应用关联用户openid。
+     *
+     * @remarks
+     * 该字段未被文档收录，未绑定 3 方应用时实测返回与 `member_openid` 相同的值。
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_add.html}
+     */
+    union_openid: string;
+    /** 跨应用关联群openid，当绑定了3方应用时有效。 */
+    union_group_openid: string;
   };
   /** 群成员退出事件。 */
   GROUP_MEMBER_REMOVE: {
-    /** 事件发生时间。 */
+    /** 事件时间戳（Unix 秒）。 */
     timestamp: number;
     /** 群 OpenID。 */
     group_openid: string;
@@ -441,11 +537,22 @@ export type DispatchData = {
      * 退出成员的用户 OpenID（可能为空）。
      *
      * @remarks
-     * WebSocket 与 Webhook 实测均未返回该字段。
+     * WebSocket 实测返回 `union_openid`，未返回该字段。
      *
      * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html}
      */
     user_openid?: string;
+    /**
+     * 跨应用关联用户openid。
+     *
+     * @remarks
+     * 该字段未被文档收录，未绑定 3 方应用时实测返回与 `member_openid` 相同的值。
+     *
+     * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_member_remove.html}
+     */
+    union_openid: string;
+    /** 跨应用关联群openid，当绑定了3方应用时有效。 */
+    union_group_openid: string;
   };
   /**
    * 订阅消息授权状态变更事件。
@@ -465,9 +572,6 @@ export type DispatchData = {
   };
   /**
    * 用户入群申请事件。
-   *
-   * @remarks
-   * 实测提交入群申请时，WebSocket 和 Webhook 均未收到该事件，同意申请后收到 `GROUP_MEMBER_ADD`。
    *
    * @see {@link https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_join_request.html}
    */
